@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Bibelvers-Trainer</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=Inter:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;min-height:100vh;background:radial-gradient(ellipse at 0% 0%,#3b0764 0%,transparent 45%),radial-gradient(ellipse at 100% 0%,#1e1b4b 0%,transparent 45%),radial-gradient(ellipse at 50% 60%,#0f172a 0%,transparent 60%),radial-gradient(ellipse at 80% 100%,#1a0533 0%,transparent 50%),radial-gradient(ellipse at 20% 100%,#0c1445 0%,transparent 50%),linear-gradient(160deg,#0d0618 0%,#0f0c29 50%,#0a0a1a 100%);position:relative;overflow-x:hidden;}
+.orb1{position:fixed;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.22) 0%,transparent 70%);top:-80px;left:-80px;pointer-events:none;z-index:0;}
+.orb2{position:fixed;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,.18) 0%,transparent 70%);top:40px;right:-60px;pointer-events:none;z-index:0;}
+.orb3{position:fixed;width:400px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,.12) 0%,transparent 70%);bottom:0;left:50%;transform:translateX(-50%);pointer-events:none;z-index:0;}
+.stars{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:radial-gradient(1px 1px at 8% 12%,rgba(255,255,255,.7) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 22% 35%,rgba(255,255,255,.5) 0%,transparent 100%),radial-gradient(1px 1px at 38% 8%,rgba(255,255,255,.8) 0%,transparent 100%),radial-gradient(1px 1px at 55% 25%,rgba(255,255,255,.4) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 72% 15%,rgba(255,255,255,.7) 0%,transparent 100%),radial-gradient(1px 1px at 88% 40%,rgba(255,255,255,.5) 0%,transparent 100%),radial-gradient(1px 1px at 15% 65%,rgba(255,255,255,.4) 0%,transparent 100%),radial-gradient(1px 1px at 45% 78%,rgba(255,255,255,.6) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 78% 70%,rgba(255,255,255,.3) 0%,transparent 100%),radial-gradient(1px 1px at 92% 85%,rgba(255,255,255,.5) 0%,transparent 100%);}
+#app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:2rem 1.25rem 3rem;}
+.loader{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;gap:14px;}
+.spinner{width:36px;height:36px;border:3px solid rgba(196,181,253,.15);border-top-color:rgba(167,139,250,.7);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader-text{font-size:13px;color:rgba(196,181,253,.4);}
+.hidden{display:none!important;}
+.sync-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:rgba(134,239,172,.6);background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.15);border-radius:20px;padding:3px 9px;margin-bottom:6px;}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:#86efac;display:inline-block;}
+.logo-wrap{text-align:center;padding:1.5rem 0 2rem;}
+.halo{width:76px;height:76px;border-radius:50%;margin:0 auto 14px;background:linear-gradient(135deg,rgba(168,85,247,.4),rgba(99,102,241,.4));border:1.5px solid rgba(196,181,253,.4);display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px rgba(139,92,246,.4),0 0 80px rgba(139,92,246,.15),inset 0 0 20px rgba(139,92,246,.15);}
+.halo-cross{font-size:30px;color:rgba(221,214,254,.9);}
+.app-title{font-family:'Lora',serif;font-size:26px;font-weight:600;color:#ede9fe;letter-spacing:.3px;}
+.app-sub{font-size:13px;color:rgba(196,181,253,.45);margin-top:5px;}
+.user-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:14px;}
+.user-card{padding:18px 12px;border-radius:18px;cursor:pointer;text-align:center;background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(139,92,246,.07));border:1px solid rgba(196,181,253,.15);transition:transform .18s,box-shadow .18s;}
+.user-card:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(139,92,246,.25);}
+.user-avatar{width:54px;height:54px;border-radius:50%;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:26px;border:2px solid rgba(255,255,255,.15);}
+.user-name{font-size:14px;font-weight:500;color:rgba(237,233,254,.9);}
+.user-count{font-size:11px;color:rgba(196,181,253,.38);margin-top:3px;}
+.add-user-btn{width:100%;padding:13px;border-radius:14px;cursor:pointer;background:linear-gradient(135deg,rgba(255,255,255,.04),rgba(139,92,246,.05));border:1px dashed rgba(196,181,253,.25);color:rgba(196,181,253,.5);font-size:14px;transition:all .18s;}
+.add-user-btn:hover{border-color:rgba(196,181,253,.45);color:rgba(196,181,253,.8);background:rgba(139,92,246,.08);}
+.modal-overlay{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);}
+.modal{width:100%;max-width:340px;margin:0 1rem;padding:24px;border-radius:22px;background:linear-gradient(145deg,rgba(30,20,60,.97),rgba(15,12,41,.97));border:1px solid rgba(196,181,253,.2);box-shadow:0 24px 64px rgba(0,0,0,.6);}
+.modal-title{font-family:'Lora',serif;font-size:20px;color:#ede9fe;margin-bottom:4px;}
+.modal-sub{font-size:13px;color:rgba(196,181,253,.45);margin-bottom:20px;}
+.m-label{font-size:11px;color:rgba(196,181,253,.5);font-weight:500;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:5px;}
+.m-input{width:100%;padding:9px 13px;border-radius:11px;outline:none;margin-bottom:12px;background:rgba(255,255,255,.07);border:1px solid rgba(196,181,253,.18);color:rgba(237,233,254,.9);font-size:14px;font-family:'Inter',sans-serif;transition:border-color .15s;}
+.m-input::placeholder{color:rgba(196,181,253,.25);}
+.m-input:focus{border-color:rgba(167,139,250,.55);background:rgba(139,92,246,.1);}
+.m-input.err{border-color:rgba(252,165,165,.5);}
+.err-msg{font-size:12px;color:#fca5a5;margin:-8px 0 10px;display:block;}
+.emoji-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.emoji-opt{width:34px;height:34px;border-radius:9px;border:1px solid rgba(196,181,253,.15);background:rgba(255,255,255,.05);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.emoji-opt.sel{border-color:rgba(167,139,250,.6);background:rgba(139,92,246,.2);}
+.color-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.color-opt{width:26px;height:26px;border-radius:50%;cursor:pointer;transition:transform .15s,box-shadow .15s;border:2px solid transparent;}
+.color-opt.sel{transform:scale(1.25);box-shadow:0 0 0 2px rgba(255,255,255,.4);}
+.modal-btns{display:flex;gap:8px;}
+.m-ghost{flex:1;padding:10px;border-radius:11px;background:rgba(255,255,255,.06);border:1px solid rgba(196,181,253,.15);color:rgba(196,181,253,.6);font-size:13px;font-weight:500;cursor:pointer;}
+.m-prim{flex:2;padding:10px;border-radius:11px;border:none;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:white;font-size:13px;font-weight:500;cursor:pointer;box-shadow:0 4px 16px rgba(99,102,241,.35);}
+.page-header{display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;}
+.back-btn{background:linear-gradient(135deg,rgba(139,92,246,.15),rgba(99,102,241,.1));border:1px solid rgba(196,181,253,.2);color:rgba(221,214,254,.8);cursor:pointer;font-size:18px;padding:6px 12px;border-radius:10px;transition:all .15s;}
+.back-btn:hover{background:rgba(139,92,246,.25);}
+.page-title{font-size:16px;font-weight:500;color:rgba(237,233,254,.9);}
+.menu-btn{width:100%;padding:16px 18px;border:none;cursor:pointer;display:flex;align-items:center;gap:14px;margin-bottom:10px;border-radius:18px;text-align:left;transition:transform .18s,box-shadow .18s;}
+.menu-btn:hover{transform:translateY(-2px);}
+.menu-edit{background:linear-gradient(135deg,rgba(255,255,255,.07),rgba(139,92,246,.08));border:1px solid rgba(196,181,253,.18);}
+.menu-train{background:linear-gradient(135deg,#7c3aed,#4f46e5 50%,#6d28d9);border:1px solid rgba(196,181,253,.3);box-shadow:0 8px 32px rgba(99,102,241,.4);}
+.menu-profile{background:linear-gradient(135deg,rgba(255,255,255,.05),rgba(99,102,241,.07));border:1px solid rgba(196,181,253,.14);}
+.menu-btn.disabled{opacity:.38;cursor:not-allowed;}
+.mc-icon{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.mc-icon-e{background:linear-gradient(135deg,rgba(139,92,246,.2),rgba(99,102,241,.15));border:1px solid rgba(196,181,253,.15);}
+.mc-icon-t{background:rgba(255,255,255,.15);}
+.mc-icon-p{background:linear-gradient(135deg,rgba(99,102,241,.18),rgba(139,92,246,.12));border:1px solid rgba(196,181,253,.12);}
+.mc-title{font-weight:500;font-size:15px;color:rgba(237,233,254,.95);margin-bottom:2px;}
+.mc-sub{font-size:12px;color:rgba(196,181,253,.5);}
+.stats{display:flex;gap:8px;margin-top:1rem;}
+.stat{flex:1;padding:12px 8px;border-radius:14px;text-align:center;background:linear-gradient(135deg,rgba(255,255,255,.05),rgba(139,92,246,.06));border:1px solid rgba(196,181,253,.12);}
+.stat-n{font-size:22px;font-weight:500;color:#c4b5fd;font-family:'Lora',serif;}
+.stat-l{font-size:11px;color:rgba(196,181,253,.38);margin-top:2px;}
+.form-panel{padding:16px;margin-bottom:14px;border-radius:20px;background:linear-gradient(135deg,rgba(255,255,255,.07),rgba(139,92,246,.07));border:1px solid rgba(196,181,253,.15);}
+.f-label{font-size:11px;color:rgba(196,181,253,.5);font-weight:500;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:5px;}
+.f-input{width:100%;padding:9px 13px;border-radius:11px;outline:none;background:rgba(255,255,255,.06);border:1px solid rgba(196,181,253,.15);color:rgba(237,233,254,.9);font-size:14px;font-family:'Inter',sans-serif;transition:border-color .15s;margin-bottom:10px;}
+.f-input::placeholder{color:rgba(196,181,253,.25);}
+.f-input:focus{border-color:rgba(167,139,250,.55);background:rgba(139,92,246,.08);}
+.f-textarea{min-height:80px;resize:vertical;line-height:1.5;}
+.save-btn{width:100%;padding:11px;border:none;border-radius:11px;background:linear-gradient(135deg,#8b5cf6,#6366f1 50%,#7c3aed);color:white;font-weight:500;font-size:14px;cursor:pointer;box-shadow:0 4px 20px rgba(99,102,241,.4);transition:opacity .15s;}
+.save-btn:hover{opacity:.88;}
+.save-btn:disabled{opacity:.4;cursor:default;}
+.cancel-lnk{background:none;border:none;color:rgba(196,181,253,.35);font-size:12px;cursor:pointer;width:100%;margin-top:6px;padding:4px;}
+.vlist{display:flex;flex-direction:column;gap:8px;}
+.vitem{padding:12px 14px;border-radius:14px;display:flex;gap:10px;align-items:flex-start;background:linear-gradient(135deg,rgba(255,255,255,.04),rgba(139,92,246,.05));border:1px solid rgba(196,181,253,.1);transition:border-color .15s;}
+.vitem:hover{border-color:rgba(167,139,250,.3);}
+.v-stelle{font-weight:500;font-size:13px;color:#c4b5fd;margin-bottom:3px;}
+.v-text{font-size:13px;color:rgba(196,181,253,.5);line-height:1.5;}
+.v-meta{font-size:11px;color:rgba(196,181,253,.28);margin-top:5px;display:flex;gap:8px;align-items:center;}
+.dots{display:flex;gap:3px;}
+.dot{width:7px;height:7px;border-radius:50%;}
+.ibtn{padding:6px 9px;border-radius:8px;border:none;cursor:pointer;font-size:13px;transition:all .15s;}
+.ibtn-e{background:rgba(139,92,246,.15);color:#c4b5fd;}
+.ibtn-d{background:rgba(239,68,68,.1);color:#f87171;}
+.ibtn-dc{background:rgba(239,68,68,.6);color:white;font-size:12px;}
+.empty{text-align:center;padding:2rem;color:rgba(196,181,253,.3);font-size:14px;}
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;}
+.prog-track{flex:1;height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,#a78bfa,#818cf8,#6d28d9);border-radius:2px;transition:width .4s ease;}
+.prog-lbl{font-size:12px;color:rgba(196,181,253,.4);white-space:nowrap;}
+.card-area{height:260px;perspective:1200px;margin-bottom:14px;cursor:pointer;user-select:none;}
+.flip-inner{width:100%;height:100%;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.4,0,.2,1);position:relative;}
+.flip-inner.flipped{transform:rotateY(180deg);}
+.f-face{position:absolute;width:100%;height:100%;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;overflow:hidden;}
+.f-front{background:linear-gradient(145deg,#4c1d95,#3730a3 40%,#1e1b4b 80%,#1a0533);border:1px solid rgba(196,181,253,.3);box-shadow:0 16px 48px rgba(79,70,229,.45),inset 0 1px 0 rgba(255,255,255,.12);}
+.f-front::before{content:'';position:absolute;top:-50%;left:-30%;width:70%;height:90%;background:radial-gradient(ellipse,rgba(196,181,253,.12),transparent 65%);pointer-events:none;}
+.f-front::after{content:'';position:absolute;bottom:-40%;right:-20%;width:60%;height:70%;background:radial-gradient(ellipse,rgba(99,102,241,.15),transparent 65%);pointer-events:none;}
+.f-back{background:linear-gradient(145deg,rgba(255,255,255,.09),rgba(139,92,246,.08) 50%,rgba(255,255,255,.05));border:1px solid rgba(196,181,253,.2);backdrop-filter:blur(20px);transform:rotateY(180deg);}
+.f-back::before{content:'';position:absolute;top:-30%;right:-20%;width:55%;height:70%;background:radial-gradient(ellipse,rgba(167,139,250,.1),transparent 65%);pointer-events:none;}
+.card-eyebrow{font-size:10px;letter-spacing:2px;font-weight:500;color:rgba(196,181,253,.45);text-transform:uppercase;margin-bottom:14px;position:relative;z-index:1;}
+.card-stelle{font-family:'Lora',serif;font-size:28px;font-weight:600;color:#ede9fe;line-height:1.3;margin-bottom:20px;position:relative;z-index:1;}
+.tap-hint{font-size:12px;color:rgba(196,181,253,.35);position:relative;z-index:1;}
+.back-eyebrow{font-size:10px;letter-spacing:2px;font-weight:500;color:rgba(196,181,253,.4);text-transform:uppercase;margin-bottom:14px;position:relative;z-index:1;}
+.back-verse{font-family:'Lora',serif;font-size:16px;line-height:1.8;color:rgba(237,233,254,.88);font-style:italic;position:relative;z-index:1;}
+.ans-row{display:flex;gap:10px;margin-bottom:10px;}
+.ans-btn{flex:1;padding:14px;border-radius:15px;font-weight:500;font-size:15px;cursor:pointer;transition:transform .15s;font-family:'Inter',sans-serif;}
+.ans-btn:hover{transform:translateY(-2px);}
+.ans-no{background:linear-gradient(135deg,rgba(239,68,68,.15),rgba(185,28,28,.1));border:1px solid rgba(252,165,165,.25);color:#fca5a5;}
+.ans-yes{background:linear-gradient(135deg,rgba(34,197,94,.15),rgba(21,128,61,.1));border:1px solid rgba(134,239,172,.25);color:#86efac;}
+.done-top{text-align:center;padding:1rem 0 1.25rem;}
+.done-emoji{font-size:54px;display:block;margin-bottom:10px;}
+.done-title{font-family:'Lora',serif;font-size:24px;font-weight:600;color:#ede9fe;margin-bottom:4px;}
+.done-sub{font-size:14px;color:rgba(196,181,253,.45);}
+.rdots{display:flex;gap:5px;justify-content:center;margin:14px 0;flex-wrap:wrap;}
+.rdot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.rdot-ok{background:rgba(34,197,94,.13);color:#86efac;border:1px solid rgba(34,197,94,.28);}
+.rdot-no{background:rgba(239,68,68,.1);color:#fca5a5;border:1px solid rgba(239,68,68,.22);}
+.rlist{display:flex;flex-direction:column;gap:7px;margin-bottom:14px;}
+.ritem{padding:10px 13px;border-radius:12px;display:flex;gap:10px;align-items:center;background:linear-gradient(135deg,rgba(255,255,255,.04),rgba(139,92,246,.05));border:1px solid rgba(196,181,253,.1);}
+.ri-marker{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.ri-stelle{font-weight:500;font-size:13px;color:#c4b5fd;margin-bottom:2px;}
+.ri-text{font-size:12px;color:rgba(196,181,253,.42);line-height:1.4;}
+.btn-row{display:flex;gap:8px;}
+.ghost-btn{flex:1;padding:12px;border-radius:13px;cursor:pointer;font-size:14px;font-weight:500;background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(139,92,246,.06));border:1px solid rgba(196,181,253,.15);color:rgba(196,181,253,.65);}
+.prim-btn{flex:2;padding:12px;border-radius:13px;border:none;cursor:pointer;font-size:14px;font-weight:500;background:linear-gradient(135deg,#8b5cf6,#6366f1 50%,#7c3aed);color:white;box-shadow:0 6px 24px rgba(99,102,241,.4);transition:opacity .15s;}
+.prim-btn:hover{opacity:.88;}
+.profile-hero{text-align:center;padding:1rem 0 1.5rem;}
+.profile-big-avatar{width:84px;height:84px;border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:38px;border:2.5px solid rgba(255,255,255,.2);}
+.profile-name{font-family:'Lora',serif;font-size:22px;font-weight:600;color:#ede9fe;}
+.profile-meta{font-size:12px;color:rgba(196,181,253,.4);margin-top:3px;}
+.section-label{font-size:11px;color:rgba(196,181,253,.4);font-weight:500;letter-spacing:.8px;text-transform:uppercase;margin:0 0 8px 2px;}
+.profile-section{margin-bottom:18px;}
+.success-msg{font-size:12px;color:#86efac;margin-top:6px;display:block;}
+.danger-zone{margin-top:8px;padding:14px;border-radius:16px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15);}
+.danger-title{font-size:13px;font-weight:500;color:#fca5a5;margin-bottom:6px;}
+.danger-sub{font-size:12px;color:rgba(252,165,165,.5);margin-bottom:10px;line-height:1.5;}
+.danger-btn{padding:9px 16px;border-radius:10px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.1);color:#fca5a5;font-size:13px;font-weight:500;cursor:pointer;}
+.danger-btn-confirm{background:rgba(239,68,68,.6);color:white;border-color:transparent;}
+.invisible{visibility:hidden;}
+</style>
+</head>
+<body>
+<div class="orb1"></div><div class="orb2"></div><div class="orb3"></div>
+<div class="stars"></div>
+<div id="app"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// ── Firebase config ──────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyDBiwkGCpXWUm1ZZ7Qpjtr2U1Mn1xcPKdM",
+  authDomain: "bibelvers-trainer.firebaseapp.com",
+  projectId: "bibelvers-trainer",
+  storageBucket: "bibelvers-trainer.firebasestorage.app",
+  messagingSenderId: "56194333927",
+  appId: "1:56194333927:web:d89d7fc9409b93941a3642"
+};
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+async function fbGet(path) {
+  const parts = path.split("/");
+  const snap  = await getDoc(doc(db, parts[0], parts[1]));
+  return snap.exists() ? snap.data() : null;
+}
+async function fbSet(path, data) {
+  const parts = path.split("/");
+  await setDoc(doc(db, parts[0], parts[1]), data);
+}
+async function fbDel(path) {
+  const parts = path.split("/");
+  await deleteDoc(doc(db, parts[0], parts[1]));
+}
+
+// ── Constants ────────────────────────────────────────────────────
+const PALETTE = ["#8b5cf6","#6366f1","#ec4899","#f97316","#14b8a6","#10b981","#3b82f6","#f59e0b"];
+const EMOJIS  = ["✝","🕊","📖","🌟","🙏","⚓","🌿","💎","🔥","🌙"];
+const initialUsers   = [{ id:"ben", name:"Ben", pw:"P23", color:"#8b5cf6", emoji:"✝" }];
+const defaultVerses  = [
+  { id:1, stelle:"Johannes 3,16", text:"Denn also hat Gott die Welt geliebt, dass er seinen eingeborenen Sohn gab, damit jeder, der an ihn glaubt, nicht verloren gehe, sondern ewiges Leben habe.", added:Date.now()-1000000, score:3, attempts:5 },
+  { id:2, stelle:"Psalm 23,1",    text:"Der HERR ist mein Hirte, mir wird nichts mangeln.", added:Date.now()-800000, score:1, attempts:2 },
+  { id:3, stelle:"Römer 8,28",    text:"Wir wissen aber, dass denen, die Gott lieben, alle Dinge zum Besten mitwirken, denen, die nach seinem Ratschluss berufen sind.", added:Date.now()-600000, score:0, attempts:1 },
+];
+
+// ── State ────────────────────────────────────────────────────────
+let state = {
+  users:[], verseCounts:{}, activeUser:null, verses:[],
+  mode:"select", // select | menu | edit | train | done | profile
+  editId:null, editStelle:"", editText:"",
+  session:[], cardIdx:0, flipped:false, results:[],
+  delConfirm:null, delUserConfirm:false,
+  modal:null, loginTarget:null, pwInput:"", pwError:false,
+  newName:"", newPw:"", newPw2:"", newEmoji:"✝", newColor:PALETTE[0], newErr:"",
+  profEmoji:"", profColor:"", profPwOld:"", profPwNew:"", profPwNew2:"", profPwErr:"", profPwOk:false,
+};
+
+function set(patch) { Object.assign(state, patch); render(); }
+
+// ── Firebase helpers ─────────────────────────────────────────────
+async function persistUsers(list) {
+  state.users = list;
+  await fbSet("app/users", { list });
+  render();
+}
+async function persistVerses(uid, list) {
+  state.verses = list;
+  state.verseCounts = { ...state.verseCounts, [uid]: list.length };
+  await fbSet(`verses/${uid}`, { list });
+  render();
+}
+
+// ── Spaced repetition ────────────────────────────────────────────
+function getWeight(v) {
+  const ageDays = (Date.now()-v.added)/86400000;
+  const nb = ageDays<2?4:ageDays<7?2:1;
+  const eb = Math.max(0,(v.attempts-v.score*2))*2;
+  const mp = v.score>4?Math.pow(0.5,v.score-4):1;
+  return Math.max(0.1,(nb+eb+1)*mp);
+}
+function pickTen(verses) {
+  if (!verses.length) return [];
+  const w = verses.map(getWeight), total=w.reduce((a,b)=>a+b,0);
+  const chosen=[],used=new Set(), count=Math.min(10,verses.length);
+  let tries=0;
+  while(chosen.length<count&&tries<500){
+    tries++; let r=Math.random()*total;
+    for(let i=0;i<verses.length;i++){ r-=w[i]; if(r<=0&&!used.has(i)){used.add(i);chosen.push({...verses[i]});break;} }
+  }
+  return chosen.sort(()=>Math.random()-0.5);
+}
+
+// ── Render ───────────────────────────────────────────────────────
+function el(tag, attrs={}, ...children) {
+  const e = document.createElement(tag);
+  for (const [k,v] of Object.entries(attrs)) {
+    if (k==="class") e.className=v;
+    else if (k.startsWith("on")) e[k]=v;
+    else e.setAttribute(k,v);
+  }
+  for (const c of children.flat()) {
+    if (c==null) continue;
+    e.appendChild(typeof c==="string" ? document.createTextNode(c) : c);
+  }
+  return e;
+}
+function div(cls,...ch) { return el("div",{class:cls},...ch); }
+function btn(cls,label,onclick) { return el("button",{class:cls,onclick},label); }
+function scoreDots(score) {
+  return div("dots", ...[0,1,2,3,4].map(i=>{
+    const d=div("dot"); d.style.background=i<score?"#a78bfa":"rgba(255,255,255,.1)"; return d;
+  }));
+}
+
+function render() {
+  const root = document.getElementById("app");
+  root.innerHTML="";
+  const s = state;
+
+  // MODALS
+  if (s.modal==="login" && s.loginTarget) { root.appendChild(renderLoginModal()); }
+  if (s.modal==="new") { root.appendChild(renderNewUserModal()); }
+
+  if (s.mode==="select") root.appendChild(renderSelect());
+  else if (s.mode==="menu")    root.appendChild(renderMenu());
+  else if (s.mode==="edit")    root.appendChild(renderEdit());
+  else if (s.mode==="train")   root.appendChild(renderTrain());
+  else if (s.mode==="done")    root.appendChild(renderDone());
+  else if (s.mode==="profile") root.appendChild(renderProfile());
+}
+
+function renderSelect() {
+  const wrap = div("", div("logo-wrap",
+    div("halo", div("halo-cross","✝")),
+    el("h1",{class:"app-title"},"Bibelvers-Trainer"),
+    div("sync-badge", el("span",{class:"sync-dot"}), " Geräteübergreifend gespeichert"),
+    el("p",{class:"app-sub"},"Wer möchte heute lernen?")
+  ));
+  const grid = div("user-grid");
+  for (const u of state.users) {
+    const card = div("user-card",
+      el("div",{class:"user-avatar", style:`background:${u.color}28;border-color:${u.color}55`}, u.emoji),
+      el("div",{class:"user-name"},u.name),
+      el("div",{class:"user-count"},`${state.verseCounts[u.id]??0} Verse`)
+    );
+    card.onclick = () => set({modal:"login", loginTarget:u, pwInput:"", pwError:false});
+    grid.appendChild(card);
+  }
+  const addBtn = el("button",{class:"add-user-btn",onclick:()=>set({modal:"new",newName:"",newPw:"",newPw2:"",newEmoji:"✝",newColor:PALETTE[0],newErr:""})},"+ Neuen Benutzer anlegen");
+  wrap.appendChild(grid);
+  wrap.appendChild(addBtn);
+  return wrap;
+}
+
+function renderMenu() {
+  const u = state.activeUser;
+  const mastered = state.verses.filter(v=>v.score>=5).length;
+  const learning  = state.verses.filter(v=>v.attempts>0&&v.score<5).length;
+  const header = div("page-header",
+    el("div",{style:`width:42px;height:42px;border-radius:50%;background:${u.color}28;border:1.5px solid ${u.color}55;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0`},u.emoji),
+    el("div",{},[el("p",{style:"font-size:15px;font-weight:500;color:rgba(237,233,254,.9);margin-bottom:1px"},`Hallo, ${u.name}!`), el("p",{style:"font-size:11px;color:rgba(196,181,253,.4)"},"Dein Trainingsbereich")]),
+    btn("back-btn","Abmelden",()=>set({activeUser:null,verses:[],mode:"select"}))
+  );
+  header.querySelector(".back-btn").style.cssText="font-size:12px;padding:5px 10px;margin-left:auto";
+  const bEdit = el("button",{class:"menu-btn menu-edit",onclick:()=>set({mode:"edit",editId:null,editStelle:"",editText:""})},
+    div("mc-icon mc-icon-e","📖"), el("div",{},[el("p",{class:"mc-title"},"Verse verwalten"),el("p",{class:"mc-sub"},"Hinzufügen, bearbeiten, löschen")])
+  );
+  const canTrain = state.verses.length>0;
+  const bTrain = el("button",{class:"menu-btn menu-train"+(canTrain?"":" disabled"),onclick:canTrain?()=>{
+    set({mode:"train",session:pickTen(state.verses),cardIdx:0,flipped:false,results:[]});
+  }:null},
+    div("mc-icon mc-icon-t","🎯"), el("div",{},[el("p",{class:"mc-title"},"Training starten"),el("p",{class:"mc-sub"},"10 Karten · Intelligente Wiederholung")])
+  );
+  const bProf = el("button",{class:"menu-btn menu-profile",onclick:()=>set({mode:"profile",profEmoji:u.emoji,profColor:u.color,profPwOld:"",profPwNew:"",profPwNew2:"",profPwErr:"",profPwOk:false,delUserConfirm:false})},
+    div("mc-icon mc-icon-p","⚙️"), el("div",{},[el("p",{class:"mc-title"},"Profil bearbeiten"),el("p",{class:"mc-sub"},"Symbol, Farbe & Passwort ändern")])
+  );
+  const stats = div("stats",
+    div("stat",[el("div",{class:"stat-n"},String(state.verses.length)),el("div",{class:"stat-l"},"Verse gesamt")]),
+    div("stat",[el("div",{class:"stat-n"},String(learning)),el("div",{class:"stat-l"},"In Übung")]),
+    div("stat",[el("div",{class:"stat-n"},String(mastered)),el("div",{class:"stat-l"},"Gemeistert")])
+  );
+  return el("div",{},[header,bEdit,bTrain,bProf,stats]);
+}
+
+function renderEdit() {
+  const header = div("page-header",
+    btn("back-btn","←",()=>set({mode:"menu",editId:null,editStelle:"",editText:""})),
+    el("h2",{class:"page-title"},"Verse verwalten")
+  );
+  const panel = div("form-panel");
+  const lblS = el("label",{class:"f-label"},"Bibelstelle");
+  const inpS = el("input",{class:"f-input",placeholder:"z.B. Johannes 3,16",value:state.editStelle});
+  inpS.oninput = e => state.editStelle=e.target.value;
+  const lblT = el("label",{class:"f-label"},"Bibeltext");
+  const inpT = el("textarea",{class:"f-input f-textarea",placeholder:"Gib hier den Bibelvers ein…"});
+  inpT.value = state.editText;
+  inpT.oninput = e => state.editText=e.target.value;
+  const saveB = btn("save-btn", state.editId?"Änderungen speichern":"Vers hinzufügen", async ()=>{
+    if (!state.editStelle.trim()||!state.editText.trim()) return;
+    let updated;
+    if (state.editId) {
+      updated = state.verses.map(v=>v.id===state.editId?{...v,stelle:state.editStelle.trim(),text:state.editText.trim()}:v);
+    } else {
+      updated = [...state.verses,{id:Date.now(),stelle:state.editStelle.trim(),text:state.editText.trim(),added:Date.now(),score:0,attempts:0}];
+    }
+    await persistVerses(state.activeUser.id, updated);
+    state.editId=null; state.editStelle=""; state.editText=""; render();
+  });
+  panel.append(lblS,inpS,lblT,inpT,saveB);
+  if (state.editId) {
+    const cancelB = btn("cancel-lnk","Abbrechen",()=>set({editId:null,editStelle:"",editText:""}));
+    panel.appendChild(cancelB);
+  }
+  const list = div("vlist");
+  if (state.verses.length===0) list.appendChild(div("empty","Noch keine Verse – füge deinen ersten hinzu!"));
+  [...state.verses].reverse().forEach(v=>{
+    const meta = div("v-meta",[scoreDots(Math.min(v.score,5)),el("span",{},`${v.attempts} Versuche`)]);
+    const info = el("div",{style:"flex:1"},[
+      el("p",{class:"v-stelle"},v.stelle),
+      el("p",{class:"v-text"},v.text.length>90?v.text.slice(0,90)+"…":v.text),
+      meta
+    ]);
+    const editB = el("button",{class:"ibtn ibtn-e",onclick:()=>set({editId:v.id,editStelle:v.stelle,editText:v.text})},"✏️");
+    let delB;
+    if (state.delConfirm===v.id) {
+      delB = el("button",{class:"ibtn ibtn-dc",onclick:async ()=>{
+        await persistVerses(state.activeUser.id, state.verses.filter(x=>x.id!==v.id));
+        state.delConfirm=null; render();
+      }},"Löschen?");
+    } else {
+      delB = el("button",{class:"ibtn ibtn-d",onclick:()=>set({delConfirm:v.id})},"🗑");
+    }
+    const btns = el("div",{style:"display:flex;gap:5px;flex-shrink:0"},[editB,delB]);
+    list.appendChild(div("vitem",[info,btns]));
+  });
+  return el("div",{},[header,panel,list]);
+}
+
+function renderTrain() {
+  const s = state;
+  const card = s.session[s.cardIdx];
+  if (!card) return renderDone();
+  const prog = div("prog-row",
+    btn("back-btn","←",()=>set({mode:"menu"})),
+    el("div",{class:"prog-track"},[el("div",{class:"prog-fill",style:`width:${(s.cardIdx/s.session.length)*100}%`})]),
+    el("span",{class:"prog-lbl"},`${s.cardIdx+1} / ${s.session.length}`)
+  );
+  const front = div("f-face f-front",
+    el("div",{class:"card-eyebrow"},"Bibelstelle"),
+    el("p",{class:"card-stelle"},card.stelle),
+    el("div",{class:"tap-hint"},"👆 Antippen zum Aufdecken")
+  );
+  const back = div("f-face f-back",
+    el("div",{class:"back-eyebrow"},card.stelle),
+    el("p",{class:"back-verse"},`„${card.text}"`)
+  );
+  const inner = div("flip-inner"+(s.flipped?" flipped":""),[front,back]);
+  const cardArea = div("card-area",[inner]);
+  cardArea.onclick = ()=>{ if(!s.flipped) set({flipped:true}); };
+  const ansRow = div("ans-row",
+    el("button",{class:"ans-btn ans-no",onclick:async ()=>{
+      const updated = s.verses.map(v=>v.id===card.id?{...v,score:Math.max(0,v.score-1),attempts:v.attempts+1}:v);
+      await persistVerses(s.activeUser.id, updated);
+      const newResults=[...s.results,{...card,correct:false}];
+      if(s.cardIdx+1>=s.session.length) set({results:newResults,mode:"done"});
+      else set({results:newResults,cardIdx:s.cardIdx+1,flipped:false});
+    }},"✗ Nicht gewusst"),
+    el("button",{class:"ans-btn ans-yes",onclick:async ()=>{
+      const updated = s.verses.map(v=>v.id===card.id?{...v,score:v.score+1,attempts:v.attempts+1}:v);
+      await persistVerses(s.activeUser.id, updated);
+      const newResults=[...s.results,{...card,correct:true}];
+      if(s.cardIdx+1>=s.session.length) set({results:newResults,mode:"done"});
+      else set({results:newResults,cardIdx:s.cardIdx+1,flipped:false});
+    }},"✓ Gewusst")
+  );
+  if (!s.flipped) ansRow.classList.add("invisible");
+  return el("div",{},[prog,cardArea,ansRow]);
+}
+
+function renderDone() {
+  const correct = state.results.filter(r=>r.correct).length;
+  const total   = state.results.length;
+  const emoji   = correct>=8?"🌟":correct>=5?"👏":"💪";
+  const title   = correct>=8?"Hervorragend!":correct>=5?"Gut gemacht!":"Weiter üben!";
+  const dots = div("rdots", ...state.results.map(r=>{
+    const d=div("rdot "+(r.correct?"rdot-ok":"rdot-no"), r.correct?"✓":"✗"); return d;
+  }));
+  const list = div("rlist", ...state.results.map(r=>div("ritem",[
+    el("div",{class:"ri-marker",style:`background:${r.correct?"#86efac":"#fca5a5"}`}),
+    el("div",{},[el("p",{class:"ri-stelle"},r.stelle),el("p",{class:"ri-text"},r.text.length>80?r.text.slice(0,80)+"…":r.text)])
+  ])));
+  const btns = div("btn-row",
+    btn("ghost-btn","Menü",()=>set({mode:"menu"})),
+    btn("prim-btn","Neue Runde starten",()=>set({mode:"train",session:pickTen(state.verses),cardIdx:0,flipped:false,results:[]}))
+  );
+  return el("div",{},[
+    div("done-top",[el("span",{class:"done-emoji"},emoji),el("h2",{class:"done-title"},title),el("p",{class:"done-sub"},`${correct} von ${total} Versen gewusst`),dots]),
+    list, btns
+  ]);
+}
+
+function renderProfile() {
+  const u = state.activeUser;
+  const mastered = state.verses.filter(v=>v.score>=5).length;
+  const header = div("page-header",btn("back-btn","←",()=>set({mode:"menu"})),el("h2",{class:"page-title"},"Profil bearbeiten"));
+  const hero = div("profile-hero",
+    el("div",{class:"profile-big-avatar",style:`background:${state.profColor}30;border-color:${state.profColor}60;box-shadow:0 0 32px ${state.profColor}44`},state.profEmoji),
+    el("p",{class:"profile-name"},u.name),
+    el("p",{class:"profile-meta"},`${state.verses.length} Verse · ${mastered} gemeistert`)
+  );
+  // emoji picker
+  const emojiRow = div("emoji-row", ...EMOJIS.map(em=>{
+    const b=el("button",{class:"emoji-opt"+(state.profEmoji===em?" sel":""),onclick:()=>set({profEmoji:em})},em); return b;
+  }));
+  const colorRow = div("color-row", ...PALETTE.map(c=>{
+    const d=div("color-opt"+(state.profColor===c?" sel":""));
+    d.style.background=c; d.onclick=()=>set({profColor:c}); return d;
+  }));
+  const changed = state.profEmoji!==u.emoji||state.profColor!==u.color;
+  const saveAppBtn = btn("save-btn","Aussehen speichern", async()=>{
+    const updated={...u,emoji:state.profEmoji,color:state.profColor};
+    await persistUsers(state.users.map(x=>x.id===u.id?updated:x));
+    state.activeUser=updated; render();
+  });
+  if (!changed) saveAppBtn.disabled=true;
+
+  // password
+  const pwOldI=el("input",{class:"f-input",type:"password",placeholder:"••••••"}); pwOldI.value=state.profPwOld; pwOldI.oninput=e=>{state.profPwOld=e.target.value;state.profPwErr="";state.profPwOk=false;};
+  const pwNewI=el("input",{class:"f-input",type:"password",placeholder:"Neues Passwort"}); pwNewI.value=state.profPwNew; pwNewI.oninput=e=>{state.profPwNew=e.target.value;state.profPwErr="";state.profPwOk=false;};
+  const pwNew2I=el("input",{class:"f-input",type:"password",placeholder:"Bestätigen",style:"margin-bottom:0"}); pwNew2I.value=state.profPwNew2; pwNew2I.oninput=e=>{state.profPwNew2=e.target.value;state.profPwErr="";state.profPwOk=false;};
+  const pwErrEl=el("span",{class:"err-msg"},state.profPwErr||""); if(!state.profPwErr)pwErrEl.style.display="none";
+  const pwOkEl=el("span",{class:"success-msg"},"Passwort erfolgreich geändert."); if(!state.profPwOk)pwOkEl.style.display="none";
+  const savePwBtn=btn("save-btn","Passwort ändern",async()=>{
+    if(state.profPwOld!==u.pw){set({profPwErr:"Aktuelles Passwort ist falsch.",profPwOk:false});return;}
+    if(state.profPwNew.length<2){set({profPwErr:"Neues Passwort zu kurz.",profPwOk:false});return;}
+    if(state.profPwNew!==state.profPwNew2){set({profPwErr:"Passwörter stimmen nicht überein.",profPwOk:false});return;}
+    const updated={...u,pw:state.profPwNew};
+    await persistUsers(state.users.map(x=>x.id===u.id?updated:x));
+    state.activeUser=updated; set({profPwOld:"",profPwNew:"",profPwNew2:"",profPwErr:"",profPwOk:true});
+  });
+  savePwBtn.style.marginTop="12px";
+  const pwPanel=div("form-panel",[el("label",{class:"f-label"},"Aktuelles Passwort"),pwOldI,el("label",{class:"f-label"},"Neues Passwort"),pwNewI,el("label",{class:"f-label"},"Wiederholen"),pwNew2I,pwErrEl,pwOkEl,savePwBtn]);
+
+  // danger
+  let dangerBtns;
+  if(!state.delUserConfirm){
+    dangerBtns=btn("danger-btn","Profil löschen",()=>set({delUserConfirm:true}));
+  } else {
+    const yes=btn("danger-btn danger-btn-confirm","Ja, endgültig löschen",async()=>{
+      const updated=state.users.filter(x=>x.id!==u.id);
+      await persistUsers(updated);
+      await fbDel(`verses/${u.id}`);
+      set({activeUser:null,verses:[],mode:"select",delUserConfirm:false});
+    });
+    const no=btn("danger-btn","Abbrechen",()=>set({delUserConfirm:false}));
+    dangerBtns=el("div",{style:"display:flex;gap:8px"},[yes,no]);
+  }
+  const danger=div("danger-zone",[el("p",{class:"danger-title"},"Gefahrenzone"),el("p",{class:"danger-sub"},"Profil löschen entfernt alle deine Verse und deinen Lernfortschritt unwiderruflich."),dangerBtns]);
+
+  return el("div",{},[
+    header, hero,
+    div("profile-section",[el("p",{class:"section-label"},"Symbol"),emojiRow,el("p",{class:"section-label"},"Farbe"),colorRow,saveAppBtn]),
+    div("profile-section",[el("p",{class:"section-label"},"Passwort ändern"),pwPanel]),
+    danger
+  ]);
+}
+
+function renderLoginModal() {
+  const t = state.loginTarget;
+  const overlay = div("modal-overlay");
+  overlay.onclick = ()=>set({modal:null});
+  const modal = div("modal");
+  modal.onclick = e=>e.stopPropagation();
+  const avatarWrap = el("div",{style:`display:flex;align-items:center;gap:12px;margin-bottom:16px`},[
+    el("div",{style:`width:46px;height:46px;border-radius:50%;background:${t.color}28;border:2px solid ${t.color}55;display:flex;align-items:center;justify-content:center;font-size:24px`},t.emoji),
+    el("div",{},[el("p",{class:"modal-title",style:"margin-bottom:0"},t.name),el("p",{class:"modal-sub",style:"margin-bottom:0"},"Passwort eingeben")])
+  ]);
+  const inp=el("input",{class:"m-input"+(state.pwError?" err":""),type:"password",placeholder:"••••••"});
+  inp.value=state.pwInput;
+  inp.oninput=e=>state.pwInput=e.target.value;
+  inp.onkeydown=e=>{if(e.key==="Enter")doLogin();};
+  const errEl=el("span",{class:"err-msg"},"Falsches Passwort. Nochmal versuchen.");
+  if(!state.pwError)errEl.style.display="none";
+  const btns=div("modal-btns",[btn("m-ghost","Abbrechen",()=>set({modal:null})),btn("m-prim","Anmelden",doLogin)]);
+  modal.append(avatarWrap,el("label",{class:"m-label"},"Passwort"),inp,errEl,btns);
+  overlay.appendChild(modal);
+  setTimeout(()=>inp.focus(),50);
+  return overlay;
+}
+
+async function doLogin() {
+  const t=state.loginTarget;
+  if(state.pwInput===t.pw){
+    const vd=await fbGet(`verses/${t.id}`);
+    const verses=vd?(vd.list||[]):[];
+    set({modal:null,activeUser:t,verses,mode:"menu"});
+  } else {
+    set({pwError:true});
+  }
+}
+
+function renderNewUserModal() {
+  const overlay=div("modal-overlay");
+  overlay.onclick=()=>set({modal:null});
+  const modal=div("modal");
+  modal.onclick=e=>e.stopPropagation();
+  const nameI=el("input",{class:"m-input",placeholder:"Dein Name"}); nameI.value=state.newName; nameI.oninput=e=>state.newName=e.target.value;
+  const emojiRow=div("emoji-row",...EMOJIS.map(em=>{
+    const b=el("button",{class:"emoji-opt"+(state.newEmoji===em?" sel":""),onclick:()=>set({newEmoji:em})},em); return b;
+  }));
+  const colorRow=div("color-row",...PALETTE.map(c=>{
+    const d=div("color-opt"+(state.newColor===c?" sel":"")); d.style.background=c; d.onclick=()=>set({newColor:c}); return d;
+  }));
+  const pw1I=el("input",{class:"m-input",type:"password",placeholder:"Passwort wählen"}); pw1I.value=state.newPw; pw1I.oninput=e=>state.newPw=e.target.value;
+  const pw2I=el("input",{class:"m-input",type:"password",placeholder:"Passwort bestätigen"}); pw2I.value=state.newPw2; pw2I.oninput=e=>state.newPw2=e.target.value;
+  pw2I.onkeydown=e=>{if(e.key==="Enter")doCreateUser();};
+  const errEl=el("span",{class:"err-msg"},state.newErr||""); if(!state.newErr)errEl.style.display="none";
+  modal.append(
+    el("p",{class:"modal-title"},"Neuer Benutzer"),el("p",{class:"modal-sub"},"Erstelle dein persönliches Profil"),
+    el("label",{class:"m-label"},"Name"),nameI,
+    el("label",{class:"m-label"},"Symbol"),emojiRow,
+    el("label",{class:"m-label"},"Farbe"),colorRow,
+    el("label",{class:"m-label"},"Passwort"),pw1I,
+    el("label",{class:"m-label"},"Passwort wiederholen"),pw2I,
+    errEl,
+    div("modal-btns",[btn("m-ghost","Abbrechen",()=>set({modal:null})),btn("m-prim","Profil erstellen",doCreateUser)])
+  );
+  overlay.appendChild(modal);
+  return overlay;
+}
+
+async function doCreateUser() {
+  if(!state.newName.trim()){set({newErr:"Bitte einen Namen eingeben."});return;}
+  if(state.newPw.length<2){set({newErr:"Passwort muss mindestens 2 Zeichen haben."});return;}
+  if(state.newPw!==state.newPw2){set({newErr:"Passwörter stimmen nicht überein."});return;}
+  const id="u_"+Date.now();
+  const u={id,name:state.newName.trim(),pw:state.newPw,color:state.newColor,emoji:state.newEmoji};
+  const updated=[...state.users,u];
+  await persistUsers(updated);
+  await fbSet(`verses/${id}`,{list:[]});
+  state.verseCounts={...state.verseCounts,[id]:0};
+  set({modal:null,activeUser:u,verses:[],mode:"menu"});
+}
+
+// ── Boot ─────────────────────────────────────────────────────────
+document.getElementById("app").innerHTML=`<div class="loader"><div class="spinner"></div><p class="loader-text">Verbinde mit Datenbank…</p></div>`;
+(async ()=>{
+  try {
+    let data = await fbGet("app/users");
+    if (!data) {
+      await fbSet("app/users",{list:initialUsers});
+      await fbSet("verses/ben",{list:defaultVerses});
+      data={list:initialUsers};
+    }
+    const userList=data.list||[];
+    const counts={};
+    for(const u of userList){
+      const vd=await fbGet(`verses/${u.id}`);
+      counts[u.id]=vd?(vd.list||[]).length:0;
+    }
+    state.users=userList; state.verseCounts=counts;
+  } catch(e){ console.error("Firebase Fehler:",e); }
+  render();
+})();
+</script>
+</body>
+</html>
