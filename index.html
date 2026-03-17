@@ -20,7 +20,7 @@ body{font-family:'Inter',sans-serif;min-height:100vh;background:radial-gradient(
 .sync-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:rgba(134,239,172,.6);background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.15);border-radius:20px;padding:3px 9px;margin-bottom:6px;}
 .sync-dot{width:6px;height:6px;border-radius:50%;background:#86efac;display:inline-block;}
 .logo-wrap{text-align:center;padding:1.5rem 0 2rem;}
-.halo{width:76px;height:76px;border-radius:50%;margin:0 auto 14px;background:linear-gradient(135deg,rgba(168,85,247,.4),rgba(99,102,241,.4));border:1.5px solid rgba(196,181,253,.4);display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px rgba(139,92,246,.4),0 0 80px rgba(139,92,246,.15),inset 0 0 20px rgba(139,92,246,.15);font-size:30px;}
+.halo{width:76px;height:76px;border-radius:50%;margin:0 auto 14px;background:linear-gradient(135deg,rgba(168,85,247,.4),rgba(99,102,241,.4));border:1.5px solid rgba(196,181,253,.4);display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px rgba(139,92,246,.4),0 0 80px rgba(139,92,246,.15),inset 0 0 20px rgba(139,92,246,.15);}
 .app-title{font-family:'Lora',serif;font-size:26px;font-weight:600;color:#ede9fe;letter-spacing:.3px;}
 .app-sub{font-size:13px;color:rgba(196,181,253,.45);margin-top:5px;}
 .user-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:14px;}
@@ -342,7 +342,13 @@ function renderSelect() {
   }));
   const addB=btn("add-user-btn","+ Neuen Benutzer anlegen",()=>set({modal:"new",nName:"",nPw:"",nPw2:"",nEmoji:"✝",nColor:PALETTE[0],nErr:""}));
   return el("div",{},
-    div("logo-wrap",div("halo","✝"),el("h1",{cls:"app-title"},"Bibelvers-Trainer"),div("sync-badge",span("sync-dot")," Geräteübergreifend gespeichert"),p("app-sub","Wer möchte heute lernen?")),
+    div("logo-wrap",
+      el("div",{cls:"halo"},
+        el("svg",{viewBox:"0 0 24 24",width:"38",height:"38",fill:"none",stroke:"white","stroke-width":"3","stroke-linecap":"round"},
+          el("line",{x1:"12",y1:"3",x2:"12",y2:"21"}),
+          el("line",{x1:"4",y1:"9",x2:"20",y2:"9"})
+        )
+      ),el("h1",{cls:"app-title"},"Bibelvers-Trainer"),div("sync-badge",span("sync-dot")," Geräteübergreifend gespeichert"),p("app-sub","Wer möchte heute lernen?")),
     grid, addB
   );
 }
