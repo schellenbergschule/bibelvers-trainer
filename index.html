@@ -301,10 +301,15 @@ const S = {
 function set(patch){Object.assign(S,patch);render();}
 
 // ── Persist ──────────────────────────────────────────────────────
-async function saveUsers(list) { S.users=list; await fbSet("app/users",{list}); render(); }
+async function saveUsers(list) {
+  S.users=list;
+  await fbSet("app/users",{list});
+  // render() bewusst NICHT hier aufrufen – wird vom Aufrufer gesteuert
+}
 async function saveVerses(list) {
   S.verses=list; S.counts={...S.counts,[S.user.id]:list.length};
-  await fbSet(`verses/${S.user.id}`,{list}); render();
+  await fbSet(`verses/${S.user.id}`,{list});
+  render();
 }
 
 // ── Render ───────────────────────────────────────────────────────
@@ -633,7 +638,7 @@ function renderProfile() {
   const saveApp=btn("save-btn","Aussehen speichern",async()=>{
     const upd={...u,emoji:S.pEmoji,color:S.pColor};
     await saveUsers(S.users.map(x=>x.id===u.id?upd:x));
-    S.user=upd;render();
+    S.user=upd; render();
   });
   if(!changed) saveApp.disabled=true;
   const pOldI=el("input",{cls:"f-input",type:"password",placeholder:"••••••"}); pOldI.value=S.pOld; pOldI.oninput=e=>{S.pOld=e.target.value;S.pErr="";S.pOk=false;};
@@ -657,7 +662,8 @@ function renderProfile() {
     btn("danger-btn danger-btn-confirm","Ja, endgültig löschen",async()=>{
       await saveUsers(S.users.filter(x=>x.id!==u.id));
       await fbDel(`verses/${u.id}`);
-      set({user:null,verses:[],view:"select",delU:false});
+      S.user=null; S.verses=[]; S.view="select"; S.delU=false;
+      render();
     }),
     btn("danger-btn","Abbrechen",()=>set({delU:false}))
   );
@@ -732,13 +738,12 @@ async function doCreate() {
   if(!S.nName.trim()){set({nErr:"Bitte einen Namen eingeben."});return;}
   if(S.nPw.length<4){set({nErr:"Passwort muss mindestens 4 Zeichen haben."});return;}
   if(S.nPw!==S.nPw2){set({nErr:"Passwörter stimmen nicht überein."});return;}
+  // Alle State-Werte sofort lokal sichern bevor async-Operationen den State verändern
+  const name=S.nName.trim(), pw=S.nPw, color=S.nColor, emoji=S.nEmoji;
   const id="u_"+Date.now();
-  let h;
-  try { h=await hashPw(S.nPw); } catch(e){ console.error("Hash fehler:",e); set({nErr:"Fehler beim Hashen."}); return; }
-  console.log("Hash erstellt:",h.slice(0,12)+"…");
-  const u={id,name:S.nName.trim(),pw:h,color:S.nColor,emoji:S.nEmoji};
-  console.log("Nutzer-Objekt:",JSON.stringify(u).slice(0,80));
-  const updated=[...S.users,u];
+  const h=await hashPw(pw);
+  const u={id, name, pw:h, color, emoji};
+  const updated=[...S.users, u];
   await saveUsers(updated);
   await fbSet(`verses/${id}`,{list:[]});
   S.counts={...S.counts,[id]:0};
