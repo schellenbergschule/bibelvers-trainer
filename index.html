@@ -730,11 +730,16 @@ function renderNewUser() {
 
 async function doCreate() {
   if(!S.nName.trim()){set({nErr:"Bitte einen Namen eingeben."});return;}
-  if(S.nPw.length<2){set({nErr:"Passwort muss mindestens 2 Zeichen haben."});return;}
+  if(S.nPw.length<4){set({nErr:"Passwort muss mindestens 4 Zeichen haben."});return;}
   if(S.nPw!==S.nPw2){set({nErr:"Passwörter stimmen nicht überein."});return;}
   const id="u_"+Date.now();
-  const u={id,name:S.nName.trim(),pw:S.nPw,color:S.nColor,emoji:S.nEmoji};
-  await saveUsers([...S.users,u]);
+  let h;
+  try { h=await hashPw(S.nPw); } catch(e){ console.error("Hash fehler:",e); set({nErr:"Fehler beim Hashen."}); return; }
+  console.log("Hash erstellt:",h.slice(0,12)+"…");
+  const u={id,name:S.nName.trim(),pw:h,color:S.nColor,emoji:S.nEmoji};
+  console.log("Nutzer-Objekt:",JSON.stringify(u).slice(0,80));
+  const updated=[...S.users,u];
+  await saveUsers(updated);
   await fbSet(`verses/${id}`,{list:[]});
   S.counts={...S.counts,[id]:0};
   S.verses=[]; S.user=u; S.view="menu"; S.modal=null;
