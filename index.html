@@ -343,12 +343,11 @@ function renderSelect() {
   const addB=btn("add-user-btn","+ Neuen Benutzer anlegen",()=>set({modal:"new",nName:"",nPw:"",nPw2:"",nEmoji:"✝",nColor:PALETTE[0],nErr:""}));
   return el("div",{},
     div("logo-wrap",
-      el("div",{cls:"halo"},
-        el("svg",{viewBox:"0 0 24 24",width:"38",height:"38",fill:"none",stroke:"white","stroke-width":"3","stroke-linecap":"round"},
-          el("line",{x1:"12",y1:"3",x2:"12",y2:"21"}),
-          el("line",{x1:"4",y1:"9",x2:"20",y2:"9"})
-        )
-      ),el("h1",{cls:"app-title"},"Bibelvers-Trainer"),div("sync-badge",span("sync-dot")," Geräteübergreifend gespeichert"),p("app-sub","Wer möchte heute lernen?")),
+      (() => {
+        const halo = div("halo");
+        halo.innerHTML = `<svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round"><line x1="12" y1="3" x2="12" y2="21"/><line x1="4" y1="9" x2="20" y2="9"/></svg>`;
+        return halo;
+      })(),el("h1",{cls:"app-title"},"Bibelvers-Trainer"),div("sync-badge",span("sync-dot")," Geräteübergreifend gespeichert"),p("app-sub","Wer möchte heute lernen?")),
     grid, addB
   );
 }
