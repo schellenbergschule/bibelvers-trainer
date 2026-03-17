@@ -468,7 +468,7 @@ function renderStats() {
 
   const wrap=el("div",{},hdr);
 
-  // Summary bar
+  wrap.appendChild(el("p",{style:"font-size:12px;color:rgba(196,181,253,.35);margin-bottom:1rem;text-align:center;font-style:italic"},"Basiert ausschliesslich auf Karteikarten-Ergebnissen"));
   const total=S.verses.length;
   if(total===0){ wrap.appendChild(div("empty","Noch keine Verse vorhanden.")); return wrap; }
 
@@ -592,8 +592,7 @@ function renderOrder() {
         set({order:newOrder});
         if(done){
           setTimeout(async()=>{
-            const upd=S.verses.map(v=>v.id===card.id?{...v,score:v.score+1,attempts:v.attempts+1}:v);
-            await saveVerses(upd);
+            // Reihenfolge zählt nicht zur Statistik
           },400);
         }
       }
@@ -602,9 +601,10 @@ function renderOrder() {
   }));
   let bottom;
   if(allOk){
-    const nextB=btn("next-btn",S.idx+1>=S.session.length?"Auswertung →":"Nächster Vers →",()=>{
+    const nextB=btn("next-btn",S.idx+1>=S.session.length?"Fertig →":"Nächster Vers →",()=>{
+      // Reihenfolge zählt nicht zur Statistik – kein Score-Update
       const res=[...S.results,{...card,correct:true}];
-      if(S.idx+1>=S.session.length) set({results:res,view:"done"});
+      if(S.idx+1>=S.session.length) set({results:res,view:"menu"});
       else set({results:res,idx:S.idx+1,order:buildChunks(S.session[S.idx+1])});
     });
     nextB.style.width="100%";
