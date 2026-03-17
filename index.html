@@ -139,7 +139,15 @@ body{font-family:'Inter',sans-serif;min-height:100vh;background:radial-gradient(
 .danger-btn{padding:9px 16px;border-radius:10px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.1);color:#fca5a5;font-size:13px;font-weight:500;cursor:pointer;}
 .danger-btn-confirm{background:rgba(239,68,68,.6);color:white;border-color:transparent;}
 .invisible{visibility:hidden;}
-/* Lückentext */
+.menu-stats{background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(99,102,241,.1));border:1px solid rgba(196,181,253,.2);}
+.stats-bar-wrap{height:10px;background:rgba(255,255,255,.06);border-radius:5px;overflow:hidden;margin-bottom:10px;}
+.stats-bar{display:flex;gap:3px;height:100%;}
+.stats-legend{display:flex;flex-direction:column;gap:5px;margin-bottom:1.25rem;}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(196,181,253,.6);}
+.legend-item b{color:rgba(237,233,254,.9);}
+.stat-verse-row{padding:10px 14px;border-radius:13px;background:linear-gradient(135deg,rgba(255,255,255,.04),rgba(139,92,246,.05));border:1px solid rgba(196,181,253,.08);margin-bottom:7px;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;}
+/* Lückentext: falsch = rot */
+.gap-wrong{font-family:'Lora',serif;font-size:16px;color:#fca5a5;border-bottom:2px solid rgba(252,165,165,.5);padding:0 4px;margin:0 2px;}
 .luecke-card{padding:1.25rem;border-radius:18px;background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(15,118,110,.1));border:1px solid rgba(20,184,166,.2);margin-bottom:1rem;font-family:'Lora',serif;font-size:17px;line-height:2.4;color:rgba(237,233,254,.9);}
 .stelle-label{font-size:11px;letter-spacing:2px;color:rgba(20,184,166,.6);text-transform:uppercase;font-weight:500;margin-bottom:12px;display:block;font-family:'Inter',sans-serif;}
 .gap-input{font-family:'Lora',serif;font-size:16px;border:none;border-bottom:2px solid rgba(20,184,166,.6);background:transparent;color:#5eead4;outline:none;text-align:center;padding:2px 4px;margin:0 2px;transition:border-color .2s;}
@@ -306,6 +314,7 @@ function render() {
   else if(S.view==="done")    root.appendChild(renderDone());
   else if(S.view==="luecke")  root.appendChild(renderLuecke());
   else if(S.view==="order")   root.appendChild(renderOrder());
+  else if(S.view==="stats")   root.appendChild(renderStats());
   else if(S.view==="profile") root.appendChild(renderProfile());
 }
 
@@ -349,6 +358,7 @@ function renderMenu() {
     mkBtn("menu-flash","🎯","Karteikarten","Klassischer Flashcard-Modus",()=>set({view:"flash",session:pickTen(S.verses),idx:0,flipped:false,results:[]})),
     mkBtn("menu-luecke","✏️","Lückentext","Fehlende Wörter ergänzen",()=>{const ses=pickTen(S.verses);set({view:"luecke",session:ses,idx:0,results:[],luecken:buildLuecken(ses[0])});}),
     mkBtn("menu-order","🔀","Reihenfolge","Versabschnitte sortieren",()=>{const ses=pickTen(S.verses);set({view:"order",session:ses,idx:0,results:[],order:buildChunks(ses[0])});}),
+    mkBtn("menu-stats","📊","Meine Statistik","Lernfortschritt im Überblick",()=>set({view:"stats"})),
     mkBtn("menu-profile","⚙️","Profil bearbeiten","Symbol, Farbe & Passwort ändern",()=>set({view:"profile",pEmoji:u.emoji,pColor:u.color,pOld:"",pNew:"",pNew2:"",pErr:"",pOk:false,delU:false})),
     div("stats",
       div("stat",p("stat-n",String(S.verses.length)),p("stat-l","Verse gesamt")),
@@ -419,6 +429,91 @@ function renderFlash() {
   return el("div",{},progRow(S.idx,S.session.length,()=>set({view:"menu"})),area,ans);
 }
 
+// ── Stats ────────────────────────────────────────────────────────
+function getPercent(v) {
+  if(!v.attempts) return null;
+  const last5attempts = Math.min(v.attempts, 5);
+  // score approximates cumulative correct; estimate last-5 rate from score/attempts capped at 5
+  const ratio = Math.min(1, v.score / v.attempts);
+  return Math.round(ratio * 100);
+}
+function renderStats() {
+  const hdr=div("page-header",btn("back-btn","←",()=>set({view:"menu"})),el("h2",{cls:"page-title"},"Meine Statistik"));
+
+  const groups=[
+    {key:"todo",  label:"Noch zu üben",      color:"#fca5a5", bg:"rgba(239,68,68,.1)",  border:"rgba(239,68,68,.25)",  min:0,  max:59},
+    {key:"going", label:"Auf gutem Weg",      color:"#fcd34d", bg:"rgba(251,191,36,.1)", border:"rgba(251,191,36,.25)", min:60, max:89},
+    {key:"done",  label:"Kann ich auswendig", color:"#86efac", bg:"rgba(34,197,94,.1)",  border:"rgba(34,197,94,.25)",  min:90, max:100},
+  ];
+
+  const untrained = S.verses.filter(v=>!v.attempts);
+  const trained   = S.verses.filter(v=>v.attempts>0);
+
+  const wrap=el("div",{},hdr);
+
+  // Summary bar
+  const total=S.verses.length;
+  if(total===0){ wrap.appendChild(div("empty","Noch keine Verse vorhanden.")); return wrap; }
+
+  const sumBar=div("stats-bar");
+  groups.forEach(g=>{
+    const count=trained.filter(v=>{ const pct=getPercent(v); return pct!==null&&pct>=g.min&&pct<=g.max; }).length;
+    const pct=total>0?Math.round(count/total*100):0;
+    const seg=el("div",{style:`flex:${count||0};min-width:${count>0?8:0}px;background:${g.color};border-radius:4px;height:100%;transition:flex .4s;`});
+    sumBar.appendChild(seg);
+  });
+  wrap.appendChild(div("stats-bar-wrap",sumBar));
+
+  // Legend
+  const legend=div("stats-legend");
+  groups.forEach(g=>{
+    const count=trained.filter(v=>{ const pct=getPercent(v); return pct!==null&&pct>=g.min&&pct<=g.max; }).length;
+    legend.appendChild(div("legend-item",
+      el("div",{style:`width:10px;height:10px;border-radius:50%;background:${g.color};flex-shrink:0`}),
+      span("",`${g.label}: `),el("b",{},String(count))
+    ));
+  });
+  if(untrained.length) legend.appendChild(div("legend-item",el("div",{style:"width:10px;height:10px;border-radius:50%;background:rgba(196,181,253,.3);flex-shrink:0"}),span("",`Noch nicht geübt: `),el("b",{},String(untrained.length))));
+  wrap.appendChild(legend);
+
+  // Groups
+  groups.forEach(g=>{
+    const gVerses=trained.filter(v=>{ const pct=getPercent(v); return pct!==null&&pct>=g.min&&pct<=g.max; });
+    if(!gVerses.length) return;
+    wrap.appendChild(el("h3",{style:`font-size:12px;font-weight:500;letter-spacing:.8px;text-transform:uppercase;color:${g.color};margin:1.25rem 0 8px 2px;font-family:'Inter',sans-serif`},g.label));
+    gVerses.sort((a,b)=>getPercent(a)-getPercent(b)).forEach(v=>{
+      const pct=getPercent(v);
+      const row=div("stat-verse-row",
+        el("div",{style:"flex:1;min-width:0"},
+          p("v-stelle",v.stelle),
+          p("v-text",v.text.length>60?v.text.slice(0,60)+"…":v.text)
+        ),
+        el("div",{style:"flex-shrink:0;text-align:right"},
+          el("div",{style:`font-size:15px;font-weight:500;color:${g.color};font-family:'Lora',serif`},`${pct}%`),
+          el("div",{style:"font-size:11px;color:rgba(196,181,253,.35);margin-top:2px"},`${v.attempts} Versuche`)
+        )
+      );
+      // Progress bar inside row
+      const barWrap=el("div",{style:"width:100%;height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:6px;overflow:hidden"});
+      barWrap.appendChild(el("div",{style:`width:${pct}%;height:100%;background:${g.color};border-radius:2px;`}));
+      row.appendChild(barWrap);
+      wrap.appendChild(row);
+    });
+  });
+
+  // Untrained
+  if(untrained.length){
+    wrap.appendChild(el("h3",{style:"font-size:12px;font-weight:500;letter-spacing:.8px;text-transform:uppercase;color:rgba(196,181,253,.35);margin:1.25rem 0 8px 2px;font-family:'Inter',sans-serif"},"Noch nicht geübt"));
+    untrained.forEach(v=>{
+      wrap.appendChild(div("stat-verse-row",
+        el("div",{style:"flex:1;min-width:0"},p("v-stelle",v.stelle),p("v-text",v.text.length>60?v.text.slice(0,60)+"…":v.text)),
+        el("div",{style:"flex-shrink:0;text-align:right"},el("div",{style:"font-size:13px;color:rgba(196,181,253,.3)"},"–"))
+      ));
+    });
+  }
+  return wrap;
+}
+
 // ── Lückentext ───────────────────────────────────────────────────
 function renderLuecke() {
   const card=S.session[S.idx];
@@ -429,7 +524,7 @@ function renderLuecke() {
     if(!tok.isGap){ card2.appendChild(document.createTextNode((i>0?" ":"")+tok.word)); return; }
     if(i>0) card2.appendChild(document.createTextNode(" "));
     if(tok.state==="correct") { card2.appendChild(span("gap-revealed",tok.word)); return; }
-    if(tok.state==="wrong")   { card2.appendChild(span("gap-revealed",tok.word)); return; }
+    if(tok.state==="wrong")   { card2.appendChild(span("gap-wrong",tok.word)); return; }
     const inp=el("input",{cls:"gap-input",type:"text",placeholder:"…",style:`width:${Math.max(60,tok.word.length*13)}px`});
     inp.value=tok.input;
     inp.oninput=e=>{S.luecken[i].input=e.target.value;};
