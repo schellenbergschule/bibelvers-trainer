@@ -488,36 +488,45 @@ function renderMenu() {
 
 // ── Custom Select helper ──────────────────────────────────────────
 function customSelect(options, value, onChange) {
-  // options: [{val, label, icon}]
   const wrap = div("custom-select");
   const cur = options.find(o=>o.val===value)||options[0];
-  const btnEl = div("custom-select-btn",
-    el("span",{style:"display:flex;align-items:center;gap:8px"},
-      el("span",{cls:"opt-icon"},cur.icon||""),
-      el("span",{},cur.label)
-    ),
-    el("span",{cls:"custom-select-arrow"},"▼")
+  let open = false;
+  let dd = null;
+
+  const arrow = el("span",{cls:"custom-select-arrow"},"▼");
+  const labelSpan = el("span",{style:"display:flex;align-items:center;gap:8px"},
+    el("span",{cls:"opt-icon"},cur.icon||""),
+    el("span",{},cur.label)
   );
-  let open=false;
-  let dropdown=null;
-  function closeDD(){ if(dropdown){dropdown.remove();dropdown=null;open=false;btnEl.querySelector(".custom-select-arrow").classList.remove("open");} }
-  btnEl.onclick=(e)=>{
+  const btnEl = div("custom-select-btn", labelSpan, arrow);
+
+  function close() {
+    if(dd){ dd.remove(); dd=null; open=false; arrow.classList.remove("open"); }
+    document.removeEventListener("click", close);
+  }
+
+  btnEl.onclick = (e) => {
     e.stopPropagation();
-    if(open){closeDD();return;}
-    open=true;
-    btnEl.querySelector(".custom-select-arrow").classList.add("open");
-    dropdown=div("custom-select-dropdown");
+    if(open){ close(); return; }
+    open = true;
+    arrow.classList.add("open");
+    dd = div("custom-select-dropdown");
     options.forEach(o=>{
-      const opt=div("custom-select-opt"+(o.val===value?" selected":""),
+      const opt = div("custom-select-opt"+(o.val===value?" selected":""),
         el("span",{cls:"opt-icon"},o.icon||""),
         el("span",{},o.label)
       );
-      opt.onclick=(e2)=>{e2.stopPropagation();closeDD();onChange(o.val);};
-      dropdown.appendChild(opt);
+      opt.onclick = (e2) => {
+        e2.stopPropagation();
+        close();
+        onChange(o.val); // caller decides whether to re-render
+      };
+      dd.appendChild(opt);
     });
-    wrap.appendChild(dropdown);
-    setTimeout(()=>document.addEventListener("click",closeDD,{once:true}),0);
+    wrap.appendChild(dd);
+    setTimeout(()=>document.addEventListener("click", close), 0);
   };
+
   wrap.appendChild(btnEl);
   return wrap;
 }
