@@ -209,6 +209,12 @@ async function fbDel(path) {
   } catch(e) { console.error("fbDel",e); }
 }
 
+// ── Hashing ──────────────────────────────────────────────────────
+async function hashPw(pw) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(pw));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+
 // ── Constants ────────────────────────────────────────────────────
 const PALETTE = ["#8b5cf6","#6366f1","#ec4899","#f97316","#14b8a6","#10b981","#3b82f6","#f59e0b"];
 const EMOJIS  = ["✝","🕊","📖","🌟","🙏","⚓","🌿","💎","🔥","🌙"];
@@ -691,8 +697,9 @@ function renderLogin() {
 
 async function doLogin() {
   const t=S.loginU;
-  if(S.pw===t.pw){
-    state_modal_null_and_render();
+  const h=await hashPw(S.pw);
+  if(h===t.pw){
+    S.modal=null; render();
     const vd=await fbGet(`verses/${t.id}`);
     S.verses=vd?(vd.list||[]):[];
     S.counts={...S.counts,[t.id]:S.verses.length};
@@ -700,7 +707,6 @@ async function doLogin() {
     render();
   } else { set({pwErr:true}); }
 }
-function state_modal_null_and_render(){ S.modal=null; render(); }
 
 // ── New User Modal ───────────────────────────────────────────────
 function renderNewUser() {
