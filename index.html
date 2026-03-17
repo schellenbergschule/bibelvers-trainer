@@ -610,21 +610,18 @@ function renderLoginModal() {
 }
 
 async function doLogin() {
-  const t=state.loginTarget;
-  if(state.pwInput===t.pw){
-    // Zeige Ladeindikator ohne render() zwischendurch auszulösen
-    state.modal=null;
-    state.activeUser=t;
-    state.mode="menu";
-    state.verses=[];
-    render(); // einmal rendern mit leerem Versstand (zeigt Menü)
-    // Dann Verse nachladen und nochmal rendern
-    const vd=await fbGet(`verses/${t.id}`);
-    state.verses=vd?(vd.list||[]):[];
-    state.verseCounts={...state.verseCounts,[t.id]:state.verses.length};
+  const t = state.loginTarget;
+  if (state.pwInput === t.pw) {
+    state.modal = null;
+    render();
+    const vd = await fbGet(`verses/${t.id}`);
+    state.verses = vd ? (vd.list || []) : [];
+    state.verseCounts = { ...state.verseCounts, [t.id]: state.verses.length };
+    state.activeUser = t;
+    state.mode = "menu";
     render();
   } else {
-    set({pwError:true});
+    set({pwError: true});
   }
 }
 
