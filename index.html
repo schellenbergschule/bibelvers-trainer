@@ -215,6 +215,256 @@ async function hashPw(pw) {
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
 }
 
+// ── Bibelbücher Daten ─────────────────────────────────────────────
+const ALL_BOOKS = [
+  "1.Mose","2.Mose","3.Mose","4.Mose","5.Mose","Josua","Richter","Ruth",
+  "1.Samuel","2.Samuel","1.Könige","2.Könige","1.Chronik","2.Chronik",
+  "Esra","Nehemia","Esther","Hiob","Psalm","Sprüche","Prediger","Hohelied",
+  "Jesaja","Jeremia","Klagelieder","Hesekiel","Daniel","Hosea","Joel","Amos",
+  "Obadja","Jona","Micha","Nahum","Habakuk","Zefanja","Haggai","Sacharja","Maleachi",
+  "Matthäus","Markus","Lukas","Johannes","Apostelgeschichte","Römer",
+  "1.Korinther","2.Korinther","Galater","Epheser","Philipper","Kolosser",
+  "1.Thessalonicher","2.Thessalonicher","1.Timotheus","2.Timotheus","Titus",
+  "Philemon","Hebräer","Jakobus","1.Petrus","2.Petrus","1.Johannes","2.Johannes",
+  "3.Johannes","Judas","Offenbarung"
+];
+
+function normalizeBook(s) {
+  return s.trim().toLowerCase()
+    .replace(/ä/g,"a").replace(/ö/g,"o").replace(/ü/g,"u").replace(/ß/g,"ss")
+    .replace(/\s+/g,"").replace(/\./g,"");
+}
+function booksMatch(a,b){ return normalizeBook(a)===normalizeBook(b); }
+function pickRandBook(exclude=[]) {
+  // exclude 1.Mose and Offenbarung (no prev/next), plus any in exclude list
+  const pool = ALL_BOOKS.slice(1,-1).filter(b=>!exclude.includes(b));
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+function pick3Books() {
+  const idxs=new Set();
+  while(idxs.size<3) idxs.add(Math.floor(Math.random()*ALL_BOOKS.length));
+  const sorted=[...idxs].sort((a,b)=>a-b);
+  const orig=sorted.map(i=>ALL_BOOKS[i]);
+  const cur=[...orig];
+  for(let i=cur.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[cur[i],cur[j]]=[cur[j],cur[i]];}
+  if(cur.every((c,i)=>c===orig[i]))[cur[0],cur[1]]=[cur[1],cur[0]];
+  return {orig,cur,sel:null};
+}
+
+// ── Autocomplete helper ───────────────────────────────────────────
+function makeAutocomplete(placeholder, onConfirm) {
+  const wrap = div("autocomplete-wrap");
+  const inp = el("input",{cls:"autocomplete-input",type:"text",placeholder,autocomplete:"off"});
+  let dd=null, focusedIdx=-1, filtered=[];
+
+  function closeDD(){ if(dd){dd.remove();dd=null;} focusedIdx=-1; }
+  function openDD(list){
+    closeDD();
+    if(!list.length) return;
+    dd=div("autocomplete-dd");
+    list.forEach((b,i)=>{
+      const opt=div("autocomplete-opt",b);
+      opt.onmousedown=(e)=>{ e.preventDefault(); selectBook(b); };
+      dd.appendChild(opt);
+    });
+    wrap.appendChild(dd);
+    filtered=list;
+  }
+  function updateFocus(){
+    if(!dd) return;
+    [...dd.children].forEach((c,i)=>c.classList.toggle("focused",i===focusedIdx));
+  }
+  function selectBook(b){ inp.value=b; inp.className="autocomplete-input"; closeDD(); onConfirm(b,inp); }
+
+  inp.oninput=()=>{
+    inp.className="autocomplete-input";
+    const val=inp.value.trim().toLowerCase();
+    if(!val){closeDD();return;}
+    const matches=ALL_BOOKS.filter(b=>normalizeBook(b).includes(normalizeBook(val)));
+    openDD(matches.slice(0,8));
+    focusedIdx=-1;
+  };
+  inp.onkeydown=(e)=>{
+    if(e.key==="ArrowDown"){e.preventDefault();focusedIdx=Math.min(focusedIdx+1,filtered.length-1);updateFocus();}
+    else if(e.key==="ArrowUp"){e.preventDefault();focusedIdx=Math.max(focusedIdx-1,0);updateFocus();}
+    else if(e.key==="Enter"){
+      e.preventDefault();
+      if(focusedIdx>=0&&filtered[focusedIdx]) selectBook(filtered[focusedIdx]);
+      else if(inp.value.trim()) onConfirm(inp.value.trim(),inp);
+      closeDD();
+    }
+    else if(e.key==="Escape") closeDD();
+  };
+  inp.onblur=()=>setTimeout(closeDD,150);
+  wrap.appendChild(inp);
+  wrap.getInput=()=>inp;
+  wrap.reset=(cls="")=>{ inp.value=""; inp.className="autocomplete-input"+(cls?" "+cls:""); closeDD(); };
+  wrap.setClass=(cls)=>inp.className="autocomplete-input "+cls;
+  return wrap;
+}
+
+// ── Bibelbücher Menü ──────────────────────────────────────────────
+function renderBooksMenu() {
+  const hdr=div("page-header",btn("back-btn","←",()=>set({view:"menu"})),el("h2",{cls:"page-title"},"Bibelbücher"));
+  const trophies = S.bookTrophies||0;
+  const trophyRow = trophies>0 ? div("trophies-row",...Array(Math.min(trophies,10)).fill("🏆").map(t=>el("span",{cls:"trophy-sm"},t))) : el("p",{style:"font-size:12px;color:rgba(196,181,253,.3);text-align:center;margin-bottom:8px"},"Noch kein Pokal – schaffst du den Volltest?");
+  return el("div",{},hdr, trophyRow,
+    div("books-menu",
+      el("button",{cls:"books-card books-card-nb",onclick:()=>set({view:"books-nb",nbBook:pickRandBook(),nbPrevInput:"",nbNextInput:"",nbFeedback:null})},
+        div("bk-icon","↔"), el("div",{},p("bk-title","Vorgänger & Nachfolger"),p("bk-sub","Buch erraten – was kommt davor und danach?"))
+      ),
+      el("button",{cls:"books-card books-card-3",onclick:()=>set({view:"books-3",sort3:pick3Books(),sort3Feedback:null})},
+        div("bk-icon","🔀"), el("div",{},p("bk-title","3 Bücher sortieren"),p("bk-sub","Bringe drei Bücher in die richtige Reihenfolge"))
+      ),
+      el("button",{cls:"books-card books-card-test",onclick:()=>set({view:"books-test",testInputs:Array(66).fill(""),testDone:false})},
+        div("bk-icon","🏆"), el("div",{},p("bk-title","Volltest: Alle 66 Bücher"),p("bk-sub","Tippe alle Bücher in der richtigen Reihenfolge"))
+      )
+    )
+  );
+}
+
+// ── Vorgänger / Nachfolger ────────────────────────────────────────
+function renderBooksNB() {
+  const book = S.nbBook;
+  const idx  = ALL_BOOKS.indexOf(book);
+  const prev = ALL_BOOKS[idx-1];
+  const next = ALL_BOOKS[idx+1];
+  const hdr  = div("page-header",btn("back-btn","←",()=>set({view:"books-menu"})),el("h2",{cls:"page-title"},"Vorgänger & Nachfolger"));
+
+  const card = div("bb-card",
+    span("bb-label","Welche Bücher kommen davor und danach?"),
+    p("bb-given",book),
+    p("bb-pos",`Buch ${idx+1} von 66`)
+  );
+
+  let prevWrap, nextWrap;
+
+  function check(){
+    const pVal=prevWrap.getInput().value.trim();
+    const nVal=nextWrap.getInput().value.trim();
+    const pOk=booksMatch(pVal,prev);
+    const nOk=booksMatch(nVal,next);
+    prevWrap.setClass(pOk?"ok":"wrong");
+    nextWrap.setClass(nOk?"ok":"wrong");
+    const allOk=pOk&&nOk;
+    feedbackEl.className="nb-feedback "+(allOk?"nb-ok":"nb-wrong");
+    feedbackEl.textContent=allOk
+      ? `✓ Richtig! ${prev} → ${book} → ${next}`
+      : `✗ ${!pOk?"Vorgänger: "+prev+" ":""} ${!nOk?"Nachfolger: "+next:""}`;
+    checkB.style.display="none";
+    nextB.style.display="block";
+  }
+
+  prevWrap=makeAutocomplete("Vorgänger…",(v,inp)=>{ if(booksMatch(v,prev)) inp.className="autocomplete-input ok"; });
+  nextWrap=makeAutocomplete("Nachfolger…",(v,inp)=>{ if(booksMatch(v,next)) inp.className="autocomplete-input ok"; });
+
+  const feedbackEl=div("nb-feedback"); feedbackEl.style.display="none";
+  const checkB=btn("check-btn","Überprüfen ✓",()=>{ feedbackEl.style.display="block"; check(); });
+  const nextB=btn("next-btn","Nächstes Buch →",()=>set({view:"books-nb",nbBook:pickRandBook([book]),nbFeedback:null}));
+  nextB.style.display="none"; nextB.style.width="100%"; checkB.style.width="100%";
+
+  const prevLabel=el("label",{cls:"f-label"},"Vorgänger");
+  const nextLabel=el("label",{cls:"f-label"},"Nachfolger");
+  return el("div",{},hdr,card,prevLabel,prevWrap,nextLabel,nextWrap,feedbackEl,checkB,nextB);
+}
+
+// ── 3 Bücher sortieren ────────────────────────────────────────────
+function renderBooks3() {
+  const hdr=div("page-header",btn("back-btn","←",()=>set({view:"books-menu"})),el("h2",{cls:"page-title"},"3 Bücher sortieren"));
+  const {orig,cur,sel}=S.sort3;
+  const allOk=cur.every((b,i)=>b===orig[i]);
+  const hint=el("p",{style:"font-size:13px;color:rgba(196,181,253,.45);text-align:center;margin-bottom:10px"},"Tippe zwei Bücher an, um sie zu tauschen");
+  const list=div("sort3-list",...cur.map((book,i)=>{
+    const isOk=allOk;
+    const isSel=sel===i;
+    const c=div("sort3-chunk"+(isOk?" ok3":isSel?" sel3":""),span("sort3-num",String(i+1)),el("span",{style:"font-family:'Lora',serif"},book));
+    if(!allOk) c.onclick=()=>{
+      if(S.sort3.sel===null||S.sort3.sel===undefined) set({sort3:{...S.sort3,sel:i}});
+      else if(S.sort3.sel===i) set({sort3:{...S.sort3,sel:null}});
+      else {
+        const nc=[...cur];[nc[S.sort3.sel],nc[i]]=[nc[i],nc[S.sort3.sel]];
+        set({sort3:{orig,cur:nc,sel:null}});
+      }
+    };
+    return c;
+  }));
+  let bottom;
+  if(allOk){
+    const msg=el("p",{style:"text-align:center;color:#86efac;font-size:14px;margin-bottom:10px;font-family:'Lora',serif;font-style:italic"},`✓ Richtig! ${orig.join(" → ")}`);
+    const nb=btn("next-btn","Neue 3 Bücher →",()=>set({view:"books-3",sort3:pick3Books()}));
+    nb.style.width="100%";
+    bottom=el("div",{},msg,nb);
+  } else {
+    bottom=hint;
+  }
+  return el("div",{},hdr,list,bottom);
+}
+
+// ── Volltest ──────────────────────────────────────────────────────
+function renderBooksTest() {
+  const hdr=div("page-header",btn("back-btn","←",()=>set({view:"books-menu"})),el("h2",{cls:"page-title"},"Volltest: Alle 66 Bücher"));
+  if(S.testDone){
+    const inputs=S.testInputs||[];
+    const wrong=inputs.map((v,i)=>({v,i,ok:booksMatch(v,ALL_BOOKS[i])})).filter(x=>!x.ok);
+    const perfect=wrong.length===0;
+    if(perfect){
+      const newTrophies=(S.bookTrophies||0)+1;
+      if(S.user){
+        // save trophy count
+        const upd={...S.user,bookTrophies:newTrophies};
+        S.user=upd; S.bookTrophies=newTrophies;
+        const updUsers=S.users.map(u=>u.id===S.user.id?upd:u);
+        saveUsers(updUsers);
+      }
+      return el("div",{},hdr,
+        div("trophy-wrap",
+          el("span",{cls:"trophy"},"🏆"),
+          p("trophy-title","Perfekt! Alle 66 Bücher richtig!"),
+          p("trophy-sub",`Du hast jetzt ${newTrophies} Pokal${newTrophies===1?"":"pokäle"}!`),
+          div("trophies-row",...Array(Math.min(newTrophies,10)).fill("🏆").map(t=>el("span",{cls:"trophy-sm"},t)))
+        ),
+        btn("prim-btn","Nochmal versuchen",()=>set({view:"books-test",testInputs:Array(66).fill(""),testDone:false}))
+      );
+    }
+    // Show errors
+    const errList=div("rlist",...wrong.slice(0,10).map(x=>div("ritem",
+      el("div",{cls:"ri-marker",style:"background:#fca5a5"}),
+      el("div",{},p("ri-stelle",`Nr. ${x.i+1}: ${ALL_BOOKS[x.i]}`),p("ri-text",`Deine Eingabe: „${x.v||"–"}"`)
+    ))));
+    return el("div",{},hdr,
+      el("p",{style:"text-align:center;color:#fca5a5;font-size:15px;margin:1rem 0"},`✗ ${wrong.length} Fehler`),
+      wrong.length>10?el("p",{style:"font-size:12px;color:rgba(196,181,253,.4);text-align:center;margin-bottom:8px"},"(erste 10 Fehler)"):null,
+      errList,
+      div("btn-row",
+        btn("ghost-btn","Zur Übersicht",()=>set({view:"books-menu"})),
+        btn("prim-btn","Nochmal",()=>set({view:"books-test",testInputs:Array(66).fill(""),testDone:false}))
+      )
+    );
+  }
+
+  // Test grid
+  const inputs=S.testInputs||Array(66).fill("");
+  const grid=div("test-grid",...ALL_BOOKS.map((_,i)=>{
+    const f=div("test-field");
+    f.appendChild(el("span",{cls:"test-num"},String(i+1)));
+    const inp=el("input",{cls:"test-input",type:"text",placeholder:"…",value:inputs[i]||""});
+    inp.oninput=e=>{ S.testInputs[i]=e.target.value; };
+    // Autocomplete on focus
+    inp.onfocus=()=>{};
+    f.appendChild(inp);
+    return f;
+  }));
+
+  const submitB=btn("prim-btn","Auswerten",()=>{
+    set({testDone:true});
+  });
+  submitB.style.width="100%"; submitB.style.marginTop="8px";
+  return el("div",{},hdr,
+    el("p",{style:"font-size:13px;color:rgba(196,181,253,.45);text-align:center;margin-bottom:12px"},"Tippe alle 66 Bücher in der richtigen Reihenfolge"),
+    grid, submitB
+  );
+}
+
 // ── Bibel-API ────────────────────────────────────────────────────
 // Buchname DE → API-ID Mapping
 const BOOK_MAP = {
@@ -427,7 +677,11 @@ function render() {
   else if(S.view==="done")    root.appendChild(renderDone());
   else if(S.view==="luecke")  root.appendChild(renderLuecke());
   else if(S.view==="order")   root.appendChild(renderOrder());
-  else if(S.view==="stats")   root.appendChild(renderStats());
+  else if(S.view==="books-menu") root.appendChild(renderBooksMenu());
+  else if(S.view==="books-nb")   root.appendChild(renderBooksNB());
+  else if(S.view==="books-3")    root.appendChild(renderBooks3());
+  else if(S.view==="books-test") root.appendChild(renderBooksTest());
+  else if(S.view==="stats")      root.appendChild(renderStats());
   else if(S.view==="profile") root.appendChild(renderProfile());
 }
 
@@ -477,6 +731,7 @@ function renderMenu() {
     mkBtn("menu-luecke","✏️","Lückentext","Fehlende Wörter ergänzen",()=>{const ses=pickTen(S.verses);set({view:"luecke",session:ses,idx:0,results:[],luecken:buildLuecken(ses[0])});}),
     mkBtn("menu-order","🔀","Reihenfolge","Versabschnitte sortieren",()=>{const ses=pickTen(S.verses);set({view:"order",session:ses,idx:0,results:[],order:buildChunks(ses[0])});}),
     mkBtn("menu-stats","📊","Meine Statistik","Lernfortschritt im Überblick",()=>set({view:"stats"})),
+    mkBtn("menu-books","📚","Bibelbücher üben","Reihenfolge, Vorgänger & Volltest",()=>set({view:"books-menu"})),
     mkBtn("menu-profile","⚙️","Profil bearbeiten","Symbol, Farbe & Passwort ändern",()=>set({view:"profile",pEmoji:u.emoji,pColor:u.color,pOld:"",pNew:"",pNew2:"",pErr:"",pOk:false,delU:false})),
     div("stats",
       div("stat",p("stat-n",String(S.verses.length)),p("stat-l","Verse gesamt")),
@@ -682,6 +937,15 @@ function renderStats() {
   const wrap=el("div",{},hdr);
 
   wrap.appendChild(el("p",{style:"font-size:12px;color:rgba(196,181,253,.35);margin-bottom:1rem;text-align:center;font-style:italic"},"Basiert ausschliesslich auf Karteikarten-Ergebnissen"));
+  // Pokale
+  const trophies=S.bookTrophies||0;
+  const trophySection=div("",
+    el("h3",{style:"font-size:12px;font-weight:500;letter-spacing:.8px;text-transform:uppercase;color:#fcd34d;margin:0 0 8px 2px;font-family:'Inter',sans-serif"},"Bibelbücher-Pokale"),
+    trophies>0
+      ? div("trophies-row",...Array(Math.min(trophies,10)).fill("🏆").map(t=>el("span",{cls:"trophy-sm"},t)))
+      : el("p",{style:"font-size:13px;color:rgba(196,181,253,.3);margin-bottom:1rem"},"Noch kein Pokal – schaffe den Volltest!")
+  );
+  wrap.appendChild(trophySection);
   const total=S.verses.length;
   if(total===0){ wrap.appendChild(div("empty","Noch keine Verse vorhanden.")); return wrap; }
 
@@ -928,6 +1192,7 @@ async function doLogin() {
     const vd=await fbGet(`verses/${t.id}`);
     S.verses=vd?(vd.list||[]):[];
     S.counts={...S.counts,[t.id]:S.verses.length};
+    S.bookTrophies=t.bookTrophies||0;
     S.user=t; S.view="menu";
     render();
   } else { set({pwErr:true}); }
