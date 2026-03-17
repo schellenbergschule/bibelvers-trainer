@@ -218,72 +218,72 @@ async function hashPw(pw) {
 // ── Bibel-API ────────────────────────────────────────────────────
 // Buchname DE → API-ID Mapping
 const BOOK_MAP = {
-  "1.mose":["GEN"],"genesis":["GEN"],"gen":["GEN"],
-  "2.mose":["EXO"],"exodus":["EXO"],"ex":["EXO"],
-  "3.mose":["LEV"],"levitikus":["LEV"],"lev":["LEV"],
-  "4.mose":["NUM"],"numeri":["NUM"],"num":["NUM"],
-  "5.mose":["DEU"],"deuteronomium":["DEU"],"dtn":["DEU"],
-  "josua":["JOS"],"jos":["JOS"],
-  "richter":["JDG"],"ri":["JDG"],
-  "ruth":["RUT"],"rut":["RUT"],
-  "1.samuel":["1SA"],"1sam":["1SA"],
-  "2.samuel":["2SA"],"2sam":["2SA"],
-  "1.könige":["1KI"],"1kön":["1KI"],
-  "2.könige":["2KI"],"2kön":["2KI"],
-  "1.chronik":["1CH"],"1chr":["1CH"],
-  "2.chronik":["2CH"],"2chr":["2CH"],
-  "esra":["EZR"],"esr":["EZR"],
-  "nehemia":["NEH"],"neh":["NEH"],
-  "esther":["EST"],"est":["EST"],
-  "hiob":["JOB"],"job":["JOB"],
-  "psalm":["PSA"],"psalmen":["PSA"],"ps":["PSA"],
-  "sprüche":["PRO"],"spr":["PRO"],
-  "prediger":["ECC"],"pred":["ECC"],
-  "hohelied":["SNG"],"hld":["SNG"],
-  "jesaja":["ISA"],"jes":["ISA"],
-  "jeremia":["JER"],"jer":["JER"],
-  "klagelieder":["LAM"],"klgl":["LAM"],
-  "hesekiel":["EZK"],"hes":["EZK"],
-  "daniel":["DAN"],"dan":["DAN"],
-  "hosea":["HOS"],"hos":["HOS"],
-  "joel":["JOL"],"jo":["JOL"],
-  "amos":["AMO"],"am":["AMO"],
-  "obadja":["OBA"],"ob":["OBA"],
-  "jona":["JON"],"jon":["JON"],
-  "micha":["MIC"],"mi":["MIC"],
-  "nahum":["NAM"],"na":["NAM"],
-  "habakuk":["HAB"],"hab":["HAB"],
-  "zefanja":["ZEP"],"zef":["ZEP"],
-  "haggai":["HAG"],"hag":["HAG"],
-  "sacharja":["ZEC"],"sach":["ZEC"],
-  "maleachi":["MAL"],"mal":["MAL"],
-  "matthäus":["MAT"],"matth":["MAT"],"mt":["MAT"],
-  "markus":["MRK"],"mk":["MRK"],
-  "lukas":["LUK"],"lk":["LUK"],
-  "johannes":["JHN"],"joh":["JHN"],
-  "apostelgeschichte":["ACT"],"apg":["ACT"],
-  "römer":["ROM"],"röm":["ROM"],"rm":["ROM"],
-  "1.korinther":["1CO"],"1kor":["1CO"],
-  "2.korinther":["2CO"],"2kor":["2CO"],
-  "galater":["GAL"],"gal":["GAL"],
-  "epheser":["EPH"],"eph":["EPH"],
-  "philipper":["PHP"],"phil":["PHP"],
-  "kolosser":["COL"],"kol":["COL"],
-  "1.thessalonicher":["1TH"],"1thess":["1TH"],
-  "2.thessalonicher":["2TH"],"2thess":["2TH"],
-  "1.timotheus":["1TI"],"1tim":["1TI"],
-  "2.timotheus":["2TI"],"2tim":["2TI"],
-  "titus":["TIT"],"tit":["TIT"],
-  "philemon":["PHM"],"phlm":["PHM"],
-  "hebräer":["HEB"],"hebr":["HEB"],
-  "jakobus":["JAS"],"jak":["JAS"],
-  "1.petrus":["1PE"],"1pet":["1PE"],
-  "2.petrus":["2PE"],"2pet":["2PE"],
-  "1.johannes":["1JN"],"1joh":["1JN"],
-  "2.johannes":["2JN"],"2joh":["2JN"],
-  "3.johannes":["3JN"],"3joh":["3JN"],
-  "judas":["JUD"],"jud":["JUD"],
-  "offenbarung":["REV"],"off":["REV"],"apk":["REV"],
+  "1.mose":"genesis","genesis":"genesis","gen":"genesis",
+  "2.mose":"exodus","exodus":"exodus","ex":"exodus",
+  "3.mose":"leviticus","levitikus":"leviticus","lev":"leviticus",
+  "4.mose":"numbers","numeri":"numbers","num":"numbers",
+  "5.mose":"deuteronomy","deuteronomium":"deuteronomy","dtn":"deuteronomy",
+  "josua":"joshua","jos":"joshua",
+  "richter":"judges","ri":"judges",
+  "ruth":"ruth","rut":"ruth",
+  "1.samuel":"1-samuel","1sam":"1-samuel",
+  "2.samuel":"2-samuel","2sam":"2-samuel",
+  "1.könige":"1-kings","1kön":"1-kings",
+  "2.könige":"2-kings","2kön":"2-kings",
+  "1.chronik":"1-chronicles","1chr":"1-chronicles",
+  "2.chronik":"2-chronicles","2chr":"2-chronicles",
+  "esra":"ezra","esr":"ezra",
+  "nehemia":"nehemiah","neh":"nehemiah",
+  "esther":"esther","est":"esther",
+  "hiob":"job","job":"job",
+  "psalm":"psalms","psalmen":"psalms","ps":"psalms",
+  "sprüche":"proverbs","spr":"proverbs",
+  "prediger":"ecclesiastes","pred":"ecclesiastes",
+  "hohelied":"song-of-solomon","hld":"song-of-solomon",
+  "jesaja":"isaiah","jes":"isaiah",
+  "jeremia":"jeremiah","jer":"jeremiah",
+  "klagelieder":"lamentations","klgl":"lamentations",
+  "hesekiel":"ezekiel","hes":"ezekiel",
+  "daniel":"daniel","dan":"daniel",
+  "hosea":"hosea","hos":"hosea",
+  "joel":"joel","jo":"joel",
+  "amos":"amos","am":"amos",
+  "obadja":"obadiah","ob":"obadiah",
+  "jona":"jonah","jon":"jonah",
+  "micha":"micah","mi":"micah",
+  "nahum":"nahum","na":"nahum",
+  "habakuk":"habakkuk","hab":"habakkuk",
+  "zefanja":"zephaniah","zef":"zephaniah",
+  "haggai":"haggai","hag":"haggai",
+  "sacharja":"zechariah","sach":"zechariah",
+  "maleachi":"malachi","mal":"malachi",
+  "matthäus":"matthew","matth":"matthew","mt":"matthew",
+  "markus":"mark","mk":"mark",
+  "lukas":"luke","lk":"luke",
+  "johannes":"john","joh":"john",
+  "apostelgeschichte":"acts","apg":"acts",
+  "römer":"romans","röm":"romans","rm":"romans",
+  "1.korinther":"1-corinthians","1kor":"1-corinthians",
+  "2.korinther":"2-corinthians","2kor":"2-corinthians",
+  "galater":"galatians","gal":"galatians",
+  "epheser":"ephesians","eph":"ephesians",
+  "philipper":"philippians","phil":"philippians",
+  "kolosser":"colossians","kol":"colossians",
+  "1.thessalonicher":"1-thessalonians","1thess":"1-thessalonians",
+  "2.thessalonicher":"2-thessalonians","2thess":"2-thessalonians",
+  "1.timotheus":"1-timothy","1tim":"1-timothy",
+  "2.timotheus":"2-timothy","2tim":"2-timothy",
+  "titus":"titus","tit":"titus",
+  "philemon":"philemon","phlm":"philemon",
+  "hebräer":"hebrews","hebr":"hebrews",
+  "jakobus":"james","jak":"james",
+  "1.petrus":"1-peter","1pet":"1-peter",
+  "2.petrus":"2-peter","2pet":"2-peter",
+  "1.johannes":"1-john","1joh":"1-john",
+  "2.johannes":"2-john","2joh":"2-john",
+  "3.johannes":"3-john","3joh":"3-john",
+  "judas":"jude","jud":"jude",
+  "offenbarung":"revelation","off":"revelation","apk":"revelation",
 };
 
 // Angezeigte Buchnamen für Dropdown
@@ -306,16 +306,15 @@ const BIBLE_VERSIONS = {
 };
 
 async function fetchVerse(bookDE, chapter, verse, version) {
-  const key = bookDE.toLowerCase().replace(/\s/g,"");
-  const bookId = BOOK_MAP[key];
+  const key = bookDE.toLowerCase().replace(/\s+/g,"").replace(/ä/g,"a").replace(/ö/g,"o").replace(/ü/g,"u");
+  const bookId = BOOK_MAP[key] || BOOK_MAP[bookDE.toLowerCase().replace(/\s+/g,"")];
   if(!bookId) throw new Error(`Buch nicht gefunden: ${bookDE}`);
-  const id = bookId[0];
   const versionId = BIBLE_VERSIONS[version];
-  const url = `https://cdn.jsdelivr.net/gh/wldeh/bible-api@main/bibles/${versionId}/books/${id}/chapters/${chapter}/verses/${verse}.json`;
+  const url = `https://cdn.jsdelivr.net/gh/wldeh/bible-api@main/bibles/${versionId}/books/${bookId}/chapters/${chapter}/verses/${verse}.json`;
   const r = await fetch(url);
   if(!r.ok) throw new Error(`Vers nicht gefunden (${r.status})`);
   const data = await r.json();
-  return data.text || data.verse || "";
+  return data.text || "";
 }
 
 // ── Constants ────────────────────────────────────────────────────
@@ -492,26 +491,20 @@ function renderEdit() {
   const hdr=div("page-header",btn("back-btn","←",()=>set({view:"menu",editId:null,editStelle:"",editText:""})),el("h2",{cls:"page-title"},"Verse verwalten"));
   const panel=div("form-panel");
 
-  // Source tabs
+  // Source dropdown
   const srcMode = S.editSrcMode || "manual";
-  const tabs = div("source-tabs");
-  ["manual","api"].forEach(m=>{
-    const t=btn("source-tab"+(srcMode===m?" active":""), m==="manual"?"✏️ Manuell":"📖 Bibel-API", ()=>set({editSrcMode:m,editFetchStatus:"",editFetchErr:""}));
-    tabs.appendChild(t);
+  const srcSel = el("select",{cls:"f-select",style:"margin-bottom:14px"});
+  [["manual","✏️ Manuell eingeben"],["elberfelder","📖 Elberfelder 1905"],["schlachter","📖 Schlachter 1951"]].forEach(([val,lbl])=>{
+    const o=el("option",{value:val},lbl);
+    if(val===srcMode) o.selected=true;
+    srcSel.appendChild(o);
   });
-  panel.appendChild(tabs);
+  srcSel.onchange=e=>set({editSrcMode:e.target.value,editFetchStatus:"",editFetchErr:""});
+  panel.append(el("label",{cls:"f-label"},"Quelle"),srcSel);
 
-  if(srcMode==="api") {
-    // Version selector
-    const verSel=el("select",{cls:"f-select"});
-    Object.keys(BIBLE_VERSIONS).forEach(v=>{
-      const o=el("option",{value:v},v);
-      if(v===(S.editVersion||"Elberfelder 1905")) o.selected=true;
-      verSel.appendChild(o);
-    });
-    verSel.onchange=e=>S.editVersion=e.target.value;
+  if(srcMode==="elberfelder"||srcMode==="schlachter") {
 
-    // Book selector
+    const ver = srcMode==="elberfelder" ? "Elberfelder 1905" : "Schlachter 1951";
     const bookSel=el("select",{cls:"f-select"});
     const defaultOpt=el("option",{value:""},"– Buch wählen –"); bookSel.appendChild(defaultOpt);
     BOOKS_DE.forEach(b=>{
@@ -536,7 +529,7 @@ function renderEdit() {
       if(!book||!chap||!verse){set({editFetchErr:"Bitte Buch, Kapitel und Vers wählen.",editFetchStatus:""});return;}
       fetchB.disabled=true; fetchB.textContent="Lädt…";
       try {
-        const text=await fetchVerse(book,chap,verse,ver);
+      const text=await fetchVerse(book,chap,verse,ver);
         const stelle=`${book} ${chap},${verse}`;
         set({editStelle:stelle,editText:text.trim(),editFetchStatus:`${stelle} geladen`,editFetchErr:""});
       } catch(e) {
