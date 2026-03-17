@@ -188,12 +188,7 @@ async function fbDel(path) {
 // ── Constants ────────────────────────────────────────────────────
 const PALETTE = ["#8b5cf6","#6366f1","#ec4899","#f97316","#14b8a6","#10b981","#3b82f6","#f59e0b"];
 const EMOJIS  = ["✝","🕊","📖","🌟","🙏","⚓","🌿","💎","🔥","🌙"];
-const initialUsers   = [{ id:"ben", name:"Ben", pw:"P23", color:"#8b5cf6", emoji:"✝" }];
-const defaultVerses  = [
-  { id:1, stelle:"Johannes 3,16", text:"Denn also hat Gott die Welt geliebt, dass er seinen eingeborenen Sohn gab, damit jeder, der an ihn glaubt, nicht verloren gehe, sondern ewiges Leben habe.", added:Date.now()-1000000, score:3, attempts:5 },
-  { id:2, stelle:"Psalm 23,1",    text:"Der HERR ist mein Hirte, mir wird nichts mangeln.", added:Date.now()-800000, score:1, attempts:2 },
-  { id:3, stelle:"Römer 8,28",    text:"Wir wissen aber, dass denen, die Gott lieben, alle Dinge zum Besten mitwirken, denen, die nach seinem Ratschluss berufen sind.", added:Date.now()-600000, score:0, attempts:1 },
-];
+// Keine hartcodierten Nutzer – alles kommt aus Firebase
 
 // ── State ────────────────────────────────────────────────────────
 let state = {
@@ -527,14 +522,17 @@ function renderLoginModal() {
     el("div",{style:`width:46px;height:46px;border-radius:50%;background:${t.color}28;border:2px solid ${t.color}55;display:flex;align-items:center;justify-content:center;font-size:24px`},t.emoji),
     el("div",{},[el("p",{class:"modal-title",style:"margin-bottom:0"},t.name),el("p",{class:"modal-sub",style:"margin-bottom:0"},"Passwort eingeben")])
   ]);
-  const inp=el("input",{class:"m-input"+(state.pwError?" err":""),type:"password",placeholder:"••••••"});
+  const form=el("form",{autocomplete:"on",onsubmit:"return false"});
+  const usrI=el("input",{type:"text",name:"username",autocomplete:"username",style:"display:none"}); usrI.value=t.name;
+  const inp=el("input",{class:"m-input"+(state.pwError?" err":""),type:"password",name:"password",autocomplete:"current-password",placeholder:"••••••"});
   inp.value=state.pwInput;
   inp.oninput=e=>state.pwInput=e.target.value;
   inp.onkeydown=e=>{if(e.key==="Enter")doLogin();};
   const errEl=el("span",{class:"err-msg"},"Falsches Passwort. Nochmal versuchen.");
   if(!state.pwError)errEl.style.display="none";
-  const btns=div("modal-btns",[btn("m-ghost","Abbrechen",()=>set({modal:null})),btn("m-prim","Anmelden",doLogin)]);
-  modal.append(avatarWrap,el("label",{class:"m-label"},"Passwort"),inp,errEl,btns);
+  const btns=div("modal-btns",[btn("m-ghost","Abbrechen",()=>set({modal:null})),el("button",{class:"m-prim",type:"submit",onclick:doLogin},"Anmelden")]);
+  form.append(usrI,el("label",{class:"m-label"},"Passwort"),inp,errEl,btns);
+  modal.append(avatarWrap,form);
   overlay.appendChild(modal);
   setTimeout(()=>inp.focus(),50);
   return overlay;
@@ -556,27 +554,28 @@ function renderNewUserModal() {
   overlay.onclick=()=>set({modal:null});
   const modal=div("modal");
   modal.onclick=e=>e.stopPropagation();
-  const nameI=el("input",{class:"m-input",placeholder:"Dein Name"}); nameI.value=state.newName; nameI.oninput=e=>state.newName=e.target.value;
+  const form2=el("form",{autocomplete:"on",onsubmit:"return false"});
+  const nameI=el("input",{class:"m-input",name:"username",autocomplete:"username",placeholder:"Dein Name"}); nameI.value=state.newName; nameI.oninput=e=>state.newName=e.target.value;
   const emojiRow=div("emoji-row",...EMOJIS.map(em=>{
-    const b=el("button",{class:"emoji-opt"+(state.newEmoji===em?" sel":""),onclick:()=>set({newEmoji:em})},em); return b;
+    const b=el("button",{type:"button",class:"emoji-opt"+(state.newEmoji===em?" sel":""),onclick:()=>set({newEmoji:em})},em); return b;
   }));
   const colorRow=div("color-row",...PALETTE.map(c=>{
     const d=div("color-opt"+(state.newColor===c?" sel":"")); d.style.background=c; d.onclick=()=>set({newColor:c}); return d;
   }));
-  const pw1I=el("input",{class:"m-input",type:"password",placeholder:"Passwort wählen"}); pw1I.value=state.newPw; pw1I.oninput=e=>state.newPw=e.target.value;
-  const pw2I=el("input",{class:"m-input",type:"password",placeholder:"Passwort bestätigen"}); pw2I.value=state.newPw2; pw2I.oninput=e=>state.newPw2=e.target.value;
+  const pw1I=el("input",{class:"m-input",type:"password",name:"password",autocomplete:"new-password",placeholder:"Passwort wählen"}); pw1I.value=state.newPw; pw1I.oninput=e=>state.newPw=e.target.value;
+  const pw2I=el("input",{class:"m-input",type:"password",name:"password2",autocomplete:"new-password",placeholder:"Passwort bestätigen"}); pw2I.value=state.newPw2; pw2I.oninput=e=>state.newPw2=e.target.value;
   pw2I.onkeydown=e=>{if(e.key==="Enter")doCreateUser();};
   const errEl=el("span",{class:"err-msg"},state.newErr||""); if(!state.newErr)errEl.style.display="none";
-  modal.append(
-    el("p",{class:"modal-title"},"Neuer Benutzer"),el("p",{class:"modal-sub"},"Erstelle dein persönliches Profil"),
+  form2.append(
     el("label",{class:"m-label"},"Name"),nameI,
     el("label",{class:"m-label"},"Symbol"),emojiRow,
     el("label",{class:"m-label"},"Farbe"),colorRow,
     el("label",{class:"m-label"},"Passwort"),pw1I,
     el("label",{class:"m-label"},"Passwort wiederholen"),pw2I,
     errEl,
-    div("modal-btns",[btn("m-ghost","Abbrechen",()=>set({modal:null})),btn("m-prim","Profil erstellen",doCreateUser)])
+    div("modal-btns",[btn("m-ghost","Abbrechen",()=>set({modal:null})),el("button",{class:"m-prim",type:"submit",onclick:doCreateUser},"Profil erstellen")])
   );
+  modal.append(el("p",{class:"modal-title"},"Neuer Benutzer"),el("p",{class:"modal-sub"},"Erstelle dein persönliches Profil"),form2);
   overlay.appendChild(modal);
   return overlay;
 }
@@ -600,9 +599,8 @@ document.getElementById("app").innerHTML=`<div class="loader"><div class="spinne
   try {
     let data = await fbGet("app/users");
     if (!data) {
-      await fbSet("app/users",{list:initialUsers});
-      await fbSet("verses/ben",{list:defaultVerses});
-      data={list:initialUsers};
+      await fbSet("app/users",{list:[]});
+      data={list:[]};
     }
     const userList=data.list||[];
     const counts={};
