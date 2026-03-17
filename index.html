@@ -147,7 +147,24 @@ body{font-family:'Inter',sans-serif;min-height:100vh;background:radial-gradient(
 .danger-sub{font-size:12px;color:rgba(252,165,165,.5);margin-bottom:10px;line-height:1.5;}
 .danger-btn{padding:9px 16px;border-radius:10px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.1);color:#fca5a5;font-size:13px;font-weight:500;cursor:pointer;}
 .danger-btn-confirm{background:rgba(239,68,68,.6);color:white;border-color:transparent;}
-.invisible{visibility:hidden;}
+.luecke-verse { font-family:'Lora',serif; font-size:17px; line-height:2.2; color:rgba(237,233,254,.9); padding:1.25rem; border-radius:16px; background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(15,118,110,.1)); border:1px solid rgba(20,184,166,.2); margin-bottom:1rem; }
+.gap-input { font-family:'Lora',serif; font-size:16px; border:none; border-bottom:2px solid rgba(20,184,166,.6); background:transparent; color:#5eead4; outline:none; width:90px; text-align:center; padding:2px 4px; transition:border-color .2s; }
+.gap-input:focus { border-bottom-color:#2dd4bf; }
+.gap-input.correct { border-bottom-color:#86efac; color:#86efac; }
+.gap-input.wrong { border-bottom-color:#fca5a5; color:#fca5a5; }
+.gap-revealed { font-family:'Lora',serif; font-size:16px; color:#86efac; border-bottom:2px solid #86efac; padding:2px 6px; display:inline-block; }
+.check-btn { width:100%; padding:13px; border:none; border-radius:13px; background:linear-gradient(135deg,#0f766e,#0d9488); color:white; font-size:15px; font-weight:500; cursor:pointer; margin-bottom:10px; transition:opacity .15s; }
+.check-btn:hover { opacity:.88; }
+.stelle-label { font-size:11px; letter-spacing:2px; color:rgba(20,184,166,.6); text-transform:uppercase; font-weight:500; margin-bottom:10px; display:block; }
+
+.order-wrap { display:flex; flex-direction:column; gap:8px; margin-bottom:1rem; }
+.chunk { padding:13px 16px; border-radius:13px; font-family:'Lora',serif; font-size:15px; color:rgba(237,233,254,.9); cursor:grab; transition:all .18s; border:1px solid rgba(196,181,253,.2); background:linear-gradient(135deg,rgba(255,255,255,.07),rgba(146,64,14,.12)); user-select:none; display:flex; align-items:center; gap:10px; }
+.chunk:hover { border-color:rgba(251,191,36,.4); transform:translateX(3px); }
+.chunk.selected { border-color:rgba(251,191,36,.7); background:linear-gradient(135deg,rgba(251,191,36,.15),rgba(180,83,9,.15)); transform:translateX(3px); }
+.chunk.correct-pos { border-color:rgba(134,239,172,.5); background:linear-gradient(135deg,rgba(34,197,94,.1),rgba(21,128,61,.08)); cursor:default; color:#86efac; }
+.chunk.wrong-pos { border-color:rgba(252,165,165,.4); background:linear-gradient(135deg,rgba(239,68,68,.1),rgba(185,28,28,.08)); animation:shake .3s; }
+.chunk-num { font-size:11px; color:rgba(196,181,253,.35); font-family:'Inter',sans-serif; min-width:16px; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
 </style>
 </head>
 <body>
@@ -193,9 +210,11 @@ const EMOJIS  = ["✝","🕊","📖","🌟","🙏","⚓","🌿","💎","🔥","�
 // ── State ────────────────────────────────────────────────────────
 let state = {
   users:[], verseCounts:{}, activeUser:null, verses:[],
-  mode:"select", // select | menu | edit | train | done | profile
+  mode:"select", // select | menu | edit | train | done | profile | luecke | order
   editId:null, editStelle:"", editText:"",
   session:[], cardIdx:0, flipped:false, results:[],
+  lueckenData: null,   // current gap exercise
+  orderData: null,     // current order exercise
   delConfirm:null, delUserConfirm:false,
   modal:null, loginTarget:null, pwInput:"", pwError:false,
   newName:"", newPw:"", newPw2:"", newEmoji:"✝", newColor:PALETTE[0], newErr:"",
@@ -215,6 +234,56 @@ async function persistVerses(uid, list) {
   state.verseCounts = { ...state.verseCounts, [uid]: list.length };
   await fbSet(`verses/${uid}`, { list });
   render();
+}
+
+// ── Training helpers ─────────────────────────────────────────────
+
+// Lückentext: Anzahl Lücken abhängig vom Score
+function getLueckenCount(verse) {
+  const score = verse.score || 0;
+  if (score <= 1) return 1;
+  if (score <= 3) return 2;
+  return 3;
+}
+
+// Erstellt Lückentext-Struktur: Array von {word, isGap, userInput, correct, revealed}
+function buildLuecken(verse) {
+  const words = verse.text.split(/(\s+)/);
+  const realWords = words.map((w,i)=>({w,i,isWord:w.trim().length>0})).filter(x=>x.isWord);
+  const count = getLueckenCount(verse);
+  const gapIndices = new Set();
+  while(gapIndices.size < Math.min(count, realWords.length)) {
+    gapIndices.add(realWords[Math.floor(Math.random()*realWords.length)].i);
+  }
+  return words.map((w,i)=>({
+    word: w,
+    isGap: gapIndices.has(i),
+    isSpace: w.trim().length===0,
+    userInput: "",
+    correct: null,
+    revealed: false
+  }));
+}
+
+// Reihenfolge: Teilt Vers in Gruppen von 3-5 Wörtern
+function buildChunks(verse) {
+  const words = verse.text.trim().split(/\s+/);
+  const size = words.length <= 6 ? 2 : words.length <= 12 ? 3 : 4;
+  const chunks = [];
+  for(let i=0; i<words.length; i+=size) {
+    chunks.push(words.slice(i,i+size).join(" "));
+  }
+  // Shuffle
+  const shuffled = [...chunks];
+  for(let i=shuffled.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];
+  }
+  // Make sure it's actually shuffled
+  if(shuffled.every((c,i)=>c===chunks[i]) && chunks.length>1) {
+    [shuffled[0],shuffled[1]]=[shuffled[1],shuffled[0]];
+  }
+  return { original: chunks, current: shuffled, locked: new Array(chunks.length).fill(false) };
 }
 
 // ── Spaced repetition ────────────────────────────────────────────
@@ -273,6 +342,8 @@ function render() {
   else if (s.mode==="edit")    root.appendChild(renderEdit());
   else if (s.mode==="train")   root.appendChild(renderTrain());
   else if (s.mode==="done")    root.appendChild(renderDone());
+  else if (s.mode==="luecke")  root.appendChild(renderLuecke());
+  else if (s.mode==="order")   root.appendChild(renderOrder());
   else if (s.mode==="profile") root.appendChild(renderProfile());
 }
 
@@ -326,7 +397,7 @@ function renderMenu() {
     div("stat",[el("div",{class:"stat-n"},String(learning)),el("div",{class:"stat-l"},"In Übung")]),
     div("stat",[el("div",{class:"stat-n"},String(mastered)),el("div",{class:"stat-l"},"Gemeistert")])
   );
-  return el("div",{},[header,bEdit,bTrain,bProf,stats]);
+  return el("div",{},[header,bEdit,bTrain,bLuecke,bOrder,bProf,stats]);
 }
 
 function renderEdit() {
