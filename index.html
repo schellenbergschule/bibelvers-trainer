@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Bibelvers-Trainer</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=Inter:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-firestore-compat.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Inter',sans-serif;min-height:100vh;background:radial-gradient(ellipse at 0% 0%,#3b0764 0%,transparent 45%),radial-gradient(ellipse at 100% 0%,#1e1b4b 0%,transparent 45%),radial-gradient(ellipse at 50% 60%,#0f172a 0%,transparent 60%),radial-gradient(ellipse at 80% 100%,#1a0533 0%,transparent 50%),radial-gradient(ellipse at 20% 100%,#0c1445 0%,transparent 50%),linear-gradient(160deg,#0d0618 0%,#0f0c29 50%,#0a0a1a 100%);position:relative;overflow-x:hidden;}
@@ -70,9 +72,10 @@ body{font-family:'Inter',sans-serif;min-height:100vh;background:radial-gradient(
 .stat-l{font-size:11px;color:rgba(196,181,253,.38);margin-top:2px;}
 .form-panel{padding:16px;margin-bottom:14px;border-radius:20px;background:linear-gradient(135deg,rgba(255,255,255,.07),rgba(139,92,246,.07));border:1px solid rgba(196,181,253,.15);}
 .f-label{font-size:11px;color:rgba(196,181,253,.5);font-weight:500;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:5px;}
-.f-input{width:100%;padding:9px 13px;border-radius:11px;outline:none;background:rgba(255,255,255,.06);border:1px solid rgba(196,181,253,.15);color:rgba(237,233,254,.9);font-size:14px;font-family:'Inter',sans-serif;margin-bottom:10px;}
-.f-input::placeholder{color:rgba(196,181,253,.25);}
-.f-input:focus{border-color:rgba(167,139,250,.55);background:rgba(139,92,246,.08);}
+.f-input{width:100%;padding:9px 13px;border-radius:11px;outline:none;background:#1e1a3e;border:1px solid rgba(196,181,253,.25);color:#ede9fe;font-size:14px;font-family:'Inter',sans-serif;margin-bottom:10px;}
+.f-input::placeholder{color:rgba(196,181,253,.35);}
+.f-input:focus{border-color:rgba(167,139,250,.7);background:#241f4a;}
+.f-input option{background:#1e1a3e;color:#ede9fe;}
 .f-textarea{min-height:80px;resize:vertical;line-height:1.5;}
 .save-btn{width:100%;padding:11px;border:none;border-radius:11px;background:linear-gradient(135deg,#8b5cf6,#6366f1 50%,#7c3aed);color:white;font-weight:500;font-size:14px;cursor:pointer;transition:opacity .15s;}
 .save-btn:hover{opacity:.88;}
@@ -146,7 +149,6 @@ body{font-family:'Inter',sans-serif;min-height:100vh;background:radial-gradient(
 .legend-item{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(196,181,253,.6);}
 .legend-item b{color:rgba(237,233,254,.9);}
 .stat-verse-row{padding:10px 14px;border-radius:13px;background:linear-gradient(135deg,rgba(255,255,255,.04),rgba(139,92,246,.05));border:1px solid rgba(196,181,253,.08);margin-bottom:7px;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;}
-/* Lückentext: falsch = rot */
 .gap-wrong{font-family:'Lora',serif;font-size:16px;color:#fca5a5;border-bottom:2px solid rgba(252,165,165,.5);padding:0 4px;margin:0 2px;}
 .luecke-card{padding:1.25rem;border-radius:18px;background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(15,118,110,.1));border:1px solid rgba(20,184,166,.2);margin-bottom:1rem;font-family:'Lora',serif;font-size:17px;line-height:2.4;color:rgba(237,233,254,.9);}
 .stelle-label{font-size:11px;letter-spacing:2px;color:rgba(20,184,166,.6);text-transform:uppercase;font-weight:500;margin-bottom:12px;display:block;font-family:'Inter',sans-serif;}
@@ -157,7 +159,6 @@ body{font-family:'Inter',sans-serif;min-height:100vh;background:radial-gradient(
 .gap-revealed{font-family:'Lora',serif;font-size:16px;color:#86efac;border-bottom:2px solid rgba(134,239,172,.5);padding:0 4px;margin:0 2px;}
 .check-btn{width:100%;padding:13px;border:none;border-radius:13px;background:linear-gradient(135deg,#0f766e,#0d9488);color:white;font-size:15px;font-weight:500;cursor:pointer;margin-bottom:10px;}
 .next-btn{width:100%;padding:13px;border:none;border-radius:13px;background:linear-gradient(135deg,#8b5cf6,#6366f1 50%,#7c3aed);color:white;font-size:15px;font-weight:500;cursor:pointer;}
-/* Reihenfolge */
 .order-hint{font-size:13px;color:rgba(196,181,253,.45);text-align:center;margin-bottom:12px;}
 .chunk-list{display:flex;flex-direction:column;gap:8px;margin-bottom:1rem;}
 .chunk{padding:13px 16px;border-radius:13px;font-family:'Lora',serif;font-size:15px;color:rgba(237,233,254,.9);cursor:pointer;border:1px solid rgba(196,181,253,.2);background:linear-gradient(135deg,rgba(255,255,255,.07),rgba(146,64,14,.12));display:flex;align-items:center;gap:10px;transition:all .18s;user-select:none;}
@@ -173,13 +174,10 @@ body{font-family:'Inter',sans-serif;min-height:100vh;background:radial-gradient(
 <body>
 <div class="orb1"></div><div class="orb2"></div><div class="orb3"></div>
 <div class="stars"></div>
-<div id="app"><div class="loader"><div class="spinner"></div><p class="loader-text">Verbinde mit Datenbank…</p></div></div>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const fb = initializeApp({
+<div id="app"><div class="loader"><div class="spinner"></div><p class="loader-text">Verbinde mit Firebase…</p></div></div>
+<script>
+// ── Firebase init ────────────────────────────────────────────────
+firebase.initializeApp({
   apiKey:"AIzaSyDBiwkGCpXWUm1ZZ7Qpjtr2U1Mn1xcPKdM",
   authDomain:"bibelvers-trainer.firebaseapp.com",
   projectId:"bibelvers-trainer",
@@ -187,433 +185,74 @@ const fb = initializeApp({
   messagingSenderId:"56194333927",
   appId:"1:56194333927:web:d89d7fc9409b93941a3642"
 });
-const db = getFirestore(fb);
+const db = firebase.firestore();
 
-async function fbGet(path) {
-  try {
-    const [c,d] = path.split("/");
-    const snap = await getDoc(doc(db,c,d));
-    return snap.exists() ? snap.data() : null;
-  } catch(e) { console.error("fbGet",e); return null; }
+async function fbGet(col, docId) {
+  try { const s = await db.collection(col).doc(docId).get(); return s.exists ? s.data() : null; }
+  catch(e) { console.error("fbGet",e); return null; }
 }
-async function fbSet(path, data) {
-  try {
-    const [c,d] = path.split("/");
-    await setDoc(doc(db,c,d), data);
-  } catch(e) { console.error("fbSet",e); }
+async function fbSet(col, docId, data) {
+  try { await db.collection(col).doc(docId).set(data); }
+  catch(e) { console.error("fbSet",e); }
 }
-async function fbDel(path) {
-  try {
-    const [c,d] = path.split("/");
-    await deleteDoc(doc(db,c,d));
-  } catch(e) { console.error("fbDel",e); }
-}
-
-// ── Hashing ──────────────────────────────────────────────────────
-async function hashPw(pw) {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(pw));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
-}
-
-// ── Bibelbücher Daten ─────────────────────────────────────────────
-const ALL_BOOKS = [
-  "1.Mose","2.Mose","3.Mose","4.Mose","5.Mose","Josua","Richter","Ruth",
-  "1.Samuel","2.Samuel","1.Könige","2.Könige","1.Chronik","2.Chronik",
-  "Esra","Nehemia","Esther","Hiob","Psalm","Sprüche","Prediger","Hohelied",
-  "Jesaja","Jeremia","Klagelieder","Hesekiel","Daniel","Hosea","Joel","Amos",
-  "Obadja","Jona","Micha","Nahum","Habakuk","Zefanja","Haggai","Sacharja","Maleachi",
-  "Matthäus","Markus","Lukas","Johannes","Apostelgeschichte","Römer",
-  "1.Korinther","2.Korinther","Galater","Epheser","Philipper","Kolosser",
-  "1.Thessalonicher","2.Thessalonicher","1.Timotheus","2.Timotheus","Titus",
-  "Philemon","Hebräer","Jakobus","1.Petrus","2.Petrus","1.Johannes","2.Johannes",
-  "3.Johannes","Judas","Offenbarung"
-];
-
-function normalizeBook(s) {
-  return s.trim().toLowerCase()
-    .replace(/ä/g,"a").replace(/ö/g,"o").replace(/ü/g,"u").replace(/ß/g,"ss")
-    .replace(/\s+/g,"").replace(/\./g,"");
-}
-function booksMatch(a,b){ return normalizeBook(a)===normalizeBook(b); }
-function pickRandBook(exclude=[]) {
-  // exclude 1.Mose and Offenbarung (no prev/next), plus any in exclude list
-  const pool = ALL_BOOKS.slice(1,-1).filter(b=>!exclude.includes(b));
-  return pool[Math.floor(Math.random()*pool.length)];
-}
-function pick3Books() {
-  const idxs=new Set();
-  while(idxs.size<3) idxs.add(Math.floor(Math.random()*ALL_BOOKS.length));
-  const sorted=[...idxs].sort((a,b)=>a-b);
-  const orig=sorted.map(i=>ALL_BOOKS[i]);
-  const cur=[...orig];
-  for(let i=cur.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[cur[i],cur[j]]=[cur[j],cur[i]];}
-  if(cur.every((c,i)=>c===orig[i]))[cur[0],cur[1]]=[cur[1],cur[0]];
-  return {orig,cur,sel:null};
-}
-
-// ── Autocomplete helper ───────────────────────────────────────────
-function makeAutocomplete(placeholder, onConfirm) {
-  const wrap = div("autocomplete-wrap");
-  const inp = el("input",{cls:"autocomplete-input",type:"text",placeholder,autocomplete:"off"});
-  let dd=null, focusedIdx=-1, filtered=[];
-
-  function closeDD(){ if(dd){dd.remove();dd=null;} focusedIdx=-1; }
-  function openDD(list){
-    closeDD();
-    if(!list.length) return;
-    dd=div("autocomplete-dd");
-    list.forEach((b,i)=>{
-      const opt=div("autocomplete-opt",b);
-      opt.onmousedown=(e)=>{ e.preventDefault(); selectBook(b); };
-      dd.appendChild(opt);
-    });
-    wrap.appendChild(dd);
-    filtered=list;
-  }
-  function updateFocus(){
-    if(!dd) return;
-    [...dd.children].forEach((c,i)=>c.classList.toggle("focused",i===focusedIdx));
-  }
-  function selectBook(b){ inp.value=b; inp.className="autocomplete-input"; closeDD(); onConfirm(b,inp); }
-
-  inp.oninput=()=>{
-    inp.className="autocomplete-input";
-    const val=inp.value.trim().toLowerCase();
-    if(!val){closeDD();return;}
-    const matches=ALL_BOOKS.filter(b=>normalizeBook(b).includes(normalizeBook(val)));
-    openDD(matches.slice(0,8));
-    focusedIdx=-1;
-  };
-  inp.onkeydown=(e)=>{
-    if(e.key==="ArrowDown"){e.preventDefault();focusedIdx=Math.min(focusedIdx+1,filtered.length-1);updateFocus();}
-    else if(e.key==="ArrowUp"){e.preventDefault();focusedIdx=Math.max(focusedIdx-1,0);updateFocus();}
-    else if(e.key==="Enter"){
-      e.preventDefault();
-      if(focusedIdx>=0&&filtered[focusedIdx]) selectBook(filtered[focusedIdx]);
-      else if(inp.value.trim()) onConfirm(inp.value.trim(),inp);
-      closeDD();
-    }
-    else if(e.key==="Escape") closeDD();
-  };
-  inp.onblur=()=>setTimeout(closeDD,150);
-  wrap.appendChild(inp);
-  wrap.getInput=()=>inp;
-  wrap.reset=(cls="")=>{ inp.value=""; inp.className="autocomplete-input"+(cls?" "+cls:""); closeDD(); };
-  wrap.setClass=(cls)=>inp.className="autocomplete-input "+cls;
-  return wrap;
-}
-
-// ── Bibelbücher Menü ──────────────────────────────────────────────
-function renderBooksMenu() {
-  const hdr=div("page-header",btn("back-btn","←",()=>set({view:"menu"})),el("h2",{cls:"page-title"},"Bibelbücher"));
-  const trophies = S.bookTrophies||0;
-  const trophyRow = trophies>0 ? div("trophies-row",...Array(Math.min(trophies,10)).fill("🏆").map(t=>el("span",{cls:"trophy-sm"},t))) : el("p",{style:"font-size:12px;color:rgba(196,181,253,.3);text-align:center;margin-bottom:8px"},"Noch kein Pokal – schaffst du den Volltest?");
-  return el("div",{},hdr, trophyRow,
-    div("books-menu",
-      el("button",{cls:"books-card books-card-nb",onclick:()=>set({view:"books-nb",nbBook:pickRandBook(),nbPrevInput:"",nbNextInput:"",nbFeedback:null})},
-        div("bk-icon","↔"), el("div",{},p("bk-title","Vorgänger & Nachfolger"),p("bk-sub","Buch erraten – was kommt davor und danach?"))
-      ),
-      el("button",{cls:"books-card books-card-3",onclick:()=>set({view:"books-3",sort3:pick3Books(),sort3Feedback:null})},
-        div("bk-icon","🔀"), el("div",{},p("bk-title","3 Bücher sortieren"),p("bk-sub","Bringe drei Bücher in die richtige Reihenfolge"))
-      ),
-      el("button",{cls:"books-card books-card-test",onclick:()=>set({view:"books-test",testInputs:Array(66).fill(""),testDone:false})},
-        div("bk-icon","🏆"), el("div",{},p("bk-title","Volltest: Alle 66 Bücher"),p("bk-sub","Tippe alle Bücher in der richtigen Reihenfolge"))
-      )
-    )
-  );
-}
-
-// ── Vorgänger / Nachfolger ────────────────────────────────────────
-function renderBooksNB() {
-  const book = S.nbBook;
-  const idx  = ALL_BOOKS.indexOf(book);
-  const prev = ALL_BOOKS[idx-1];
-  const next = ALL_BOOKS[idx+1];
-  const hdr  = div("page-header",btn("back-btn","←",()=>set({view:"books-menu"})),el("h2",{cls:"page-title"},"Vorgänger & Nachfolger"));
-
-  const card = div("bb-card",
-    span("bb-label","Welche Bücher kommen davor und danach?"),
-    p("bb-given",book),
-    p("bb-pos",`Buch ${idx+1} von 66`)
-  );
-
-  let prevWrap, nextWrap;
-
-  function check(){
-    const pVal=prevWrap.getInput().value.trim();
-    const nVal=nextWrap.getInput().value.trim();
-    const pOk=booksMatch(pVal,prev);
-    const nOk=booksMatch(nVal,next);
-    prevWrap.setClass(pOk?"ok":"wrong");
-    nextWrap.setClass(nOk?"ok":"wrong");
-    const allOk=pOk&&nOk;
-    feedbackEl.className="nb-feedback "+(allOk?"nb-ok":"nb-wrong");
-    feedbackEl.textContent=allOk
-      ? `✓ Richtig! ${prev} → ${book} → ${next}`
-      : `✗ ${!pOk?"Vorgänger: "+prev+" ":""} ${!nOk?"Nachfolger: "+next:""}`;
-    checkB.style.display="none";
-    nextB.style.display="block";
-  }
-
-  prevWrap=makeAutocomplete("Vorgänger…",(v,inp)=>{ if(booksMatch(v,prev)) inp.className="autocomplete-input ok"; });
-  nextWrap=makeAutocomplete("Nachfolger…",(v,inp)=>{ if(booksMatch(v,next)) inp.className="autocomplete-input ok"; });
-
-  const feedbackEl=div("nb-feedback"); feedbackEl.style.display="none";
-  const checkB=btn("check-btn","Überprüfen ✓",()=>{ feedbackEl.style.display="block"; check(); });
-  const nextB=btn("next-btn","Nächstes Buch →",()=>set({view:"books-nb",nbBook:pickRandBook([book]),nbFeedback:null}));
-  nextB.style.display="none"; nextB.style.width="100%"; checkB.style.width="100%";
-
-  const prevLabel=el("label",{cls:"f-label"},"Vorgänger");
-  const nextLabel=el("label",{cls:"f-label"},"Nachfolger");
-  return el("div",{},hdr,card,prevLabel,prevWrap,nextLabel,nextWrap,feedbackEl,checkB,nextB);
-}
-
-// ── 3 Bücher sortieren ────────────────────────────────────────────
-function renderBooks3() {
-  const hdr=div("page-header",btn("back-btn","←",()=>set({view:"books-menu"})),el("h2",{cls:"page-title"},"3 Bücher sortieren"));
-  const {orig,cur,sel}=S.sort3;
-  const allOk=cur.every((b,i)=>b===orig[i]);
-  const hint=el("p",{style:"font-size:13px;color:rgba(196,181,253,.45);text-align:center;margin-bottom:10px"},"Tippe zwei Bücher an, um sie zu tauschen");
-  const list=div("sort3-list",...cur.map((book,i)=>{
-    const isOk=allOk;
-    const isSel=sel===i;
-    const c=div("sort3-chunk"+(isOk?" ok3":isSel?" sel3":""),span("sort3-num",String(i+1)),el("span",{style:"font-family:'Lora',serif"},book));
-    if(!allOk) c.onclick=()=>{
-      if(S.sort3.sel===null||S.sort3.sel===undefined) set({sort3:{...S.sort3,sel:i}});
-      else if(S.sort3.sel===i) set({sort3:{...S.sort3,sel:null}});
-      else {
-        const nc=[...cur];[nc[S.sort3.sel],nc[i]]=[nc[i],nc[S.sort3.sel]];
-        set({sort3:{orig,cur:nc,sel:null}});
-      }
-    };
-    return c;
-  }));
-  let bottom;
-  if(allOk){
-    const msg=el("p",{style:"text-align:center;color:#86efac;font-size:14px;margin-bottom:10px;font-family:'Lora',serif;font-style:italic"},`✓ Richtig! ${orig.join(" → ")}`);
-    const nb=btn("next-btn","Neue 3 Bücher →",()=>set({view:"books-3",sort3:pick3Books()}));
-    nb.style.width="100%";
-    bottom=el("div",{},msg,nb);
-  } else {
-    bottom=hint;
-  }
-  return el("div",{},hdr,list,bottom);
-}
-
-// ── Volltest ──────────────────────────────────────────────────────
-function renderBooksTest() {
-  const hdr=div("page-header",btn("back-btn","←",()=>set({view:"books-menu"})),el("h2",{cls:"page-title"},"Volltest: Alle 66 Bücher"));
-  if(S.testDone){
-    const inputs=S.testInputs||[];
-    const wrong=inputs.map((v,i)=>({v,i,ok:booksMatch(v,ALL_BOOKS[i])})).filter(x=>!x.ok);
-    const perfect=wrong.length===0;
-    if(perfect){
-      const newTrophies=(S.bookTrophies||0)+1;
-      if(S.user){
-        // save trophy count
-        const upd={...S.user,bookTrophies:newTrophies};
-        S.user=upd; S.bookTrophies=newTrophies;
-        const updUsers=S.users.map(u=>u.id===S.user.id?upd:u);
-        saveUsers(updUsers);
-      }
-      return el("div",{},hdr,
-        div("trophy-wrap",
-          el("span",{cls:"trophy"},"🏆"),
-          p("trophy-title","Perfekt! Alle 66 Bücher richtig!"),
-          p("trophy-sub",`Du hast jetzt ${newTrophies} Pokal${newTrophies===1?"":"pokäle"}!`),
-          div("trophies-row",...Array(Math.min(newTrophies,10)).fill("🏆").map(t=>el("span",{cls:"trophy-sm"},t)))
-        ),
-        btn("prim-btn","Nochmal versuchen",()=>set({view:"books-test",testInputs:Array(66).fill(""),testDone:false}))
-      );
-    }
-    // Show errors
-    const errList=div("rlist",...wrong.slice(0,10).map(x=>div("ritem",
-      el("div",{cls:"ri-marker",style:"background:#fca5a5"}),
-      el("div",{},p("ri-stelle",`Nr. ${x.i+1}: ${ALL_BOOKS[x.i]}`),p("ri-text",`Deine Eingabe: „${x.v||"–"}"`)
-    ))));
-    return el("div",{},hdr,
-      el("p",{style:"text-align:center;color:#fca5a5;font-size:15px;margin:1rem 0"},`✗ ${wrong.length} Fehler`),
-      wrong.length>10?el("p",{style:"font-size:12px;color:rgba(196,181,253,.4);text-align:center;margin-bottom:8px"},"(erste 10 Fehler)"):null,
-      errList,
-      div("btn-row",
-        btn("ghost-btn","Zur Übersicht",()=>set({view:"books-menu"})),
-        btn("prim-btn","Nochmal",()=>set({view:"books-test",testInputs:Array(66).fill(""),testDone:false}))
-      )
-    );
-  }
-
-  // Test grid
-  const inputs=S.testInputs||Array(66).fill("");
-  const grid=div("test-grid",...ALL_BOOKS.map((_,i)=>{
-    const f=div("test-field");
-    f.appendChild(el("span",{cls:"test-num"},String(i+1)));
-    const inp=el("input",{cls:"test-input",type:"text",placeholder:"…",value:inputs[i]||""});
-    inp.oninput=e=>{ S.testInputs[i]=e.target.value; };
-    // Autocomplete on focus
-    inp.onfocus=()=>{};
-    f.appendChild(inp);
-    return f;
-  }));
-
-  const submitB=btn("prim-btn","Auswerten",()=>{
-    set({testDone:true});
-  });
-  submitB.style.width="100%"; submitB.style.marginTop="8px";
-  return el("div",{},hdr,
-    el("p",{style:"font-size:13px;color:rgba(196,181,253,.45);text-align:center;margin-bottom:12px"},"Tippe alle 66 Bücher in der richtigen Reihenfolge"),
-    grid, submitB
-  );
-}
-
-// ── Bibel-API ────────────────────────────────────────────────────
-// Buchname DE → API-ID Mapping
-const BOOK_MAP = {
-  "1.mose":"genesis","genesis":"genesis","gen":"genesis",
-  "2.mose":"exodus","exodus":"exodus","ex":"exodus",
-  "3.mose":"leviticus","levitikus":"leviticus","lev":"leviticus",
-  "4.mose":"numbers","numeri":"numbers","num":"numbers",
-  "5.mose":"deuteronomy","deuteronomium":"deuteronomy","dtn":"deuteronomy",
-  "josua":"joshua","jos":"joshua",
-  "richter":"judges","ri":"judges",
-  "ruth":"ruth","rut":"ruth",
-  "1.samuel":"1-samuel","1sam":"1-samuel",
-  "2.samuel":"2-samuel","2sam":"2-samuel",
-  "1.könige":"1-kings","1kön":"1-kings",
-  "2.könige":"2-kings","2kön":"2-kings",
-  "1.chronik":"1-chronicles","1chr":"1-chronicles",
-  "2.chronik":"2-chronicles","2chr":"2-chronicles",
-  "esra":"ezra","esr":"ezra",
-  "nehemia":"nehemiah","neh":"nehemiah",
-  "esther":"esther","est":"esther",
-  "hiob":"job","job":"job",
-  "psalm":"psalms","psalmen":"psalms","ps":"psalms",
-  "sprüche":"proverbs","spr":"proverbs",
-  "prediger":"ecclesiastes","pred":"ecclesiastes",
-  "hohelied":"song-of-solomon","hld":"song-of-solomon",
-  "jesaja":"isaiah","jes":"isaiah",
-  "jeremia":"jeremiah","jer":"jeremiah",
-  "klagelieder":"lamentations","klgl":"lamentations",
-  "hesekiel":"ezekiel","hes":"ezekiel",
-  "daniel":"daniel","dan":"daniel",
-  "hosea":"hosea","hos":"hosea",
-  "joel":"joel","jo":"joel",
-  "amos":"amos","am":"amos",
-  "obadja":"obadiah","ob":"obadiah",
-  "jona":"jonah","jon":"jonah",
-  "micha":"micah","mi":"micah",
-  "nahum":"nahum","na":"nahum",
-  "habakuk":"habakkuk","hab":"habakkuk",
-  "zefanja":"zephaniah","zef":"zephaniah",
-  "haggai":"haggai","hag":"haggai",
-  "sacharja":"zechariah","sach":"zechariah",
-  "maleachi":"malachi","mal":"malachi",
-  "matthäus":"matthew","matth":"matthew","mt":"matthew",
-  "markus":"mark","mk":"mark",
-  "lukas":"luke","lk":"luke",
-  "johannes":"john","joh":"john",
-  "apostelgeschichte":"acts","apg":"acts",
-  "römer":"romans","röm":"romans","rm":"romans",
-  "1.korinther":"1-corinthians","1kor":"1-corinthians",
-  "2.korinther":"2-corinthians","2kor":"2-corinthians",
-  "galater":"galatians","gal":"galatians",
-  "epheser":"ephesians","eph":"ephesians",
-  "philipper":"philippians","phil":"philippians",
-  "kolosser":"colossians","kol":"colossians",
-  "1.thessalonicher":"1-thessalonians","1thess":"1-thessalonians",
-  "2.thessalonicher":"2-thessalonians","2thess":"2-thessalonians",
-  "1.timotheus":"1-timothy","1tim":"1-timothy",
-  "2.timotheus":"2-timothy","2tim":"2-timothy",
-  "titus":"titus","tit":"titus",
-  "philemon":"philemon","phlm":"philemon",
-  "hebräer":"hebrews","hebr":"hebrews",
-  "jakobus":"james","jak":"james",
-  "1.petrus":"1-peter","1pet":"1-peter",
-  "2.petrus":"2-peter","2pet":"2-peter",
-  "1.johannes":"1-john","1joh":"1-john",
-  "2.johannes":"2-john","2joh":"2-john",
-  "3.johannes":"3-john","3joh":"3-john",
-  "judas":"jude","jud":"jude",
-  "offenbarung":"revelation","off":"revelation","apk":"revelation",
-};
-
-// Angezeigte Buchnamen für Dropdown
-const BOOKS_DE = [
-  "1.Mose","2.Mose","3.Mose","4.Mose","5.Mose","Josua","Richter","Ruth",
-  "1.Samuel","2.Samuel","1.Könige","2.Könige","1.Chronik","2.Chronik",
-  "Esra","Nehemia","Esther","Hiob","Psalm","Sprüche","Prediger","Hohelied",
-  "Jesaja","Jeremia","Klagelieder","Hesekiel","Daniel","Hosea","Joel","Amos",
-  "Obadja","Jona","Micha","Nahum","Habakuk","Zefanja","Haggai","Sacharja","Maleachi",
-  "Matthäus","Markus","Lukas","Johannes","Apostelgeschichte","Römer",
-  "1.Korinther","2.Korinther","Galater","Epheser","Philipper","Kolosser",
-  "1.Thessalonicher","2.Thessalonicher","1.Timotheus","2.Timotheus","Titus",
-  "Philemon","Hebräer","Jakobus","1.Petrus","2.Petrus","1.Johannes","2.Johannes",
-  "3.Johannes","Judas","Offenbarung"
-];
-
-const BIBLE_VERSIONS = {
-  "Elberfelder 1905": "de-elberfelder_1905",
-  "Schlachter 1951":  "de-schlachter_1951",
-};
-
-async function fetchVerse(bookDE, chapter, verse, version) {
-  const key = bookDE.toLowerCase().replace(/\s+/g,"").replace(/ä/g,"a").replace(/ö/g,"o").replace(/ü/g,"u");
-  const bookId = BOOK_MAP[key] || BOOK_MAP[bookDE.toLowerCase().replace(/\s+/g,"")];
-  if(!bookId) throw new Error(`Buch nicht gefunden: ${bookDE}`);
-  const versionId = BIBLE_VERSIONS[version];
-  const url = `https://cdn.jsdelivr.net/gh/wldeh/bible-api@main/bibles/${versionId}/books/${bookId}/chapters/${chapter}/verses/${verse}.json`;
-  const r = await fetch(url);
-  if(!r.ok) throw new Error(`Vers nicht gefunden (${r.status})`);
-  const data = await r.json();
-  return data.text || "";
+async function fbDel(col, docId) {
+  try { await db.collection(col).doc(docId).delete(); }
+  catch(e) { console.error("fbDel",e); }
 }
 
 // ── Constants ────────────────────────────────────────────────────
-const PALETTE = ["#8b5cf6","#6366f1","#ec4899","#f97316","#14b8a6","#10b981","#3b82f6","#f59e0b"];
-const EMOJIS  = ["✝","🕊","📖","🌟","🙏","⚓","🌿","💎","🔥","🌙"];
+const PALETTE=["#8b5cf6","#6366f1","#ec4899","#f97316","#14b8a6","#10b981","#3b82f6","#f59e0b"];
+const EMOJIS=["✝","🕊","📖","🌟","🙏","⚓","🌿","💎","🔥","🌙"];
+
+// ── Hashing ──────────────────────────────────────────────────────
+async function hashPw(pw){
+  const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(pw));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+}
 
 // ── Spaced repetition ────────────────────────────────────────────
-function getWeight(v) {
+function getWeight(v){
   const d=(Date.now()-v.added)/86400000;
   const nb=d<2?4:d<7?2:1;
   const eb=Math.max(0,(v.attempts-v.score*2))*2;
   const mp=v.score>4?Math.pow(0.5,v.score-4):1;
   return Math.max(0.1,(nb+eb+1)*mp);
 }
-function pickTen(verses) {
+function pickTen(verses){
   if(!verses.length) return [];
-  const w=verses.map(getWeight), tot=w.reduce((a,b)=>a+b,0);
+  const w=verses.map(getWeight),tot=w.reduce((a,b)=>a+b,0);
   const chosen=[],used=new Set(),cnt=Math.min(10,verses.length);
   let t=0;
   while(chosen.length<cnt&&t<500){t++;let r=Math.random()*tot;for(let i=0;i<verses.length;i++){r-=w[i];if(r<=0&&!used.has(i)){used.add(i);chosen.push({...verses[i]});break;}}}
   return chosen.sort(()=>Math.random()-.5);
 }
 
-// ── Lückentext helpers ───────────────────────────────────────────
-function gapCount(score) { return score<=1?1:score<=3?2:3; }
-function buildLuecken(verse) {
-  const words = verse.text.split(" ");
-  const n = gapCount(verse.score||0);
-  const idx = new Set();
-  while(idx.size < Math.min(n, words.length)) idx.add(Math.floor(Math.random()*words.length));
-  return words.map((w,i) => ({ word:w, isGap:idx.has(i), input:"", state:"idle" }));
+// ── Lückentext ───────────────────────────────────────────────────
+function gapCount(score){return score<=1?1:score<=3?2:3;}
+function buildLuecken(verse){
+  const words=verse.text.split(" ");
+  const n=gapCount(verse.score||0);
+  const idx=new Set();
+  while(idx.size<Math.min(n,words.length)) idx.add(Math.floor(Math.random()*words.length));
+  return words.map((w,i)=>({word:w,isGap:idx.has(i),input:"",state:"idle"}));
 }
 
-// ── Reihenfolge helpers ──────────────────────────────────────────
-function buildChunks(verse) {
-  const words = verse.text.trim().split(/\s+/);
-  const sz = words.length<=6?2:words.length<=12?3:4;
+// ── Reihenfolge ──────────────────────────────────────────────────
+function buildChunks(verse){
+  const words=verse.text.trim().split(/\s+/);
+  const sz=words.length<=6?2:words.length<=12?3:4;
   const orig=[];
   for(let i=0;i<words.length;i+=sz) orig.push(words.slice(i,i+sz).join(" "));
   const cur=[...orig];
   for(let i=cur.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[cur[i],cur[j]]=[cur[j],cur[i]];}
   if(cur.every((c,i)=>c===orig[i])&&orig.length>1)[cur[0],cur[1]]=[cur[1],cur[0]];
-  return { orig, cur, sel:null };
+  return{orig,cur,sel:null};
 }
 
 // ── DOM helpers ──────────────────────────────────────────────────
-function el(tag, attrs, ...ch) {
+function el(tag,attrs,...ch){
   const e=document.createElement(tag);
-  for(const [k,v] of Object.entries(attrs||{})) {
+  for(const [k,v] of Object.entries(attrs||{})){
     if(k==="cls") e.className=v;
     else if(k.startsWith("on")&&typeof v==="function") e[k]=v;
     else if(v!=null) e.setAttribute(k,v);
@@ -626,10 +265,10 @@ const btn=(cls,txt,onclick)=>el("button",{cls,onclick,type:"button"},txt);
 const p=(cls,txt)=>el("p",{cls},txt);
 const span=(cls,txt)=>el("span",{cls},txt);
 
-function scoreDots(score) {
+function scoreDots(score){
   return div("dots",...[0,1,2,3,4].map(i=>{const d=div("dot");d.style.background=i<score?"#a78bfa":"rgba(255,255,255,.1)";return d;}));
 }
-function progRow(idx,total,back) {
+function progRow(idx,total,back){
   return div("prog-row",
     btn("back-btn","←",back),
     el("div",{cls:"prog-track"},el("div",{cls:"prog-fill",style:`width:${(idx/total)*100}%`})),
@@ -638,100 +277,84 @@ function progRow(idx,total,back) {
 }
 
 // ── State ────────────────────────────────────────────────────────
-const S = {
-  users:[], counts:{}, user:null, verses:[],
-  view:"select",
-  session:[], idx:0, flipped:false, results:[],
-  luecken:null,
-  order:null,
-  editId:null, editStelle:"", editText:"",
-  delV:null, delU:false,
-  modal:null, loginU:null, pw:"", pwErr:false,
+const S={
+  users:[],counts:{},user:null,verses:[],
+  view:"select",session:[],idx:0,flipped:false,results:[],
+  luecken:null,order:null,
+  editId:null,editStelle:"",editText:"",
+  delV:null,delU:false,
+  modal:null,loginU:null,pw:"",pwErr:false,
   nName:"",nPw:"",nPw2:"",nEmoji:"✝",nColor:PALETTE[0],nErr:"",
   pEmoji:"",pColor:"",pOld:"",pNew:"",pNew2:"",pErr:"",pOk:false,
 };
 function set(patch){Object.assign(S,patch);render();}
 
 // ── Persist ──────────────────────────────────────────────────────
-async function saveUsers(list) {
+async function saveUsers(list){
   S.users=list;
-  await fbSet("app/users",{list});
-  // render() bewusst NICHT hier aufrufen – wird vom Aufrufer gesteuert
+  await fbSet("app","users",{list});
 }
-async function saveVerses(list) {
-  S.verses=list; S.counts={...S.counts,[S.user.id]:list.length};
-  await fbSet(`verses/${S.user.id}`,{list});
+async function saveVerses(list){
+  S.verses=list;S.counts={...S.counts,[S.user.id]:list.length};
+  await fbSet("verses",S.user.id,{list});
   render();
 }
 
 // ── Render ───────────────────────────────────────────────────────
-function render() {
+function render(){
   const root=document.getElementById("app");
   root.innerHTML="";
   if(S.modal==="login") root.appendChild(renderLogin());
   if(S.modal==="new")   root.appendChild(renderNewUser());
-  if(S.view==="select")  root.appendChild(renderSelect());
+  if(S.view==="select")       root.appendChild(renderSelect());
   else if(S.view==="menu")    root.appendChild(renderMenu());
   else if(S.view==="edit")    root.appendChild(renderEdit());
   else if(S.view==="flash")   root.appendChild(renderFlash());
   else if(S.view==="done")    root.appendChild(renderDone());
   else if(S.view==="luecke")  root.appendChild(renderLuecke());
   else if(S.view==="order")   root.appendChild(renderOrder());
-  else if(S.view==="books-menu") root.appendChild(renderBooksMenu());
-  else if(S.view==="books-nb")   root.appendChild(renderBooksNB());
-  else if(S.view==="books-3")    root.appendChild(renderBooks3());
-  else if(S.view==="books-test") root.appendChild(renderBooksTest());
-  else if(S.view==="stats")      root.appendChild(renderStats());
+  else if(S.view==="stats")   root.appendChild(renderStats());
   else if(S.view==="profile") root.appendChild(renderProfile());
 }
 
 // ── Select ───────────────────────────────────────────────────────
-function renderSelect() {
+function renderSelect(){
   const grid=div("user-grid",...S.users.map(u=>{
     const c=div("user-card",
       el("div",{cls:"user-avatar",style:`background:${u.color}28;border-color:${u.color}55`},u.emoji),
-      p("user-name",u.name),
-      p("user-count",`${S.counts[u.id]??0} Verse`)
+      p("user-name",u.name),p("user-count",`${S.counts[u.id]??0} Verse`)
     );
     c.onclick=()=>set({modal:"login",loginU:u,pw:"",pwErr:false});
     return c;
   }));
   const addB=btn("add-user-btn","+ Neuen Benutzer anlegen",()=>set({modal:"new",nName:"",nPw:"",nPw2:"",nEmoji:"✝",nColor:PALETTE[0],nErr:""}));
+  const halo=div("halo");
+  halo.innerHTML=`<svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round"><line x1="12" y1="3" x2="12" y2="21"/><line x1="4" y1="9" x2="20" y2="9"/></svg>`;
   return el("div",{},
-    div("logo-wrap",
-      (() => {
-        const halo = div("halo");
-        halo.innerHTML = `<svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round"><line x1="12" y1="3" x2="12" y2="21"/><line x1="4" y1="9" x2="20" y2="9"/></svg>`;
-        return halo;
-      })(),el("h1",{cls:"app-title"},"Bibelvers-Trainer"),div("sync-badge",span("sync-dot")," Geräteübergreifend gespeichert"),p("app-sub","Wer möchte heute lernen?")),
-    grid, addB
+    div("logo-wrap",halo,el("h1",{cls:"app-title"},"Bibelvers-Trainer"),div("sync-badge",span("sync-dot")," Geräteübergreifend gespeichert"),p("app-sub","Wer möchte heute lernen?")),
+    grid,addB
   );
 }
 
 // ── Menu ─────────────────────────────────────────────────────────
-function renderMenu() {
-  const u=S.user, can=S.verses.length>0;
+function renderMenu(){
+  const u=S.user,can=S.verses.length>0;
   const mastered=S.verses.filter(v=>v.score>=5).length;
   const learning=S.verses.filter(v=>v.attempts>0&&v.score<5).length;
   const hdr=div("page-header",
     el("div",{style:`width:42px;height:42px;border-radius:50%;background:${u.color}28;border:1.5px solid ${u.color}55;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0`},u.emoji),
-    el("div",{},p("",""),el("p",{style:"font-size:15px;font-weight:500;color:rgba(237,233,254,.9);margin-bottom:1px"},`Hallo, ${u.name}!`),el("p",{style:"font-size:11px;color:rgba(196,181,253,.4)"},"Dein Trainingsbereich")),
-    btn("back-btn","Abmelden",()=>set({user:null,verses:[],view:"select"}))
+    el("div",{},el("p",{style:"font-size:15px;font-weight:500;color:rgba(237,233,254,.9);margin-bottom:1px"},`Hallo, ${u.name}!`),el("p",{style:"font-size:11px;color:rgba(196,181,253,.4)"},"Dein Trainingsbereich")),
+    el("button",{type:"button",style:"font-size:12px;padding:5px 10px;margin-left:auto;background:linear-gradient(135deg,rgba(139,92,246,.15),rgba(99,102,241,.1));border:1px solid rgba(196,181,253,.2);color:rgba(221,214,254,.8);border-radius:10px;cursor:pointer;",onclick:()=>set({user:null,verses:[],view:"select"})},"Abmelden")
   );
-  hdr.querySelector(".back-btn").style.cssText="font-size:12px;padding:5px 10px;margin-left:auto;background:linear-gradient(135deg,rgba(139,92,246,.15),rgba(99,102,241,.1));border:1px solid rgba(196,181,253,.2);color:rgba(221,214,254,.8);border-radius:10px;cursor:pointer;";
-  const mkBtn=(cls,icon,title,sub,action)=>{
-    const b=el("button",{cls:`menu-btn ${cls}`+(can||cls==="menu-edit"||cls==="menu-profile"?"":" disabled"),onclick:(can||cls==="menu-edit"||cls==="menu-profile")?action:null,type:"button"},
-      div("mc-icon",icon),el("div",{},p("mc-title",title),p("mc-sub",sub))
-    );
-    return b;
-  };
+  const mkBtn=(cls,icon,title,sub,action)=>el("button",{cls:`menu-btn ${cls}`+(can||cls==="menu-edit"||cls==="menu-profile"?"":" disabled"),onclick:(can||cls==="menu-edit"||cls==="menu-profile")?action:null,type:"button"},
+    div("mc-icon",icon),el("div",{},p("mc-title",title),p("mc-sub",sub))
+  );
   return el("div",{},hdr,
     mkBtn("menu-edit","📖","Verse verwalten","Hinzufügen, bearbeiten, löschen",()=>set({view:"edit",editId:null,editStelle:"",editText:""})),
     mkBtn("menu-flash","🎯","Karteikarten","Klassischer Flashcard-Modus",()=>set({view:"flash",session:pickTen(S.verses),idx:0,flipped:false,results:[]})),
     mkBtn("menu-luecke","✏️","Lückentext","Fehlende Wörter ergänzen",()=>{const ses=pickTen(S.verses);set({view:"luecke",session:ses,idx:0,results:[],luecken:buildLuecken(ses[0])});}),
     mkBtn("menu-order","🔀","Reihenfolge","Versabschnitte sortieren",()=>{const ses=pickTen(S.verses);set({view:"order",session:ses,idx:0,results:[],order:buildChunks(ses[0])});}),
     mkBtn("menu-stats","📊","Meine Statistik","Lernfortschritt im Überblick",()=>set({view:"stats"})),
-    mkBtn("menu-books","📚","Bibelbücher üben","Reihenfolge, Vorgänger & Volltest",()=>set({view:"books-menu"})),
     mkBtn("menu-profile","⚙️","Profil bearbeiten","Symbol, Farbe & Passwort ändern",()=>set({view:"profile",pEmoji:u.emoji,pColor:u.color,pOld:"",pNew:"",pNew2:"",pErr:"",pOk:false,delU:false})),
     div("stats",
       div("stat",p("stat-n",String(S.verses.length)),p("stat-l","Verse gesamt")),
@@ -741,115 +364,127 @@ function renderMenu() {
   );
 }
 
-// ── Custom Select helper ──────────────────────────────────────────
-function customSelect(options, value, onChange) {
-  const wrap = div("custom-select");
-  const cur = options.find(o=>o.val===value)||options[0];
-  let open = false;
-  let dd = null;
+// ── Bibelbücher ──────────────────────────────────────────────────
+const BUECHER=[
+  "Genesis","Exodus","Levitikus","Numeri","Deuteronomium","Josua","Richter","Rut",
+  "1. Samuel","2. Samuel","1. Könige","2. Könige","1. Chronik","2. Chronik",
+  "Esra","Nehemia","Ester","Hiob","Psalmen","Sprüche","Prediger","Hoheslied",
+  "Jesaja","Jeremia","Klagelieder","Hesekiel","Daniel","Hosea","Joel","Amos",
+  "Obadja","Jona","Micha","Nahum","Habakuk","Zefanja","Haggai","Sacharja","Maleachi",
+  "Matthäus","Markus","Lukas","Johannes","Apostelgeschichte","Römer",
+  "1. Korinther","2. Korinther","Galater","Epheser","Philipper","Kolosser",
+  "1. Thessalonicher","2. Thessalonicher","1. Timotheus","2. Timotheus","Titus",
+  "Philemon","Hebräer","Jakobus","1. Petrus","2. Petrus","1. Johannes","2. Johannes",
+  "3. Johannes","Judas","Offenbarung"
+];
+// Kapitelanzahl pro Buch
+const KAPITEL=[50,40,27,36,34,24,21,4,31,24,22,25,29,36,10,13,10,42,150,31,12,8,66,52,5,48,12,14,3,9,1,4,7,3,3,3,2,14,4,28,16,24,21,28,16,16,13,6,6,4,4,5,3,6,4,3,1,13,5,5,3,5,1,1,1,22];
+// Versanzahl wird dynamisch geladen
 
-  const arrow = el("span",{cls:"custom-select-arrow"},"▼");
-  const labelSpan = el("span",{style:"display:flex;align-items:center;gap:8px"},
-    el("span",{cls:"opt-icon"},cur.icon||""),
-    el("span",{},cur.label)
-  );
-  const btnEl = div("custom-select-btn", labelSpan, arrow);
+const TRANSL={elberfelder1905:"Elberfelder 1905",schlachter:"Schlachter 1951"};
 
-  function close() {
-    if(dd){ dd.remove(); dd=null; open=false; arrow.classList.remove("open"); }
-    document.removeEventListener("click", close);
-  }
+// Englische Buchnamen für die API (getbible.net verwendet KJV-Namen)
+const BUECHER_API=[
+  "Genesis","Exodus","Leviticus","Numbers","Deuteronomy","Joshua","Judges","Ruth",
+  "1 Samuel","2 Samuel","1 Kings","2 Kings","1 Chronicles","2 Chronicles",
+  "Ezra","Nehemiah","Esther","Job","Psalms","Proverbs","Ecclesiastes","Song of Solomon",
+  "Isaiah","Jeremiah","Lamentations","Ezekiel","Daniel","Hosea","Joel","Amos",
+  "Obadiah","Jonah","Micah","Nahum","Habakkuk","Zephaniah","Haggai","Zechariah","Malachi",
+  "Matthew","Mark","Luke","John","Acts","Romans",
+  "1 Corinthians","2 Corinthians","Galatians","Ephesians","Philippians","Colossians",
+  "1 Thessalonians","2 Thessalonians","1 Timothy","2 Timothy","Titus",
+  "Philemon","Hebrews","James","1 Peter","2 Peter","1 John","2 John",
+  "3 John","Jude","Revelation"
+];
 
-  btnEl.onclick = (e) => {
-    e.stopPropagation();
-    if(open){ close(); return; }
-    open = true;
-    arrow.classList.add("open");
-    dd = div("custom-select-dropdown");
-    options.forEach(o=>{
-      const opt = div("custom-select-opt"+(o.val===value?" selected":""),
-        el("span",{cls:"opt-icon"},o.icon||""),
-        el("span",{},o.label)
-      );
-      opt.onclick = (e2) => {
-        e2.stopPropagation();
-        close();
-        onChange(o.val); // caller decides whether to re-render
-      };
-      dd.appendChild(opt);
-    });
-    wrap.appendChild(dd);
-    setTimeout(()=>document.addEventListener("click", close), 0);
-  };
-
-  wrap.appendChild(btnEl);
-  return wrap;
+async function loadVerse(transl, bookIdx, chapter, verse) {
+  try {
+    const book=encodeURIComponent(BUECHER_API[bookIdx]);
+    const url=`https://query.getbible.net/v2/${transl}/${book} ${chapter}:${verse}`;
+    const r=await fetch(url);
+    const d=await r.json();
+    // Antwort: { "schlachter_43_3": { verses: [{text, verse, ...}], ... } }
+    const key=Object.keys(d)[0];
+    if(!key) return null;
+    const verses=d[key].verses;
+    if(!verses||!verses.length) return null;
+    return verses[0].text.trim();
+  } catch(e) { console.error("API",e); return null; }
 }
 
 // ── Edit ─────────────────────────────────────────────────────────
-function renderEdit() {
-  const hdr=div("page-header",btn("back-btn","←",()=>set({view:"menu",editId:null,editStelle:"",editText:""})),el("h2",{cls:"page-title"},"Verse verwalten"));
-  const panel=div("form-panel");
+function renderEdit(){
+  const hdr=div("page-header",btn("back-btn","←",()=>set({view:"menu",editId:null,editStelle:"",editText:"",editSrc:"manual",editBook:0,editChap:1,editVers:1,apiLoading:false,apiPreview:""})),el("h2",{cls:"page-title"},"Verse verwalten"));
 
-  // Source dropdown
-  const srcMode = S.editSrcMode || "manual";
-  const srcSel = el("select",{cls:"f-select",style:"margin-bottom:14px"});
-  [["manual","✏️ Manuell eingeben"],["elberfelder","📖 Elberfelder 1905"],["schlachter","📖 Schlachter 1951"]].forEach(([val,lbl])=>{
-    const o=el("option",{value:val},lbl);
-    if(val===srcMode) o.selected=true;
-    srcSel.appendChild(o);
+  // Quelle wählen
+  const src=S.editSrc||"manual";
+  const srcSel=el("select",{cls:"f-input",style:"margin-bottom:10px"});
+  [{v:"manual",l:"✏️  Manuell eingeben"},{v:"elberfelder1905",l:"📖  Elberfelder 1905"},{v:"schlachter",l:"📖  Schlachter 1951"}].forEach(o=>{
+    const op=el("option",{value:o.v},o.l);
+    if(src===o.v) op.setAttribute("selected","");
+    srcSel.appendChild(op);
   });
-  srcSel.onchange=e=>set({editSrcMode:e.target.value,editFetchStatus:"",editFetchErr:""});
-  panel.append(el("label",{cls:"f-label"},"Quelle"),srcSel);
+  srcSel.onchange=e=>set({editSrc:e.target.value,editBook:0,editChap:1,editVers:1,apiPreview:"",editStelle:"",editText:""});
 
-  if(srcMode==="elberfelder"||srcMode==="schlachter") {
+  const panel=div("form-panel",el("label",{cls:"f-label"},"Quelle"),srcSel);
 
-    const ver = srcMode==="elberfelder" ? "Elberfelder 1905" : "Schlachter 1951";
-    const bookSel=el("select",{cls:"f-select"});
-    const defaultOpt=el("option",{value:""},"– Buch wählen –"); bookSel.appendChild(defaultOpt);
-    BOOKS_DE.forEach(b=>{
-      const o=el("option",{value:b},b);
-      if(b===(S.editBook||"")) o.selected=true;
-      bookSel.appendChild(o);
-    });
-    bookSel.onchange=e=>S.editBook=e.target.value;
+  if(src==="manual"){
+    const inpS=el("input",{cls:"f-input",placeholder:"z.B. Johannes 3,16",value:S.editStelle||"",type:"text"});
+    inpS.oninput=e=>S.editStelle=e.target.value;
+    const inpT=el("textarea",{cls:"f-input f-textarea",placeholder:"Gib hier den Bibelvers ein…"});
+    inpT.value=S.editText||"";inpT.oninput=e=>S.editText=e.target.value;
+    panel.append(el("label",{cls:"f-label"},"Bibelstelle"),inpS,el("label",{cls:"f-label"},"Bibeltext"),inpT);
+  } else {
+    // Buch
+    const bookSel=el("select",{cls:"f-input"});
+    BUECHER.forEach((b,i)=>{const o=el("option",{value:i},b);if(i===(S.editBook||0))o.setAttribute("selected","");bookSel.appendChild(o);});
+    bookSel.onchange=e=>set({editBook:+e.target.value,editChap:1,editVers:1,apiPreview:"",editStelle:"",editText:""});
 
-    // Chapter + verse
-    const chapI=el("input",{cls:"f-num",type:"number",min:"1",placeholder:"Kap",value:S.editChap||""});
-    chapI.oninput=e=>S.editChap=e.target.value;
-    const verseI=el("input",{cls:"f-num",type:"number",min:"1",placeholder:"Vers",value:S.editVerse||""});
-    verseI.oninput=e=>S.editVerse=e.target.value;
+    // Kapitel
+    const chapSel=el("select",{cls:"f-input"});
+    const numChap=KAPITEL[S.editBook||0]||50;
+    for(let i=1;i<=numChap;i++){const o=el("option",{value:i},`Kapitel ${i}`);if(i===(S.editChap||1))o.setAttribute("selected","");chapSel.appendChild(o);}
+    chapSel.onchange=e=>set({editChap:+e.target.value,editVers:1,apiPreview:"",editStelle:"",editText:""});
 
-    const statusEl=div("fetch-status");
-    if(S.editFetchStatus) { statusEl.classList.add("fetch-ok"); statusEl.textContent="✓ "+S.editFetchStatus; }
-    if(S.editFetchErr)    { statusEl.classList.add("fetch-err"); statusEl.textContent="✗ "+S.editFetchErr; }
+    // Vers
+    const versSel=el("select",{cls:"f-input"});
+    const numVers=KAPITEL[S.editBook||0]||50;
+    for(let i=1;i<=numVers;i++){const o=el("option",{value:i},`Vers ${i}`);if(i===(S.editVers||1))o.setAttribute("selected","");versSel.appendChild(o);}
+    versSel.onchange=e=>set({editVers:+e.target.value,apiPreview:"",editStelle:"",editText:""});
 
-    const fetchB=btn("fetch-btn","Vers laden",async()=>{
-      const book=S.editBook, chap=S.editChap, verse=S.editVerse, ver=S.editVersion||"Elberfelder 1905";
-      if(!book||!chap||!verse){set({editFetchErr:"Bitte Buch, Kapitel und Vers wählen.",editFetchStatus:""});return;}
-      fetchB.disabled=true; fetchB.textContent="Lädt…";
-      try {
-      const text=await fetchVerse(book,chap,verse,ver);
-        const stelle=`${book} ${chap},${verse}`;
-        set({editStelle:stelle,editText:text.trim(),editFetchStatus:`${stelle} geladen`,editFetchErr:""});
-      } catch(e) {
-        set({editFetchErr:e.message,editFetchStatus:""});
+    // Laden-Button
+    const loadB=btn("save-btn",S.apiLoading?"Lade…":"Vers laden",async()=>{
+      set({apiLoading:true,apiPreview:"",editStelle:"",editText:""});
+      const txt=await loadVerse(src,S.editBook||0,S.editChap||1,S.editVers||1);
+      if(txt){
+        const stelle=`${BUECHER[S.editBook||0]} ${S.editChap},${S.editVers}`;
+        set({apiLoading:false,apiPreview:txt,editText:txt,editStelle:stelle});
+      } else {
+        set({apiLoading:false,apiPreview:"Fehler beim Laden."});
       }
     });
+    loadB.style.marginBottom="10px";
 
     panel.append(
-      el("label",{cls:"f-label"},"Übersetzung"), verSel,
-      el("label",{cls:"f-label"},"Buch"), bookSel,
-      div("bible-fields",chapI,verseI,fetchB),
-      statusEl
+      el("label",{cls:"f-label"},"Bibelbuch"),bookSel,
+      el("label",{cls:"f-label"},"Kapitel"),chapSel,
+      el("label",{cls:"f-label"},"Vers"),versSel,
+      loadB
     );
-  }
 
-  // Stelle + Text (immer sichtbar, bei API vorbefüllt)
-  const inpS=el("input",{cls:"f-input",placeholder:"Bibelstelle (z.B. Johannes 3,16)",type:"text",value:S.editStelle||""});
-  inpS.oninput=e=>S.editStelle=e.target.value;
-  const inpT=el("textarea",{cls:"f-input f-textarea",placeholder:"Bibeltext…"});
-  inpT.value=S.editText||""; inpT.oninput=e=>S.editText=e.target.value;
+    if(S.apiPreview&&S.apiPreview!=="Fehler beim Laden."){
+      const prev=div("",el("p",{style:"font-family:'Lora',serif;font-size:15px;line-height:1.7;color:rgba(237,233,254,.85);padding:10px 0 4px;font-style:italic"},`„${S.apiPreview}"`));
+      panel.appendChild(prev);
+      // Bibelstelle + Text editierbar machen
+      const inpS2=el("input",{cls:"f-input",value:S.editStelle||"",type:"text",style:"margin-top:8px"});
+      inpS2.oninput=e=>S.editStelle=e.target.value;
+      const inpT2=el("textarea",{cls:"f-input f-textarea",style:"margin-top:0"});
+      inpT2.value=S.editText||"";inpT2.oninput=e=>S.editText=e.target.value;
+      panel.append(el("label",{cls:"f-label",style:"margin-top:8px"},"Bibelstelle (anpassbar)"),inpS2,el("label",{cls:"f-label"},"Text (anpassbar)"),inpT2);
+    } else if(S.apiPreview==="Fehler beim Laden."){
+      panel.appendChild(el("p",{style:"color:#fca5a5;font-size:13px;margin-top:6px"},"⚠️ Fehler beim Laden – bitte erneut versuchen."));
+    }
+  }
 
   const saveB=btn("save-btn",S.editId?"Änderungen speichern":"Vers hinzufügen",async()=>{
     if(!S.editStelle.trim()||!S.editText.trim()) return;
@@ -857,22 +492,16 @@ function renderEdit() {
       ?S.verses.map(v=>v.id===S.editId?{...v,stelle:S.editStelle.trim(),text:S.editText.trim()}:v)
       :[...S.verses,{id:Date.now(),stelle:S.editStelle.trim(),text:S.editText.trim(),added:Date.now(),score:0,attempts:0}];
     await saveVerses(upd);
-    S.editId=null;S.editStelle="";S.editText="";S.editFetchStatus="";S.editFetchErr="";
-    render();
+    S.editId=null;S.editStelle="";S.editText="";S.editSrc="manual";S.apiPreview="";S.apiChapData=null;render();
   });
+  const canSave=!!(S.editStelle.trim()&&S.editText.trim());
+  if(canSave) panel.appendChild(saveB);
+  if(S.editId) panel.appendChild(btn("cancel-lnk","Abbrechen",()=>set({editId:null,editStelle:"",editText:"",editSrc:"manual",apiPreview:"",apiChapData:null})));
 
-  panel.append(
-    el("label",{cls:"f-label"},"Bibelstelle"),inpS,
-    el("label",{cls:"f-label"},"Bibeltext"),inpT,
-    saveB
-  );
-  if(S.editId) panel.appendChild(btn("cancel-lnk","Abbrechen",()=>set({editId:null,editStelle:"",editText:"",editFetchStatus:"",editFetchErr:""})));
-
-  // Vers-Liste
   const list=div("vlist");
   if(!S.verses.length) list.appendChild(div("empty","Noch keine Verse – füge deinen ersten hinzu!"));
   [...S.verses].reverse().forEach(v=>{
-    const eb=btn("ibtn ibtn-e","✏️",()=>set({editId:v.id,editStelle:v.stelle,editText:v.text,editSrcMode:"manual",editFetchStatus:"",editFetchErr:""}));
+    const eb=btn("ibtn ibtn-e","✏️",()=>set({editId:v.id,editStelle:v.stelle,editText:v.text,editSrc:"manual",apiPreview:"",apiChapData:null}));
     let db2;
     if(S.delV===v.id) db2=btn("ibtn ibtn-dc","Löschen?",async()=>{await saveVerses(S.verses.filter(x=>x.id!==v.id));S.delV=null;render();});
     else db2=btn("ibtn ibtn-d","🗑",()=>set({delV:v.id}));
@@ -885,7 +514,7 @@ function renderEdit() {
 }
 
 // ── Flashcard ────────────────────────────────────────────────────
-function renderFlash() {
+function renderFlash(){
   const card=S.session[S.idx];
   if(!card) return renderDone();
   const inner=div("flip-inner"+(S.flipped?" flipped":""),
@@ -915,115 +544,63 @@ function renderFlash() {
 }
 
 // ── Stats ────────────────────────────────────────────────────────
-function getPercent(v) {
-  if(!v.attempts) return null;
-  const last5attempts = Math.min(v.attempts, 5);
-  // score approximates cumulative correct; estimate last-5 rate from score/attempts capped at 5
-  const ratio = Math.min(1, v.score / v.attempts);
-  return Math.round(ratio * 100);
-}
-function renderStats() {
+function getPercent(v){if(!v.attempts)return null;return Math.round(Math.min(1,v.score/v.attempts)*100);}
+function renderStats(){
   const hdr=div("page-header",btn("back-btn","←",()=>set({view:"menu"})),el("h2",{cls:"page-title"},"Meine Statistik"));
-
-  const groups=[
-    {key:"todo",  label:"Noch zu üben",      color:"#fca5a5", bg:"rgba(239,68,68,.1)",  border:"rgba(239,68,68,.25)",  min:0,  max:59},
-    {key:"going", label:"Auf gutem Weg",      color:"#fcd34d", bg:"rgba(251,191,36,.1)", border:"rgba(251,191,36,.25)", min:60, max:89},
-    {key:"done",  label:"Kann ich auswendig", color:"#86efac", bg:"rgba(34,197,94,.1)",  border:"rgba(34,197,94,.25)",  min:90, max:100},
-  ];
-
-  const untrained = S.verses.filter(v=>!v.attempts);
-  const trained   = S.verses.filter(v=>v.attempts>0);
-
+  const groups=[{label:"Noch zu üben",color:"#fca5a5",min:0,max:59},{label:"Auf gutem Weg",color:"#fcd34d",min:60,max:89},{label:"Kann ich auswendig",color:"#86efac",min:90,max:100}];
+  const untrained=S.verses.filter(v=>!v.attempts);
+  const trained=S.verses.filter(v=>v.attempts>0);
   const wrap=el("div",{},hdr);
-
   wrap.appendChild(el("p",{style:"font-size:12px;color:rgba(196,181,253,.35);margin-bottom:1rem;text-align:center;font-style:italic"},"Basiert ausschliesslich auf Karteikarten-Ergebnissen"));
-  // Pokale
-  const trophies=S.bookTrophies||0;
-  const trophySection=div("",
-    el("h3",{style:"font-size:12px;font-weight:500;letter-spacing:.8px;text-transform:uppercase;color:#fcd34d;margin:0 0 8px 2px;font-family:'Inter',sans-serif"},"Bibelbücher-Pokale"),
-    trophies>0
-      ? div("trophies-row",...Array(Math.min(trophies,10)).fill("🏆").map(t=>el("span",{cls:"trophy-sm"},t)))
-      : el("p",{style:"font-size:13px;color:rgba(196,181,253,.3);margin-bottom:1rem"},"Noch kein Pokal – schaffe den Volltest!")
-  );
-  wrap.appendChild(trophySection);
-  const total=S.verses.length;
-  if(total===0){ wrap.appendChild(div("empty","Noch keine Verse vorhanden.")); return wrap; }
-
+  if(!S.verses.length){wrap.appendChild(div("empty","Noch keine Verse vorhanden."));return wrap;}
   const sumBar=div("stats-bar");
   groups.forEach(g=>{
-    const count=trained.filter(v=>{ const pct=getPercent(v); return pct!==null&&pct>=g.min&&pct<=g.max; }).length;
-    const pct=total>0?Math.round(count/total*100):0;
-    const seg=el("div",{style:`flex:${count||0};min-width:${count>0?8:0}px;background:${g.color};border-radius:4px;height:100%;transition:flex .4s;`});
-    sumBar.appendChild(seg);
+    const count=trained.filter(v=>{const pct=getPercent(v);return pct!==null&&pct>=g.min&&pct<=g.max;}).length;
+    sumBar.appendChild(el("div",{style:`flex:${count||0};min-width:${count>0?8:0}px;background:${g.color};border-radius:4px;height:100%;`}));
   });
   wrap.appendChild(div("stats-bar-wrap",sumBar));
-
-  // Legend
   const legend=div("stats-legend");
   groups.forEach(g=>{
-    const count=trained.filter(v=>{ const pct=getPercent(v); return pct!==null&&pct>=g.min&&pct<=g.max; }).length;
-    legend.appendChild(div("legend-item",
-      el("div",{style:`width:10px;height:10px;border-radius:50%;background:${g.color};flex-shrink:0`}),
-      span("",`${g.label}: `),el("b",{},String(count))
-    ));
+    const count=trained.filter(v=>{const pct=getPercent(v);return pct!==null&&pct>=g.min&&pct<=g.max;}).length;
+    legend.appendChild(div("legend-item",el("div",{style:`width:10px;height:10px;border-radius:50%;background:${g.color};flex-shrink:0`}),span("",`${g.label}: `),el("b",{},String(count))));
   });
   if(untrained.length) legend.appendChild(div("legend-item",el("div",{style:"width:10px;height:10px;border-radius:50%;background:rgba(196,181,253,.3);flex-shrink:0"}),span("",`Noch nicht geübt: `),el("b",{},String(untrained.length))));
   wrap.appendChild(legend);
-
-  // Groups
   groups.forEach(g=>{
-    const gVerses=trained.filter(v=>{ const pct=getPercent(v); return pct!==null&&pct>=g.min&&pct<=g.max; });
-    if(!gVerses.length) return;
+    const gV=trained.filter(v=>{const pct=getPercent(v);return pct!==null&&pct>=g.min&&pct<=g.max;});
+    if(!gV.length)return;
     wrap.appendChild(el("h3",{style:`font-size:12px;font-weight:500;letter-spacing:.8px;text-transform:uppercase;color:${g.color};margin:1.25rem 0 8px 2px;font-family:'Inter',sans-serif`},g.label));
-    gVerses.sort((a,b)=>getPercent(a)-getPercent(b)).forEach(v=>{
+    gV.sort((a,b)=>getPercent(a)-getPercent(b)).forEach(v=>{
       const pct=getPercent(v);
       const row=div("stat-verse-row",
-        el("div",{style:"flex:1;min-width:0"},
-          p("v-stelle",v.stelle),
-          p("v-text",v.text.length>60?v.text.slice(0,60)+"…":v.text)
-        ),
-        el("div",{style:"flex-shrink:0;text-align:right"},
-          el("div",{style:`font-size:15px;font-weight:500;color:${g.color};font-family:'Lora',serif`},`${pct}%`),
-          el("div",{style:"font-size:11px;color:rgba(196,181,253,.35);margin-top:2px"},`${v.attempts} Versuche`)
-        )
+        el("div",{style:"flex:1;min-width:0"},p("v-stelle",v.stelle),p("v-text",v.text.length>60?v.text.slice(0,60)+"…":v.text)),
+        el("div",{style:"flex-shrink:0;text-align:right"},el("div",{style:`font-size:15px;font-weight:500;color:${g.color};font-family:'Lora',serif`},`${pct}%`),el("div",{style:"font-size:11px;color:rgba(196,181,253,.35);margin-top:2px"},`${v.attempts} Versuche`))
       );
-      // Progress bar inside row
-      const barWrap=el("div",{style:"width:100%;height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:6px;overflow:hidden"});
-      barWrap.appendChild(el("div",{style:`width:${pct}%;height:100%;background:${g.color};border-radius:2px;`}));
-      row.appendChild(barWrap);
-      wrap.appendChild(row);
+      const bw=el("div",{style:"width:100%;height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:6px;overflow:hidden"});
+      bw.appendChild(el("div",{style:`width:${pct}%;height:100%;background:${g.color};border-radius:2px;`}));
+      row.appendChild(bw);wrap.appendChild(row);
     });
   });
-
-  // Untrained
   if(untrained.length){
     wrap.appendChild(el("h3",{style:"font-size:12px;font-weight:500;letter-spacing:.8px;text-transform:uppercase;color:rgba(196,181,253,.35);margin:1.25rem 0 8px 2px;font-family:'Inter',sans-serif"},"Noch nicht geübt"));
-    untrained.forEach(v=>{
-      wrap.appendChild(div("stat-verse-row",
-        el("div",{style:"flex:1;min-width:0"},p("v-stelle",v.stelle),p("v-text",v.text.length>60?v.text.slice(0,60)+"…":v.text)),
-        el("div",{style:"flex-shrink:0;text-align:right"},el("div",{style:"font-size:13px;color:rgba(196,181,253,.3)"},"–"))
-      ));
-    });
+    untrained.forEach(v=>wrap.appendChild(div("stat-verse-row",el("div",{style:"flex:1;min-width:0"},p("v-stelle",v.stelle),p("v-text",v.text.length>60?v.text.slice(0,60)+"…":v.text)),el("div",{style:"flex-shrink:0;text-align:right"},el("div",{style:"font-size:13px;color:rgba(196,181,253,.3)"},"–")))));
   }
   return wrap;
 }
 
 // ── Lückentext ───────────────────────────────────────────────────
-function renderLuecke() {
+function renderLuecke(){
   const card=S.session[S.idx];
   if(!card||!S.luecken) return div("");
   const card2=div("luecke-card",span("stelle-label",card.stelle));
-  const inputRefs=[];
   S.luecken.forEach((tok,i)=>{
-    if(!tok.isGap){ card2.appendChild(document.createTextNode((i>0?" ":"")+tok.word)); return; }
+    if(!tok.isGap){card2.appendChild(document.createTextNode((i>0?" ":"")+tok.word));return;}
     if(i>0) card2.appendChild(document.createTextNode(" "));
-    if(tok.state==="correct") { card2.appendChild(span("gap-revealed",tok.word)); return; }
-    if(tok.state==="wrong")   { card2.appendChild(span("gap-wrong",tok.word)); return; }
+    if(tok.state==="correct"){card2.appendChild(span("gap-revealed",tok.word));return;}
+    if(tok.state==="wrong"){card2.appendChild(span("gap-wrong",tok.word));return;}
     const inp=el("input",{cls:"gap-input",type:"text",placeholder:"…",style:`width:${Math.max(60,tok.word.length*13)}px`});
-    inp.value=tok.input;
-    inp.oninput=e=>{S.luecken[i].input=e.target.value;};
+    inp.value=tok.input;inp.oninput=e=>{S.luecken[i].input=e.target.value;};
     inp.onkeydown=e=>{if(e.key==="Enter")checkLuecken();};
-    inputRefs.push(inp);
     card2.appendChild(inp);
   });
   const allDone=S.luecken.filter(t=>t.isGap).every(t=>t.state==="correct"||t.state==="wrong");
@@ -1038,76 +615,56 @@ function renderLuecke() {
   });
   return el("div",{},progRow(S.idx,S.session.length,()=>set({view:"menu"})),card2,allDone?nextB:checkB);
 }
-
-function checkLuecken() {
+function checkLuecken(){
   const clean=s=>s.trim().toLowerCase().replace(/[.,;:!?„"»«""]/g,"");
-  S.luecken.forEach(tok=>{
-    if(!tok.isGap||tok.state==="correct"||tok.state==="wrong") return;
-    tok.state=clean(tok.input)===clean(tok.word)?"correct":"wrong";
-  });
+  S.luecken.forEach(tok=>{if(!tok.isGap||tok.state==="correct"||tok.state==="wrong")return;tok.state=clean(tok.input)===clean(tok.word)?"correct":"wrong";});
   set({luecken:[...S.luecken]});
 }
 
 // ── Reihenfolge ──────────────────────────────────────────────────
-function renderOrder() {
+function renderOrder(){
   const card=S.session[S.idx];
   if(!card||!S.order) return div("");
-  const {orig,cur,sel}=S.order;
+  const{orig,cur,sel}=S.order;
   const allOk=cur.every((c,i)=>c===orig[i]);
-  const hint=p("order-hint",`„${card.stelle}" – Tippe zwei Abschnitte an, um sie zu tauschen`);
   const list=div("chunk-list",...cur.map((chunk,i)=>{
-    const isOk=allOk;
     const isSel=sel===i;
-    const c=div("chunk"+(isOk?" correct-pos":isSel?" selected":""),span("chunk-num",String(i+1)),span("",chunk));
+    const c=div("chunk"+(allOk?" correct-pos":isSel?" selected":""),span("chunk-num",String(i+1)),span("",chunk));
     if(!allOk) c.onclick=()=>{
       if(sel===null||sel===undefined){set({order:{...S.order,sel:i}});}
       else if(sel===i){set({order:{...S.order,sel:null}});}
-      else {
-        const nc=[...cur];[nc[sel],nc[i]]=[nc[i],nc[sel]];
-        const done=nc.every((c2,j)=>c2===orig[j]);
-        const newOrder={orig,cur:nc,sel:null};
-        set({order:newOrder});
-        if(done){
-          setTimeout(async()=>{
-            // Reihenfolge zählt nicht zur Statistik
-          },400);
-        }
-      }
+      else{const nc=[...cur];[nc[sel],nc[i]]=[nc[i],nc[sel]];set({order:{orig,cur:nc,sel:null}});}
     };
     return c;
   }));
   let bottom;
   if(allOk){
     const nextB=btn("next-btn",S.idx+1>=S.session.length?"Fertig →":"Nächster Vers →",()=>{
-      // Reihenfolge zählt nicht zur Statistik – kein Score-Update
       const res=[...S.results,{...card,correct:true}];
       if(S.idx+1>=S.session.length) set({results:res,view:"menu"});
       else set({results:res,idx:S.idx+1,order:buildChunks(S.session[S.idx+1])});
     });
     nextB.style.width="100%";
     bottom=el("div",{},p("order-success","✓ Perfekt! Richtige Reihenfolge!"),nextB);
-  } else {
-    bottom=p("","");
-  }
-  return el("div",{},progRow(S.idx,S.session.length,()=>set({view:"menu"})),hint,list,bottom);
+  } else bottom=p("","");
+  return el("div",{},progRow(S.idx,S.session.length,()=>set({view:"menu"})),p("order-hint",`„${card.stelle}" – Tippe zwei Abschnitte an, um sie zu tauschen`),list,bottom);
 }
 
 // ── Done ─────────────────────────────────────────────────────────
-function renderDone() {
-  const ok=S.results.filter(r=>r.correct).length, tot=S.results.length;
+function renderDone(){
+  const ok=S.results.filter(r=>r.correct).length,tot=S.results.length;
   const emoji=ok>=8?"🌟":ok>=5?"👏":"💪";
   const title=ok>=8?"Hervorragend!":ok>=5?"Gut gemacht!":"Weiter üben!";
   const dots=div("rdots",...S.results.map(r=>div("rdot "+(r.correct?"rdot-ok":"rdot-no"),r.correct?"✓":"✗")));
   const list=div("rlist",...S.results.map(r=>div("ritem",el("div",{cls:"ri-marker",style:`background:${r.correct?"#86efac":"#fca5a5"}`}),el("div",{},p("ri-stelle",r.stelle),p("ri-text",r.text.length>80?r.text.slice(0,80)+"…":r.text)))));
   return el("div",{},
     div("done-top",span("done-emoji",emoji),el("h2",{cls:"done-title"},title),p("done-sub",`${ok} von ${tot} Versen gewusst`),dots),
-    list,
-    div("btn-row",btn("ghost-btn","Menü",()=>set({view:"menu"})),btn("prim-btn","Neue Runde",()=>set({view:"flash",session:pickTen(S.verses),idx:0,flipped:false,results:[]})))
+    list,div("btn-row",btn("ghost-btn","Menü",()=>set({view:"menu"})),btn("prim-btn","Neue Runde",()=>set({view:"flash",session:pickTen(S.verses),idx:0,flipped:false,results:[]})))
   );
 }
 
 // ── Profile ──────────────────────────────────────────────────────
-function renderProfile() {
+function renderProfile(){
   const u=S.user;
   const mastered=S.verses.filter(v=>v.score>=5).length;
   const hdr=div("page-header",btn("back-btn","←",()=>set({view:"menu"})),el("h2",{cls:"page-title"},"Profil bearbeiten"));
@@ -1115,20 +672,20 @@ function renderProfile() {
     el("div",{cls:"profile-big-avatar",style:`background:${S.pColor}30;border-color:${S.pColor}60;box-shadow:0 0 32px ${S.pColor}44`},S.pEmoji),
     p("profile-name",u.name),p("profile-meta",`${S.verses.length} Verse · ${mastered} gemeistert`)
   );
-  const eRow=div("emoji-row",...EMOJIS.map(em=>{const b=btn("emoji-opt"+(S.pEmoji===em?" sel":""),em,()=>set({pEmoji:em}));return b;}));
+  const eRow=div("emoji-row",...EMOJIS.map(em=>btn("emoji-opt"+(S.pEmoji===em?" sel":""),em,()=>set({pEmoji:em}))));
   const cRow=div("color-row",...PALETTE.map(c=>{const d=div("color-opt"+(S.pColor===c?" sel":""));d.style.background=c;d.onclick=()=>set({pColor:c});return d;}));
   const changed=S.pEmoji!==u.emoji||S.pColor!==u.color;
   const saveApp=btn("save-btn","Aussehen speichern",async()=>{
     const upd={...u,emoji:S.pEmoji,color:S.pColor};
     await saveUsers(S.users.map(x=>x.id===u.id?upd:x));
-    S.user=upd; render();
+    S.user=upd;render();
   });
   if(!changed) saveApp.disabled=true;
-  const pOldI=el("input",{cls:"f-input",type:"password",placeholder:"••••••"}); pOldI.value=S.pOld; pOldI.oninput=e=>{S.pOld=e.target.value;S.pErr="";S.pOk=false;};
-  const pNewI=el("input",{cls:"f-input",type:"password",placeholder:"Neues Passwort"}); pNewI.value=S.pNew; pNewI.oninput=e=>{S.pNew=e.target.value;S.pErr="";S.pOk=false;};
-  const pNew2I=el("input",{cls:"f-input",type:"password",placeholder:"Bestätigen",style:"margin-bottom:0"}); pNew2I.value=S.pNew2; pNew2I.oninput=e=>{S.pNew2=e.target.value;S.pErr="";S.pOk=false;};
-  const pErrEl=span("err-msg",S.pErr); if(!S.pErr)pErrEl.style.display="none";
-  const pOkEl=span("success-msg","Passwort erfolgreich geändert."); if(!S.pOk)pOkEl.style.display="none";
+  const pOldI=el("input",{cls:"f-input",type:"password",placeholder:"••••••"});pOldI.value=S.pOld;pOldI.oninput=e=>{S.pOld=e.target.value;S.pErr="";S.pOk=false;};
+  const pNewI=el("input",{cls:"f-input",type:"password",placeholder:"Neues Passwort"});pNewI.value=S.pNew;pNewI.oninput=e=>{S.pNew=e.target.value;S.pErr="";S.pOk=false;};
+  const pNew2I=el("input",{cls:"f-input",type:"password",placeholder:"Bestätigen",style:"margin-bottom:0"});pNew2I.value=S.pNew2;pNew2I.oninput=e=>{S.pNew2=e.target.value;S.pErr="";S.pOk=false;};
+  const pErrEl=span("err-msg",S.pErr);if(!S.pErr)pErrEl.style.display="none";
+  const pOkEl=span("success-msg","Passwort erfolgreich geändert.");if(!S.pOk)pOkEl.style.display="none";
   const savePw=btn("save-btn","Passwort ändern",async()=>{
     if(S.pOld!==u.pw){set({pErr:"Aktuelles Passwort ist falsch.",pOk:false});return;}
     if(S.pNew.length<2){set({pErr:"Neues Passwort zu kurz.",pOk:false});return;}
@@ -1144,9 +701,8 @@ function renderProfile() {
   else dangerBtns=el("div",{style:"display:flex;gap:8px"},
     btn("danger-btn danger-btn-confirm","Ja, endgültig löschen",async()=>{
       await saveUsers(S.users.filter(x=>x.id!==u.id));
-      await fbDel(`verses/${u.id}`);
-      S.user=null; S.verses=[]; S.view="select"; S.delU=false;
-      render();
+      await fbDel("verses",u.id);
+      S.user=null;S.verses=[];S.view="select";S.delU=false;render();
     }),
     btn("danger-btn","Abbrechen",()=>set({delU:false}))
   );
@@ -1158,93 +714,95 @@ function renderProfile() {
 }
 
 // ── Login Modal ──────────────────────────────────────────────────
-function renderLogin() {
+function renderLogin(){
   const t=S.loginU;
   const overlay=div("modal-overlay");
   overlay.onclick=()=>set({modal:null});
   const modal=div("modal");
   modal.onclick=e=>e.stopPropagation();
-  const form=el("form",{autocomplete:"on",onsubmit:"return false"});
-  const usrH=el("input",{type:"text",name:"username",autocomplete:"username",style:"display:none"});
-  usrH.value=t.name;
-  const inp=el("input",{cls:"m-input"+(S.pwErr?" err":""),type:"password",name:"password",autocomplete:"current-password",placeholder:"••••••"});
-  inp.value=S.pw; inp.oninput=e=>{S.pw=e.target.value;};
+  const inp=el("input",{cls:"m-input"+(S.pwErr?" err":""),type:"password",placeholder:"••••••"});
+  inp.value=S.pw;inp.oninput=e=>{S.pw=e.target.value;};
   inp.onkeydown=e=>{if(e.key==="Enter")doLogin();};
-  const errEl=span("err-msg","Falsches Passwort. Nochmal versuchen."); if(!S.pwErr)errEl.style.display="none";
-  form.append(usrH,el("label",{cls:"m-label"},"Passwort"),inp,errEl,div("modal-btns",btn("m-ghost","Abbrechen",()=>set({modal:null})),btn("m-prim","Anmelden",doLogin)));
+  const errEl=span("err-msg","Falsches Passwort. Nochmal versuchen.");if(!S.pwErr)errEl.style.display="none";
   modal.append(
     el("div",{style:"display:flex;align-items:center;gap:12px;margin-bottom:16px"},
       el("div",{style:`width:46px;height:46px;border-radius:50%;background:${t.color}28;border:2px solid ${t.color}55;display:flex;align-items:center;justify-content:center;font-size:24px`},t.emoji),
       el("div",{},p("modal-title",t.name),p("modal-sub","Passwort eingeben"))
     ),
-    form
+    el("label",{cls:"m-label"},"Passwort"),inp,errEl,
+    div("modal-btns",btn("m-ghost","Abbrechen",()=>set({modal:null})),btn("m-prim","Anmelden",doLogin))
   );
   overlay.appendChild(modal);
   setTimeout(()=>inp.focus(),50);
   return overlay;
 }
-
-async function doLogin() {
+async function doLogin(){
   const t=S.loginU;
   const h=await hashPw(S.pw);
   if(h===t.pw){
-    S.modal=null; render();
-    const vd=await fbGet(`verses/${t.id}`);
+    S.modal=null;render();
+    const vd=await fbGet("verses",t.id);
     S.verses=vd?(vd.list||[]):[];
     S.counts={...S.counts,[t.id]:S.verses.length};
-    S.bookTrophies=t.bookTrophies||0;
-    S.user=t; S.view="menu";
-    render();
-  } else { set({pwErr:true}); }
+    S.user=t;S.view="menu";render();
+  } else set({pwErr:true});
 }
 
 // ── New User Modal ───────────────────────────────────────────────
-function renderNewUser() {
+function renderNewUser(){
   const overlay=div("modal-overlay");
   overlay.onclick=()=>set({modal:null});
   const modal=div("modal");
   modal.onclick=e=>e.stopPropagation();
-  const form=el("form",{autocomplete:"on",onsubmit:"return false"});
-  const nI=el("input",{cls:"m-input",name:"username",autocomplete:"username",placeholder:"Dein Name",type:"text"}); nI.value=S.nName; nI.oninput=e=>S.nName=e.target.value;
+  const nI=el("input",{cls:"m-input",placeholder:"Dein Name",type:"text"});nI.value=S.nName;nI.oninput=e=>S.nName=e.target.value;
   const eRow=div("emoji-row",...EMOJIS.map(em=>btn("emoji-opt"+(S.nEmoji===em?" sel":""),em,()=>set({nEmoji:em}))));
   const cRow=div("color-row",...PALETTE.map(c=>{const d=div("color-opt"+(S.nColor===c?" sel":""));d.style.background=c;d.onclick=()=>set({nColor:c});return d;}));
-  const p1=el("input",{cls:"m-input",type:"password",name:"password",autocomplete:"new-password",placeholder:"Passwort wählen"}); p1.value=S.nPw; p1.oninput=e=>S.nPw=e.target.value;
-  const p2=el("input",{cls:"m-input",type:"password",name:"password2",autocomplete:"new-password",placeholder:"Passwort bestätigen"}); p2.value=S.nPw2; p2.oninput=e=>S.nPw2=e.target.value;
+  const p1=el("input",{cls:"m-input",type:"password",placeholder:"Passwort wählen"});p1.value=S.nPw;p1.oninput=e=>S.nPw=e.target.value;
+  const p2=el("input",{cls:"m-input",type:"password",placeholder:"Passwort bestätigen"});p2.value=S.nPw2;p2.oninput=e=>S.nPw2=e.target.value;
   p2.onkeydown=e=>{if(e.key==="Enter")doCreate();};
-  const errEl=span("err-msg",S.nErr); if(!S.nErr)errEl.style.display="none";
-  form.append(el("label",{cls:"m-label"},"Name"),nI,el("label",{cls:"m-label"},"Symbol"),eRow,el("label",{cls:"m-label"},"Farbe"),cRow,el("label",{cls:"m-label"},"Passwort"),p1,el("label",{cls:"m-label"},"Wiederholen"),p2,errEl,div("modal-btns",btn("m-ghost","Abbrechen",()=>set({modal:null})),btn("m-prim","Profil erstellen",doCreate)));
-  modal.append(p("modal-title","Neuer Benutzer"),p("modal-sub","Erstelle dein persönliches Profil"),form);
+  const errEl=span("err-msg",S.nErr);if(!S.nErr)errEl.style.display="none";
+  modal.append(
+    p("modal-title","Neuer Benutzer"),p("modal-sub","Erstelle dein persönliches Profil"),
+    el("label",{cls:"m-label"},"Name"),nI,
+    el("label",{cls:"m-label"},"Symbol"),eRow,
+    el("label",{cls:"m-label"},"Farbe"),cRow,
+    el("label",{cls:"m-label"},"Passwort"),p1,
+    el("label",{cls:"m-label"},"Wiederholen"),p2,errEl,
+    div("modal-btns",btn("m-ghost","Abbrechen",()=>set({modal:null})),btn("m-prim","Profil erstellen",doCreate))
+  );
   overlay.appendChild(modal);
   return overlay;
 }
-
-async function doCreate() {
+async function doCreate(){
   if(!S.nName.trim()){set({nErr:"Bitte einen Namen eingeben."});return;}
   if(S.nPw.length<4){set({nErr:"Passwort muss mindestens 4 Zeichen haben."});return;}
   if(S.nPw!==S.nPw2){set({nErr:"Passwörter stimmen nicht überein."});return;}
-  // Alle State-Werte sofort lokal sichern bevor async-Operationen den State verändern
-  const name=S.nName.trim(), pw=S.nPw, color=S.nColor, emoji=S.nEmoji;
+  const name=S.nName.trim(),pw=S.nPw,color=S.nColor,emoji=S.nEmoji;
   const id="u_"+Date.now();
   const h=await hashPw(pw);
-  const u={id, name, pw:h, color, emoji};
-  const updated=[...S.users, u];
-  await saveUsers(updated);
-  await fbSet(`verses/${id}`,{list:[]});
+  const u={id,name,pw:h,color,emoji};
+  await saveUsers([...S.users,u]);
+  await fbSet("verses",id,{list:[]});
   S.counts={...S.counts,[id]:0};
-  S.verses=[]; S.user=u; S.view="menu"; S.modal=null;
+  S.verses=[];S.user=u;S.view="menu";S.modal=null;
   render();
 }
 
 // ── Boot ─────────────────────────────────────────────────────────
 (async()=>{
-  try {
-    let data=await fbGet("app/users");
-    if(!data){ await fbSet("app/users",{list:[]}); data={list:[]}; }
+  // Sofort rendern mit leerem Zustand – kein Ladescreen
+  render();
+  try{
+    let data=await fbGet("app","users");
+    if(!data){await fbSet("app","users",{list:[]});data={list:[]};}
     const userList=data.list||[];
     const counts={};
-    for(const u of userList){ const vd=await fbGet(`verses/${u.id}`); counts[u.id]=vd?(vd.list||[]).length:0; }
-    S.users=userList; S.counts=counts;
-  } catch(e){ console.error("Boot fehler:",e); }
+    for(const u of userList){
+      const vd=await fbGet("verses",u.id);
+      counts[u.id]=(vd?.list||[]).length;
+    }
+    S.users=userList;S.counts=counts;
+  } catch(e){console.error("Boot:",e);}
   render();
 })();
 </script>
