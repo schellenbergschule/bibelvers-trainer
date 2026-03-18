@@ -159,7 +159,41 @@ body{font-family:'Inter',sans-serif;min-height:100vh;background:radial-gradient(
 .gap-revealed{font-family:'Lora',serif;font-size:16px;color:#86efac;border-bottom:2px solid rgba(134,239,172,.5);padding:0 4px;margin:0 2px;}
 .check-btn{width:100%;padding:13px;border:none;border-radius:13px;background:linear-gradient(135deg,#0f766e,#0d9488);color:white;font-size:15px;font-weight:500;cursor:pointer;margin-bottom:10px;}
 .next-btn{width:100%;padding:13px;border:none;border-radius:13px;background:linear-gradient(135deg,#8b5cf6,#6366f1 50%,#7c3aed);color:white;font-size:15px;font-weight:500;cursor:pointer;}
-.order-hint{font-size:13px;color:rgba(196,181,253,.45);text-align:center;margin-bottom:12px;}
+.menu-bibel{background:linear-gradient(135deg,#1e3a5f,#1e5f74 50%,#1e3a5f);border:1px solid rgba(56,189,248,.3);box-shadow:0 8px 32px rgba(14,165,233,.3);}
+.menu-bibelsort{background:linear-gradient(135deg,#134e4a,#0f766e 50%,#134e4a);border:1px solid rgba(20,184,166,.3);box-shadow:0 8px 32px rgba(13,148,136,.3);}
+.bs-books{display:flex;flex-direction:column;gap:8px;margin-bottom:1.25rem;}
+.bs-item{padding:13px 16px;border-radius:13px;font-family:'Lora',serif;font-size:16px;color:rgba(237,233,254,.9);border:1px solid rgba(196,181,253,.2);background:linear-gradient(135deg,rgba(255,255,255,.07),rgba(99,102,241,.1));display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .18s;user-select:none;}
+.bs-item:hover{border-color:rgba(167,139,250,.5);transform:translateX(3px);}
+.bs-item.selected{border-color:rgba(251,191,36,.7);background:linear-gradient(135deg,rgba(251,191,36,.15),rgba(180,83,9,.15));transform:translateX(3px);}
+.bs-item.correct{border-color:rgba(134,239,172,.6);background:linear-gradient(135deg,rgba(34,197,94,.1),rgba(21,128,61,.08));color:#86efac;cursor:default;}
+.bs-item.correct:hover{transform:none;}
+.bs-item.wrong{border-color:rgba(252,165,165,.5);background:linear-gradient(135deg,rgba(239,68,68,.1),rgba(185,28,28,.08));color:#fca5a5;cursor:default;}
+.bs-item.wrong:hover{transform:none;}
+.bs-pos{font-size:12px;font-family:'Inter',sans-serif;color:rgba(196,181,253,.35);min-width:18px;}
+.bs-check{width:100%;padding:13px;border:none;border-radius:13px;background:linear-gradient(135deg,#0f766e,#0d9488);color:white;font-size:15px;font-weight:500;cursor:pointer;margin-bottom:10px;}
+.bs-result{text-align:center;font-size:15px;font-weight:500;margin-bottom:12px;padding:12px;border-radius:13px;}
+.bs-result.ok{background:rgba(34,197,94,.1);color:#86efac;border:1px solid rgba(34,197,94,.25);}
+.bs-result.no{background:rgba(239,68,68,.08);color:#fca5a5;border:1px solid rgba(239,68,68,.2);}
+.bs-correct-order{margin-bottom:14px;}
+.bs-correct-label{font-size:11px;color:rgba(196,181,253,.4);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;display:block;}
+.bs-correct-item{padding:8px 13px;border-radius:10px;font-family:'Lora',serif;font-size:14px;color:rgba(196,181,253,.7);background:rgba(255,255,255,.04);border:1px solid rgba(196,181,253,.1);margin-bottom:5px;display:flex;align-items:center;gap:10px;}
+.bs-correct-num{font-size:11px;color:rgba(196,181,253,.3);font-family:'Inter',sans-serif;min-width:16px;}padding:2rem;border-radius:22px;text-align:center;background:linear-gradient(145deg,#1e3a5f,#1e5f74 60%,#0c2a40);border:1px solid rgba(56,189,248,.3);box-shadow:0 16px 48px rgba(14,165,233,.3);margin-bottom:1.25rem;}
+.bo-label{font-size:10px;letter-spacing:2px;color:rgba(125,211,252,.5);text-transform:uppercase;font-weight:500;margin-bottom:10px;display:block;}
+.bo-book{font-family:'Lora',serif;font-size:32px;font-weight:600;color:#e0f2fe;}
+.bo-num{font-size:12px;color:rgba(125,211,252,.4);margin-top:6px;}
+.bo-row{display:flex;gap:10px;margin-bottom:10px;}
+.bo-field{flex:1;}
+.bo-field-label{font-size:11px;color:rgba(196,181,253,.45);letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:5px;}
+.bo-input{width:100%;padding:10px 13px;border-radius:11px;outline:none;background:#1e1a3e;border:1px solid rgba(196,181,253,.25);color:#ede9fe;font-size:14px;font-family:'Lora',serif;font-style:italic;transition:border-color .2s;}
+.bo-input:focus{border-color:rgba(167,139,250,.7);}
+.bo-input.correct{border-color:#86efac;background:rgba(34,197,94,.08);color:#86efac;}
+.bo-input.wrong{border-color:#fca5a5;background:rgba(239,68,68,.08);color:#fca5a5;}
+.bo-hint{font-size:12px;margin-top:4px;min-height:16px;}
+.bo-hint-ok{color:#86efac;}
+.bo-hint-no{color:#fca5a5;}
+.bo-check{width:100%;padding:13px;border:none;border-radius:13px;background:linear-gradient(135deg,#0369a1,#0284c7);color:white;font-size:15px;font-weight:500;cursor:pointer;margin-bottom:10px;}
+.bo-next{width:100%;padding:13px;border:none;border-radius:13px;background:linear-gradient(135deg,#8b5cf6,#6366f1 50%,#7c3aed);color:white;font-size:15px;font-weight:500;cursor:pointer;}
+.bo-edge{font-size:13px;color:rgba(125,211,252,.45);font-style:italic;padding:10px 13px;border-radius:11px;background:rgba(14,165,233,.06);border:1px solid rgba(56,189,248,.12);text-align:center;}
 .chunk-list{display:flex;flex-direction:column;gap:8px;margin-bottom:1rem;}
 .chunk{padding:13px 16px;border-radius:13px;font-family:'Lora',serif;font-size:15px;color:rgba(237,233,254,.9);cursor:pointer;border:1px solid rgba(196,181,253,.2);background:linear-gradient(135deg,rgba(255,255,255,.07),rgba(146,64,14,.12));display:flex;align-items:center;gap:10px;transition:all .18s;user-select:none;}
 .chunk:hover{border-color:rgba(251,191,36,.4);transform:translateX(3px);}
@@ -313,7 +347,8 @@ function render(){
   else if(S.view==="done")    root.appendChild(renderDone());
   else if(S.view==="luecke")  root.appendChild(renderLuecke());
   else if(S.view==="order")   root.appendChild(renderOrder());
-  else if(S.view==="stats")   root.appendChild(renderStats());
+  else if(S.view==="bibelorder") root.appendChild(renderBibelOrder());
+  else if(S.view==="bibelsort")  root.appendChild(renderBibelSort());
   else if(S.view==="profile") root.appendChild(renderProfile());
 }
 
@@ -354,6 +389,8 @@ function renderMenu(){
     mkBtn("menu-flash","🎯","Karteikarten","Klassischer Flashcard-Modus",()=>set({view:"flash",session:pickTen(S.verses),idx:0,flipped:false,results:[]})),
     mkBtn("menu-luecke","✏️","Lückentext","Fehlende Wörter ergänzen",()=>{const ses=pickTen(S.verses);set({view:"luecke",session:ses,idx:0,results:[],luecken:buildLuecken(ses[0])});}),
     mkBtn("menu-order","🔀","Reihenfolge","Versabschnitte sortieren",()=>{const ses=pickTen(S.verses);set({view:"order",session:ses,idx:0,results:[],order:buildChunks(ses[0])});}),
+    mkBtn("menu-bibel","📜","Bibelbuch-Reihenfolge","Vorgänger und Nachfolger nennen",()=>set({view:"bibelorder",boBook:Math.floor(Math.random()*(BUECHER.length-2))+1,boVor:"",boNach:"",boChecked:false})),
+    mkBtn("menu-bibelsort","🔢","Bücher sortieren","5 Bücher in die richtige Reihenfolge",()=>initBibelSort()),
     mkBtn("menu-stats","📊","Meine Statistik","Lernfortschritt im Überblick",()=>set({view:"stats"})),
     mkBtn("menu-profile","⚙️","Profil bearbeiten","Symbol, Farbe & Passwort ändern",()=>set({view:"profile",pEmoji:u.emoji,pColor:u.color,pOld:"",pNew:"",pNew2:"",pErr:"",pOk:false,delU:false})),
     div("stats",
@@ -366,7 +403,7 @@ function renderMenu(){
 
 // ── Bibelbücher ──────────────────────────────────────────────────
 const BUECHER=[
-  "Genesis","Exodus","Levitikus","Numeri","Deuteronomium","Josua","Richter","Rut",
+  "1. Mose","2. Mose","3. Mose","4. Mose","5. Mose","Josua","Richter","Rut",
   "1. Samuel","2. Samuel","1. Könige","2. Könige","1. Chronik","2. Chronik",
   "Esra","Nehemia","Ester","Hiob","Psalmen","Sprüche","Prediger","Hoheslied",
   "Jesaja","Jeremia","Klagelieder","Hesekiel","Daniel","Hosea","Joel","Amos",
@@ -541,6 +578,147 @@ function renderFlash(){
   );
   if(!S.flipped) ans.classList.add("invisible");
   return el("div",{},progRow(S.idx,S.session.length,()=>set({view:"menu"})),area,ans);
+}
+
+// ── Bibelbücher sortieren ─────────────────────────────────────────
+function initBibelSort(){
+  // 5 zufällige Bücher aus dem ganzen Kanon, durchgemischt
+  const indices=[];
+  while(indices.length<5){
+    const r=Math.floor(Math.random()*BUECHER.length);
+    if(!indices.includes(r)) indices.push(r);
+  }
+  const correct=[...indices].sort((a,b)=>a-b);
+  // Mischen (sicherstellen, dass nicht zufällig schon korrekt)
+  let shuffled=[...indices].sort(()=>Math.random()-.5);
+  if(shuffled.every((v,i)=>v===correct[i])) shuffled=shuffled.reverse();
+  set({view:"bibelsort",bsCorrect:correct,bsCurrent:shuffled,bsSel:null,bsChecked:false});
+}
+
+function renderBibelSort(){
+  const hdr=div("page-header",
+    btn("back-btn","←",()=>set({view:"menu"})),
+    el("h2",{cls:"page-title"},"Bücher sortieren")
+  );
+
+  const{bsCorrect,bsCurrent,bsSel,bsChecked}=S;
+  const allCorrect=bsChecked&&bsCurrent.every((v,i)=>v===bsCorrect[i]);
+
+  const list=div("bs-books");
+  bsCurrent.forEach((bookIdx,pos)=>{
+    let cls="bs-item";
+    if(bsChecked) cls+=bsCurrent[pos]===bsCorrect[pos]?" correct":" wrong";
+    else if(bsSel===pos) cls+=" selected";
+    const item=div(cls,span("bs-pos",String(pos+1)),span("",BUECHER[bookIdx]));
+    if(!bsChecked) item.onclick=()=>{
+      if(bsSel===null||bsSel===undefined){
+        set({bsSel:pos});
+      } else if(bsSel===pos){
+        set({bsSel:null});
+      } else {
+        const nc=[...bsCurrent];
+        [nc[bsSel],nc[pos]]=[nc[pos],nc[bsSel]];
+        set({bsCurrent:nc,bsSel:null});
+      }
+    };
+    list.appendChild(item);
+  });
+
+  const wrap=el("div",{},hdr,
+    el("p",{style:"font-size:13px;color:rgba(196,181,253,.45);text-align:center;margin-bottom:14px;"},"Tippe zwei Bücher an, um sie zu tauschen."),
+    list
+  );
+
+  if(!bsChecked){
+    wrap.appendChild(btn("bs-check","Reihenfolge überprüfen ✓",()=>set({bsChecked:true})));
+  } else {
+    const res=div("bs-result "+(allCorrect?"ok":"no"),allCorrect?"🌟 Perfekt! Alle Bücher in der richtigen Reihenfolge!":"✗ Nicht ganz – hier ist die richtige Reihenfolge:");
+    wrap.appendChild(res);
+    if(!allCorrect){
+      const corrBox=div("bs-correct-order",span("bs-correct-label","Korrekte Reihenfolge"));
+      bsCorrect.forEach((idx,i)=>{
+        corrBox.appendChild(div("bs-correct-item",span("bs-correct-num",String(i+1)),span("",BUECHER[idx])));
+      });
+      wrap.appendChild(corrBox);
+    }
+    wrap.appendChild(btn("bo-next","Neue Runde →",()=>initBibelSort()));
+  }
+  return wrap;
+}
+
+// ── Bibelbuch-Reihenfolge ─────────────────────────────────────────
+function normalize(s){return s.trim().toLowerCase().replace(/[.\-]/g,"").replace(/\s+/g," ");}
+function renderBibelOrder(){
+  const i=S.boBook;
+  const book=BUECHER[i];
+  const vor=BUECHER[i-1];
+  const nach=BUECHER[i+1];
+
+  const hdr=div("page-header",
+    btn("back-btn","←",()=>set({view:"menu"})),
+    el("h2",{cls:"page-title"},"Bibelbuch-Reihenfolge")
+  );
+
+  const card=div("bo-card",
+    span("bo-label","Welches Buch kommt davor und danach?"),
+    p("bo-book",book)
+  );
+
+  const wrap=el("div",{},hdr,card);
+
+  if(S.boChecked){
+    const vorOk=normalize(S.boVor)===normalize(vor);
+    const nachOk=normalize(S.boNach)===normalize(nach);
+    const allOk=vorOk&&nachOk;
+
+    const resBox=div("",
+      el("div",{style:"margin-bottom:12px"},
+        span("bo-field-label","Vorgänger"),
+        el("div",{},
+          el("div",{cls:`bo-input ${vorOk?"correct":"wrong"}`,style:"padding:10px 13px;border-radius:11px;border:1px solid"},S.boVor||"(leer)"),
+          p("bo-hint "+(vorOk?"bo-hint-ok":"bo-hint-no"),vorOk?"✓ Richtig!":` ✗ Richtig: ${vor}`)
+        )
+      ),
+      el("div",{style:"margin-bottom:16px"},
+        span("bo-field-label","Nachfolger"),
+        el("div",{},
+          el("div",{cls:`bo-input ${nachOk?"correct":"wrong"}`,style:"padding:10px 13px;border-radius:11px;border:1px solid"},S.boNach||"(leer)"),
+          p("bo-hint "+(nachOk?"bo-hint-ok":"bo-hint-no"),nachOk?"✓ Richtig!":` ✗ Richtig: ${nach}`)
+        )
+      )
+    );
+
+    const nextB=btn("bo-next","Nächstes Buch →",()=>{
+      // Erstes und letztes Buch ausschliessen
+      let next;
+      do { next=Math.floor(Math.random()*(BUECHER.length-2))+1; } while(next===i);
+      set({boBook:next,boVor:"",boNach:"",boChecked:false});
+    });
+    wrap.append(resBox,nextB);
+
+  } else {
+    // Eingabe
+    const vorInp=el("input",{cls:"bo-input",type:"text",placeholder:"Vorgänger…"});
+    vorInp.value=S.boVor||"";
+    vorInp.oninput=e=>S.boVor=e.target.value;
+    vorInp.onkeydown=e=>{if(e.key==="Enter")nachInp.focus();};
+
+    const nachInp=el("input",{cls:"bo-input",type:"text",placeholder:"Nachfolger…"});
+    nachInp.value=S.boNach||"";
+    nachInp.oninput=e=>S.boNach=e.target.value;
+    nachInp.onkeydown=e=>{if(e.key==="Enter")checkB.click();};
+
+    const checkB=btn("bo-check","Überprüfen ✓",()=>set({boChecked:true}));
+
+    wrap.append(
+      el("div",{style:"margin-bottom:8px"},span("bo-field-label","Vorgänger"),vorInp),
+      el("div",{style:"margin-bottom:16px"},span("bo-field-label","Nachfolger"),nachInp),
+      checkB
+    );
+    setTimeout(()=>vorInp.focus(),50);
+  }
+
+  return wrap;
 }
 
 // ── Stats ────────────────────────────────────────────────────────
@@ -754,22 +932,27 @@ function renderNewUser(){
   overlay.onclick=()=>set({modal:null});
   const modal=div("modal");
   modal.onclick=e=>e.stopPropagation();
-  const nI=el("input",{cls:"m-input",placeholder:"Dein Name",type:"text"});nI.value=S.nName;nI.oninput=e=>S.nName=e.target.value;
+  const nI=el("input",{cls:"m-input",placeholder:"Dein Name",type:"text",name:"username",autocomplete:"username"});nI.value=S.nName;nI.oninput=e=>S.nName=e.target.value;
   const eRow=div("emoji-row",...EMOJIS.map(em=>btn("emoji-opt"+(S.nEmoji===em?" sel":""),em,()=>set({nEmoji:em}))));
   const cRow=div("color-row",...PALETTE.map(c=>{const d=div("color-opt"+(S.nColor===c?" sel":""));d.style.background=c;d.onclick=()=>set({nColor:c});return d;}));
-  const p1=el("input",{cls:"m-input",type:"password",placeholder:"Passwort wählen"});p1.value=S.nPw;p1.oninput=e=>S.nPw=e.target.value;
-  const p2=el("input",{cls:"m-input",type:"password",placeholder:"Passwort bestätigen"});p2.value=S.nPw2;p2.oninput=e=>S.nPw2=e.target.value;
-  p2.onkeydown=e=>{if(e.key==="Enter")doCreate();};
+  const p1=el("input",{cls:"m-input",type:"password",name:"new-password",autocomplete:"new-password",placeholder:"Passwort wählen"});p1.value=S.nPw;p1.oninput=e=>S.nPw=e.target.value;
+  const p2=el("input",{cls:"m-input",type:"password",name:"new-password-confirm",autocomplete:"new-password",placeholder:"Passwort bestätigen"});p2.value=S.nPw2;p2.oninput=e=>S.nPw2=e.target.value;
   const errEl=span("err-msg",S.nErr);if(!S.nErr)errEl.style.display="none";
-  modal.append(
-    p("modal-title","Neuer Benutzer"),p("modal-sub","Erstelle dein persönliches Profil"),
+
+  const form=el("form",{autocomplete:"on"});
+  form.onsubmit=e=>{e.preventDefault();doCreate();};
+  form.append(
     el("label",{cls:"m-label"},"Name"),nI,
     el("label",{cls:"m-label"},"Symbol"),eRow,
     el("label",{cls:"m-label"},"Farbe"),cRow,
     el("label",{cls:"m-label"},"Passwort"),p1,
     el("label",{cls:"m-label"},"Wiederholen"),p2,errEl,
-    div("modal-btns",btn("m-ghost","Abbrechen",()=>set({modal:null})),btn("m-prim","Profil erstellen",doCreate))
+    div("modal-btns",
+      btn("m-ghost","Abbrechen",()=>set({modal:null})),
+      el("button",{cls:"m-prim",type:"submit"},"Profil erstellen")
+    )
   );
+  modal.append(p("modal-title","Neuer Benutzer"),p("modal-sub","Erstelle dein persönliches Profil"),form);
   overlay.appendChild(modal);
   return overlay;
 }
