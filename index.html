@@ -142,7 +142,7 @@ body{font-family:'Inter',sans-serif;min-height:100vh;background:radial-gradient(
 .danger-btn{padding:9px 16px;border-radius:10px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.1);color:#fca5a5;font-size:13px;font-weight:500;cursor:pointer;}
 .danger-btn-confirm{background:rgba(239,68,68,.6);color:white;border-color:transparent;}
 .invisible{visibility:hidden;}
-.menu-stats{background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(99,102,241,.1));border:1px solid rgba(196,181,253,.2);}
+.menu-stats{background:linear-gradient(135deg,#3d2e00,#4a3800 50%,#3d2e00) !important;border:1px solid rgba(251,191,36,.55) !important;box-shadow:0 8px 32px rgba(251,191,36,.2) !important;}
 .stats-bar-wrap{height:10px;background:rgba(255,255,255,.06);border-radius:5px;overflow:hidden;margin-bottom:10px;}
 .stats-bar{display:flex;gap:3px;height:100%;}
 .stats-legend{display:flex;flex-direction:column;gap:5px;margin-bottom:1.25rem;}
@@ -159,8 +159,29 @@ body{font-family:'Inter',sans-serif;min-height:100vh;background:radial-gradient(
 .gap-revealed{font-family:'Lora',serif;font-size:16px;color:#86efac;border-bottom:2px solid rgba(134,239,172,.5);padding:0 4px;margin:0 2px;}
 .check-btn{width:100%;padding:13px;border:none;border-radius:13px;background:linear-gradient(135deg,#0f766e,#0d9488);color:white;font-size:15px;font-weight:500;cursor:pointer;margin-bottom:10px;}
 .next-btn{width:100%;padding:13px;border:none;border-radius:13px;background:linear-gradient(135deg,#8b5cf6,#6366f1 50%,#7c3aed);color:white;font-size:15px;font-weight:500;cursor:pointer;}
+.order-hint{font-size:13px;color:rgba(196,181,253,.45);text-align:center;margin-bottom:12px;}
+.chunk-list{display:flex;flex-direction:column;gap:8px;margin-bottom:1rem;}
+.chunk{padding:13px 16px;border-radius:13px;font-family:'Lora',serif;font-size:15px;color:rgba(237,233,254,.9);cursor:pointer;border:1px solid rgba(196,181,253,.2);background:linear-gradient(135deg,rgba(255,255,255,.07),rgba(146,64,14,.12));display:flex;align-items:center;gap:10px;transition:all .18s;user-select:none;}
+.chunk:hover{border-color:rgba(251,191,36,.4);transform:translateX(3px);}
+.chunk.selected{border-color:rgba(251,191,36,.7);background:linear-gradient(135deg,rgba(251,191,36,.15),rgba(180,83,9,.2));transform:translateX(3px);}
+.chunk.correct-pos{border-color:rgba(134,239,172,.5);background:linear-gradient(135deg,rgba(34,197,94,.1),rgba(21,128,61,.08));color:#86efac;cursor:default;}
+.chunk.correct-pos:hover{transform:none;}
+.chunk-num{font-size:11px;color:rgba(196,181,253,.35);font-family:'Inter',sans-serif;min-width:16px;}
+.order-success{text-align:center;color:#86efac;font-size:14px;margin-bottom:12px;font-family:'Lora',serif;font-style:italic;}
 .menu-bibel{background:linear-gradient(135deg,#1e3a5f,#1e5f74 50%,#1e3a5f);border:1px solid rgba(56,189,248,.3);box-shadow:0 8px 32px rgba(14,165,233,.3);}
 .menu-bibelsort{background:linear-gradient(135deg,#134e4a,#0f766e 50%,#134e4a);border:1px solid rgba(20,184,166,.3);box-shadow:0 8px 32px rgba(13,148,136,.3);}
+.bo-card{padding:2rem;border-radius:22px;text-align:center;background:linear-gradient(145deg,#1e3a5f,#1e5f74 60%,#0c2a40);border:1px solid rgba(56,189,248,.3);box-shadow:0 16px 48px rgba(14,165,233,.3);margin-bottom:1.25rem;}
+.bo-label{font-size:10px;letter-spacing:2px;color:rgba(125,211,252,.5);text-transform:uppercase;font-weight:500;margin-bottom:10px;display:block;}
+.bo-book{font-family:'Lora',serif;font-size:32px;font-weight:600;color:#e0f2fe;}
+.bo-input{width:100%;padding:10px 13px;border-radius:11px;outline:none;background:#1e1a3e;border:1px solid rgba(196,181,253,.25);color:#ede9fe;font-size:14px;font-family:'Lora',serif;font-style:italic;transition:border-color .2s;margin-bottom:4px;}
+.bo-input:focus{border-color:rgba(167,139,250,.7);}
+.bo-input.correct{border-color:#86efac;background:rgba(34,197,94,.08);color:#86efac;}
+.bo-input.wrong{border-color:#fca5a5;background:rgba(239,68,68,.08);color:#fca5a5;}
+.bo-hint{font-size:12px;margin-top:4px;min-height:16px;margin-bottom:12px;}
+.bo-hint-ok{color:#86efac;}
+.bo-hint-no{color:#fca5a5;}
+.bo-check{width:100%;padding:13px;border:none;border-radius:13px;background:linear-gradient(135deg,#0369a1,#0284c7);color:white;font-size:15px;font-weight:500;cursor:pointer;margin-bottom:10px;}
+.bo-next{width:100%;padding:13px;border:none;border-radius:13px;background:linear-gradient(135deg,#8b5cf6,#6366f1 50%,#7c3aed);color:white;font-size:15px;font-weight:500;cursor:pointer;}
 .bs-books{display:flex;flex-direction:column;gap:8px;margin-bottom:1.25rem;}
 .bs-item{padding:13px 16px;border-radius:13px;font-family:'Lora',serif;font-size:16px;color:rgba(237,233,254,.9);border:1px solid rgba(196,181,253,.2);background:linear-gradient(135deg,rgba(255,255,255,.07),rgba(99,102,241,.1));display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .18s;user-select:none;}
 .bs-item:hover{border-color:rgba(167,139,250,.5);transform:translateX(3px);}
@@ -177,40 +198,16 @@ body{font-family:'Inter',sans-serif;min-height:100vh;background:radial-gradient(
 .bs-correct-order{margin-bottom:14px;}
 .bs-correct-label{font-size:11px;color:rgba(196,181,253,.4);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;display:block;}
 .bs-correct-item{padding:8px 13px;border-radius:10px;font-family:'Lora',serif;font-size:14px;color:rgba(196,181,253,.7);background:rgba(255,255,255,.04);border:1px solid rgba(196,181,253,.1);margin-bottom:5px;display:flex;align-items:center;gap:10px;}
-.bs-correct-num{font-size:11px;color:rgba(196,181,253,.3);font-family:'Inter',sans-serif;min-width:16px;}padding:2rem;border-radius:22px;text-align:center;background:linear-gradient(145deg,#1e3a5f,#1e5f74 60%,#0c2a40);border:1px solid rgba(56,189,248,.3);box-shadow:0 16px 48px rgba(14,165,233,.3);margin-bottom:1.25rem;}
-.bo-label{font-size:10px;letter-spacing:2px;color:rgba(125,211,252,.5);text-transform:uppercase;font-weight:500;margin-bottom:10px;display:block;}
-.bo-book{font-family:'Lora',serif;font-size:32px;font-weight:600;color:#e0f2fe;}
-.bo-num{font-size:12px;color:rgba(125,211,252,.4);margin-top:6px;}
-.bo-row{display:flex;gap:10px;margin-bottom:10px;}
-.bo-field{flex:1;}
-.bo-field-label{font-size:11px;color:rgba(196,181,253,.45);letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:5px;}
-.bo-input{width:100%;padding:10px 13px;border-radius:11px;outline:none;background:#1e1a3e;border:1px solid rgba(196,181,253,.25);color:#ede9fe;font-size:14px;font-family:'Lora',serif;font-style:italic;transition:border-color .2s;}
-.bo-input:focus{border-color:rgba(167,139,250,.7);}
-.bo-input.correct{border-color:#86efac;background:rgba(34,197,94,.08);color:#86efac;}
-.bo-input.wrong{border-color:#fca5a5;background:rgba(239,68,68,.08);color:#fca5a5;}
-.bo-hint{font-size:12px;margin-top:4px;min-height:16px;}
-.bo-hint-ok{color:#86efac;}
-.bo-hint-no{color:#fca5a5;}
-.bo-check{width:100%;padding:13px;border:none;border-radius:13px;background:linear-gradient(135deg,#0369a1,#0284c7);color:white;font-size:15px;font-weight:500;cursor:pointer;margin-bottom:10px;}
-.bo-next{width:100%;padding:13px;border:none;border-radius:13px;background:linear-gradient(135deg,#8b5cf6,#6366f1 50%,#7c3aed);color:white;font-size:15px;font-weight:500;cursor:pointer;}
-.bo-edge{font-size:13px;color:rgba(125,211,252,.45);font-style:italic;padding:10px 13px;border-radius:11px;background:rgba(14,165,233,.06);border:1px solid rgba(56,189,248,.12);text-align:center;}
-.chunk-list{display:flex;flex-direction:column;gap:8px;margin-bottom:1rem;}
-.chunk{padding:13px 16px;border-radius:13px;font-family:'Lora',serif;font-size:15px;color:rgba(237,233,254,.9);cursor:pointer;border:1px solid rgba(196,181,253,.2);background:linear-gradient(135deg,rgba(255,255,255,.07),rgba(146,64,14,.12));display:flex;align-items:center;gap:10px;transition:all .18s;user-select:none;}
-.chunk:hover{border-color:rgba(251,191,36,.4);transform:translateX(3px);}
-.chunk.selected{border-color:rgba(251,191,36,.7);background:linear-gradient(135deg,rgba(251,191,36,.15),rgba(180,83,9,.2));transform:translateX(3px);}
-.chunk.correct-pos{border-color:rgba(134,239,172,.5);background:linear-gradient(135deg,rgba(34,197,94,.1),rgba(21,128,61,.08));color:#86efac;cursor:default;}
-.chunk.correct-pos:hover{transform:none;}
-.chunk-num{font-size:11px;color:rgba(196,181,253,.35);font-family:'Inter',sans-serif;min-width:16px;}
-.order-success{text-align:center;color:#86efac;font-size:14px;margin-bottom:12px;font-family:'Lora',serif;font-style:italic;}
+.bs-correct-num{font-size:11px;color:rgba(196,181,253,.3);font-family:'Inter',sans-serif;min-width:16px;}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 </style>
 </head>
 <body>
 <div class="orb1"></div><div class="orb2"></div><div class="orb3"></div>
 <div class="stars"></div>
-<div id="app"><div class="loader"><div class="spinner"></div><p class="loader-text">Verbinde mit Firebase…</p></div></div>
+<div id="app"></div>
 <script>
-// ── Firebase init ────────────────────────────────────────────────
+// ── Firebase ─────────────────────────────────────────────────────
 firebase.initializeApp({
   apiKey:"AIzaSyDBiwkGCpXWUm1ZZ7Qpjtr2U1Mn1xcPKdM",
   authDomain:"bibelvers-trainer.firebaseapp.com",
@@ -219,120 +216,68 @@ firebase.initializeApp({
   messagingSenderId:"56194333927",
   appId:"1:56194333927:web:d89d7fc9409b93941a3642"
 });
-const db = firebase.firestore();
-
-async function fbGet(col, docId) {
-  try { const s = await db.collection(col).doc(docId).get(); return s.exists ? s.data() : null; }
-  catch(e) { console.error("fbGet",e); return null; }
-}
-async function fbSet(col, docId, data) {
-  try { await db.collection(col).doc(docId).set(data); }
-  catch(e) { console.error("fbSet",e); }
-}
-async function fbDel(col, docId) {
-  try { await db.collection(col).doc(docId).delete(); }
-  catch(e) { console.error("fbDel",e); }
-}
+const db=firebase.firestore();
+async function fbGet(col,docId){try{const s=await db.collection(col).doc(docId).get();return s.exists?s.data():null;}catch(e){console.error("fbGet",e);return null;}}
+async function fbSet(col,docId,data){try{await db.collection(col).doc(docId).set(data);}catch(e){console.error("fbSet",e);}}
+async function fbDel(col,docId){try{await db.collection(col).doc(docId).delete();}catch(e){console.error("fbDel",e);}}
 
 // ── Constants ────────────────────────────────────────────────────
 const PALETTE=["#8b5cf6","#6366f1","#ec4899","#f97316","#14b8a6","#10b981","#3b82f6","#f59e0b"];
 const EMOJIS=["✝","🕊","📖","🌟","🙏","⚓","🌿","💎","🔥","🌙"];
+const BUECHER=["1. Mose","2. Mose","3. Mose","4. Mose","5. Mose","Josua","Richter","Rut","1. Samuel","2. Samuel","1. Könige","2. Könige","1. Chronik","2. Chronik","Esra","Nehemia","Ester","Hiob","Psalmen","Sprüche","Prediger","Hoheslied","Jesaja","Jeremia","Klagelieder","Hesekiel","Daniel","Hosea","Joel","Amos","Obadja","Jona","Micha","Nahum","Habakuk","Zefanja","Haggai","Sacharja","Maleachi","Matthäus","Markus","Lukas","Johannes","Apostelgeschichte","Römer","1. Korinther","2. Korinther","Galater","Epheser","Philipper","Kolosser","1. Thessalonicher","2. Thessalonicher","1. Timotheus","2. Timotheus","Titus","Philemon","Hebräer","Jakobus","1. Petrus","2. Petrus","1. Johannes","2. Johannes","3. Johannes","Judas","Offenbarung"];
+const KAPITEL=[50,40,27,36,34,24,21,4,31,24,22,25,29,36,10,13,10,42,150,31,12,8,66,52,5,48,12,14,3,9,1,4,7,3,3,3,2,14,4,28,16,24,21,28,16,16,13,6,6,4,4,5,3,6,4,3,1,13,5,5,3,5,1,1,1,22];
+const BUECHER_API=["Genesis","Exodus","Leviticus","Numbers","Deuteronomy","Joshua","Judges","Ruth","1 Samuel","2 Samuel","1 Kings","2 Kings","1 Chronicles","2 Chronicles","Ezra","Nehemiah","Esther","Job","Psalms","Proverbs","Ecclesiastes","Song of Solomon","Isaiah","Jeremiah","Lamentations","Ezekiel","Daniel","Hosea","Joel","Amos","Obadiah","Jonah","Micah","Nahum","Habakkuk","Zephaniah","Haggai","Zechariah","Malachi","Matthew","Mark","Luke","John","Acts","Romans","1 Corinthians","2 Corinthians","Galatians","Ephesians","Philippians","Colossians","1 Thessalonians","2 Thessalonians","1 Timothy","2 Timothy","Titus","Philemon","Hebrews","James","1 Peter","2 Peter","1 John","2 John","3 John","Jude","Revelation"];
 
 // ── Hashing ──────────────────────────────────────────────────────
-async function hashPw(pw){
-  const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(pw));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+async function hashPw(pw){const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(pw));return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");}
+
+// ── API ──────────────────────────────────────────────────────────
+async function loadVerse(transl,bookIdx,chapter,verse){
+  try{
+    const book=encodeURIComponent(BUECHER_API[bookIdx]);
+    const r=await fetch(`https://query.getbible.net/v2/${transl}/${book} ${chapter}:${verse}`);
+    const d=await r.json();
+    const key=Object.keys(d)[0];
+    if(!key) return null;
+    const verses=d[key].verses;
+    if(!verses||!verses.length) return null;
+    return verses[0].text.trim();
+  }catch(e){console.error("API",e);return null;}
 }
 
 // ── Spaced repetition ────────────────────────────────────────────
-function getWeight(v){
-  const d=(Date.now()-v.added)/86400000;
-  const nb=d<2?4:d<7?2:1;
-  const eb=Math.max(0,(v.attempts-v.score*2))*2;
-  const mp=v.score>4?Math.pow(0.5,v.score-4):1;
-  return Math.max(0.1,(nb+eb+1)*mp);
-}
-function pickTen(verses){
-  if(!verses.length) return [];
-  const w=verses.map(getWeight),tot=w.reduce((a,b)=>a+b,0);
-  const chosen=[],used=new Set(),cnt=Math.min(10,verses.length);
-  let t=0;
-  while(chosen.length<cnt&&t<500){t++;let r=Math.random()*tot;for(let i=0;i<verses.length;i++){r-=w[i];if(r<=0&&!used.has(i)){used.add(i);chosen.push({...verses[i]});break;}}}
-  return chosen.sort(()=>Math.random()-.5);
-}
+function getWeight(v){const d=(Date.now()-v.added)/86400000;const nb=d<2?4:d<7?2:1;const eb=Math.max(0,(v.attempts-v.score*2))*2;const mp=v.score>4?Math.pow(0.5,v.score-4):1;return Math.max(0.1,(nb+eb+1)*mp);}
+function pickTen(verses){if(!verses.length)return[];const w=verses.map(getWeight),tot=w.reduce((a,b)=>a+b,0);const chosen=[],used=new Set(),cnt=Math.min(10,verses.length);let t=0;while(chosen.length<cnt&&t<500){t++;let r=Math.random()*tot;for(let i=0;i<verses.length;i++){r-=w[i];if(r<=0&&!used.has(i)){used.add(i);chosen.push({...verses[i]});break;}}}return chosen.sort(()=>Math.random()-.5);}
 
 // ── Lückentext ───────────────────────────────────────────────────
 function gapCount(score){return score<=1?1:score<=3?2:3;}
-function buildLuecken(verse){
-  const words=verse.text.split(" ");
-  const n=gapCount(verse.score||0);
-  const idx=new Set();
-  while(idx.size<Math.min(n,words.length)) idx.add(Math.floor(Math.random()*words.length));
-  return words.map((w,i)=>({word:w,isGap:idx.has(i),input:"",state:"idle"}));
-}
+function buildLuecken(verse){const words=verse.text.split(" ");const n=gapCount(verse.score||0);const idx=new Set();while(idx.size<Math.min(n,words.length))idx.add(Math.floor(Math.random()*words.length));return words.map((w,i)=>({word:w,isGap:idx.has(i),input:"",state:"idle"}));}
 
 // ── Reihenfolge ──────────────────────────────────────────────────
-function buildChunks(verse){
-  const words=verse.text.trim().split(/\s+/);
-  const sz=words.length<=6?2:words.length<=12?3:4;
-  const orig=[];
-  for(let i=0;i<words.length;i+=sz) orig.push(words.slice(i,i+sz).join(" "));
-  const cur=[...orig];
-  for(let i=cur.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[cur[i],cur[j]]=[cur[j],cur[i]];}
-  if(cur.every((c,i)=>c===orig[i])&&orig.length>1)[cur[0],cur[1]]=[cur[1],cur[0]];
-  return{orig,cur,sel:null};
-}
+function buildChunks(verse){const words=verse.text.trim().split(/\s+/);const sz=words.length<=6?2:words.length<=12?3:4;const orig=[];for(let i=0;i<words.length;i+=sz)orig.push(words.slice(i,i+sz).join(" "));const cur=[...orig];for(let i=cur.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[cur[i],cur[j]]=[cur[j],cur[i]];}if(cur.every((c,i)=>c===orig[i])&&orig.length>1)[cur[0],cur[1]]=[cur[1],cur[0]];return{orig,cur,sel:null};}
+
+// ── Bibelbücher sortieren ────────────────────────────────────────
+function initBibelSort(){const indices=[];while(indices.length<5){const r=Math.floor(Math.random()*BUECHER.length);if(!indices.includes(r))indices.push(r);}const correct=[...indices].sort((a,b)=>a-b);let shuffled=[...indices].sort(()=>Math.random()-.5);if(shuffled.every((v,i)=>v===correct[i]))shuffled=shuffled.reverse();set({view:"bibelsort",bsCorrect:correct,bsCurrent:shuffled,bsSel:null,bsChecked:false});}
+
+// ── Normalize ────────────────────────────────────────────────────
+function normalize(s){return s.trim().toLowerCase().replace(/[.\-]/g,"").replace(/\s+/g," ");}
 
 // ── DOM helpers ──────────────────────────────────────────────────
-function el(tag,attrs,...ch){
-  const e=document.createElement(tag);
-  for(const [k,v] of Object.entries(attrs||{})){
-    if(k==="cls") e.className=v;
-    else if(k.startsWith("on")&&typeof v==="function") e[k]=v;
-    else if(v!=null) e.setAttribute(k,v);
-  }
-  for(const c of ch.flat()) if(c!=null) e.appendChild(typeof c==="string"?document.createTextNode(c):c);
-  return e;
-}
+function el(tag,attrs,...ch){const e=document.createElement(tag);for(const [k,v] of Object.entries(attrs||{})){if(k==="cls")e.className=v;else if(k.startsWith("on")&&typeof v==="function")e[k]=v;else if(v!=null)e.setAttribute(k,v);}for(const c of ch.flat())if(c!=null)e.appendChild(typeof c==="string"?document.createTextNode(c):c);return e;}
 const div=(cls,...ch)=>el("div",{cls},...ch);
 const btn=(cls,txt,onclick)=>el("button",{cls,onclick,type:"button"},txt);
 const p=(cls,txt)=>el("p",{cls},txt);
 const span=(cls,txt)=>el("span",{cls},txt);
-
-function scoreDots(score){
-  return div("dots",...[0,1,2,3,4].map(i=>{const d=div("dot");d.style.background=i<score?"#a78bfa":"rgba(255,255,255,.1)";return d;}));
-}
-function progRow(idx,total,back){
-  return div("prog-row",
-    btn("back-btn","←",back),
-    el("div",{cls:"prog-track"},el("div",{cls:"prog-fill",style:`width:${(idx/total)*100}%`})),
-    span("prog-lbl",`${idx+1} / ${total}`)
-  );
-}
+function scoreDots(score){return div("dots",...[0,1,2,3,4].map(i=>{const d=div("dot");d.style.background=i<score?"#a78bfa":"rgba(255,255,255,.1)";return d;}));}
+function progRow(idx,total,back){return div("prog-row",btn("back-btn","←",back),el("div",{cls:"prog-track"},el("div",{cls:"prog-fill",style:`width:${(idx/total)*100}%`})),span("prog-lbl",`${idx+1} / ${total}`));}
 
 // ── State ────────────────────────────────────────────────────────
-const S={
-  users:[],counts:{},user:null,verses:[],
-  view:"select",session:[],idx:0,flipped:false,results:[],
-  luecken:null,order:null,
-  editId:null,editStelle:"",editText:"",
-  delV:null,delU:false,
-  modal:null,loginU:null,pw:"",pwErr:false,
-  nName:"",nPw:"",nPw2:"",nEmoji:"✝",nColor:PALETTE[0],nErr:"",
-  pEmoji:"",pColor:"",pOld:"",pNew:"",pNew2:"",pErr:"",pOk:false,
-};
+const S={users:[],counts:{},user:null,verses:[],view:"select",session:[],idx:0,flipped:false,results:[],luecken:null,order:null,editId:null,editStelle:"",editText:"",editSrc:"manual",editBook:0,editChap:1,editVers:1,apiLoading:false,apiPreview:"",delV:null,delU:false,modal:null,loginU:null,pw:"",pwErr:false,nName:"",nPw:"",nPw2:"",nEmoji:"✝",nColor:PALETTE[0],nErr:"",pEmoji:"",pColor:"",pOld:"",pNew:"",pNew2:"",pErr:"",pOk:false,boBook:1,boVor:"",boNach:"",boChecked:false,bsCorrect:[],bsCurrent:[],bsSel:null,bsChecked:false};
 function set(patch){Object.assign(S,patch);render();}
 
 // ── Persist ──────────────────────────────────────────────────────
-async function saveUsers(list){
-  S.users=list;
-  await fbSet("app","users",{list});
-}
-async function saveVerses(list){
-  S.verses=list;S.counts={...S.counts,[S.user.id]:list.length};
-  await fbSet("verses",S.user.id,{list});
-  render();
-}
+async function saveUsers(list){S.users=list;await fbSet("app","users",{list});}
+async function saveVerses(list){S.verses=list;S.counts={...S.counts,[S.user.id]:list.length};await fbSet("verses",S.user.id,{list});render();}
 
 // ── Render ───────────────────────────────────────────────────────
 function render(){
@@ -347,6 +292,7 @@ function render(){
   else if(S.view==="done")    root.appendChild(renderDone());
   else if(S.view==="luecke")  root.appendChild(renderLuecke());
   else if(S.view==="order")   root.appendChild(renderOrder());
+  else if(S.view==="stats"){try{root.appendChild(renderStats());}catch(e){const d=document.createElement("div");d.style.cssText="color:#fca5a5;padding:2rem;font-size:13px;font-family:monospace;white-space:pre-wrap;";d.textContent="FEHLER: "+e.message;root.appendChild(d);}}
   else if(S.view==="bibelorder") root.appendChild(renderBibelOrder());
   else if(S.view==="bibelsort")  root.appendChild(renderBibelSort());
   else if(S.view==="profile") root.appendChild(renderProfile());
@@ -354,21 +300,10 @@ function render(){
 
 // ── Select ───────────────────────────────────────────────────────
 function renderSelect(){
-  const grid=div("user-grid",...S.users.map(u=>{
-    const c=div("user-card",
-      el("div",{cls:"user-avatar",style:`background:${u.color}28;border-color:${u.color}55`},u.emoji),
-      p("user-name",u.name),p("user-count",`${S.counts[u.id]??0} Verse`)
-    );
-    c.onclick=()=>set({modal:"login",loginU:u,pw:"",pwErr:false});
-    return c;
-  }));
+  const grid=div("user-grid",...S.users.map(u=>{const c=div("user-card",el("div",{cls:"user-avatar",style:`background:${u.color}28;border-color:${u.color}55`},u.emoji),p("user-name",u.name),p("user-count",`${S.counts[u.id]??0} Verse`));c.onclick=()=>set({modal:"login",loginU:u,pw:"",pwErr:false});return c;}));
   const addB=btn("add-user-btn","+ Neuen Benutzer anlegen",()=>set({modal:"new",nName:"",nPw:"",nPw2:"",nEmoji:"✝",nColor:PALETTE[0],nErr:""}));
-  const halo=div("halo");
-  halo.innerHTML=`<svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round"><line x1="12" y1="3" x2="12" y2="21"/><line x1="4" y1="9" x2="20" y2="9"/></svg>`;
-  return el("div",{},
-    div("logo-wrap",halo,el("h1",{cls:"app-title"},"Bibelvers-Trainer"),div("sync-badge",span("sync-dot")," Geräteübergreifend gespeichert"),p("app-sub","Wer möchte heute lernen?")),
-    grid,addB
-  );
+  const halo=div("halo");halo.innerHTML=`<svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round"><line x1="12" y1="3" x2="12" y2="21"/><line x1="4" y1="9" x2="20" y2="9"/></svg>`;
+  return el("div",{},div("logo-wrap",halo,el("h1",{cls:"app-title"},"Bibelvers-Trainer"),div("sync-badge",span("sync-dot")," Geräteübergreifend gespeichert"),p("app-sub","Wer möchte heute lernen?")),grid,addB);
 }
 
 // ── Menu ─────────────────────────────────────────────────────────
@@ -401,384 +336,114 @@ function renderMenu(){
   );
 }
 
-// ── Bibelbücher ──────────────────────────────────────────────────
-const BUECHER=[
-  "1. Mose","2. Mose","3. Mose","4. Mose","5. Mose","Josua","Richter","Rut",
-  "1. Samuel","2. Samuel","1. Könige","2. Könige","1. Chronik","2. Chronik",
-  "Esra","Nehemia","Ester","Hiob","Psalmen","Sprüche","Prediger","Hoheslied",
-  "Jesaja","Jeremia","Klagelieder","Hesekiel","Daniel","Hosea","Joel","Amos",
-  "Obadja","Jona","Micha","Nahum","Habakuk","Zefanja","Haggai","Sacharja","Maleachi",
-  "Matthäus","Markus","Lukas","Johannes","Apostelgeschichte","Römer",
-  "1. Korinther","2. Korinther","Galater","Epheser","Philipper","Kolosser",
-  "1. Thessalonicher","2. Thessalonicher","1. Timotheus","2. Timotheus","Titus",
-  "Philemon","Hebräer","Jakobus","1. Petrus","2. Petrus","1. Johannes","2. Johannes",
-  "3. Johannes","Judas","Offenbarung"
-];
-// Kapitelanzahl pro Buch
-const KAPITEL=[50,40,27,36,34,24,21,4,31,24,22,25,29,36,10,13,10,42,150,31,12,8,66,52,5,48,12,14,3,9,1,4,7,3,3,3,2,14,4,28,16,24,21,28,16,16,13,6,6,4,4,5,3,6,4,3,1,13,5,5,3,5,1,1,1,22];
-// Versanzahl wird dynamisch geladen
-
-const TRANSL={elberfelder1905:"Elberfelder 1905",schlachter:"Schlachter 1951"};
-
-// Englische Buchnamen für die API (getbible.net verwendet KJV-Namen)
-const BUECHER_API=[
-  "Genesis","Exodus","Leviticus","Numbers","Deuteronomy","Joshua","Judges","Ruth",
-  "1 Samuel","2 Samuel","1 Kings","2 Kings","1 Chronicles","2 Chronicles",
-  "Ezra","Nehemiah","Esther","Job","Psalms","Proverbs","Ecclesiastes","Song of Solomon",
-  "Isaiah","Jeremiah","Lamentations","Ezekiel","Daniel","Hosea","Joel","Amos",
-  "Obadiah","Jonah","Micah","Nahum","Habakkuk","Zephaniah","Haggai","Zechariah","Malachi",
-  "Matthew","Mark","Luke","John","Acts","Romans",
-  "1 Corinthians","2 Corinthians","Galatians","Ephesians","Philippians","Colossians",
-  "1 Thessalonians","2 Thessalonians","1 Timothy","2 Timothy","Titus",
-  "Philemon","Hebrews","James","1 Peter","2 Peter","1 John","2 John",
-  "3 John","Jude","Revelation"
-];
-
-async function loadVerse(transl, bookIdx, chapter, verse) {
-  try {
-    const book=encodeURIComponent(BUECHER_API[bookIdx]);
-    const url=`https://query.getbible.net/v2/${transl}/${book} ${chapter}:${verse}`;
-    const r=await fetch(url);
-    const d=await r.json();
-    // Antwort: { "schlachter_43_3": { verses: [{text, verse, ...}], ... } }
-    const key=Object.keys(d)[0];
-    if(!key) return null;
-    const verses=d[key].verses;
-    if(!verses||!verses.length) return null;
-    return verses[0].text.trim();
-  } catch(e) { console.error("API",e); return null; }
-}
-
 // ── Edit ─────────────────────────────────────────────────────────
 function renderEdit(){
-  const hdr=div("page-header",btn("back-btn","←",()=>set({view:"menu",editId:null,editStelle:"",editText:"",editSrc:"manual",editBook:0,editChap:1,editVers:1,apiLoading:false,apiPreview:""})),el("h2",{cls:"page-title"},"Verse verwalten"));
-
-  // Quelle wählen
+  const hdr=div("page-header",btn("back-btn","←",()=>set({view:"menu",editId:null,editStelle:"",editText:""})),el("h2",{cls:"page-title"},"Verse verwalten"));
   const src=S.editSrc||"manual";
   const srcSel=el("select",{cls:"f-input",style:"margin-bottom:10px"});
-  [{v:"manual",l:"✏️  Manuell eingeben"},{v:"elberfelder1905",l:"📖  Elberfelder 1905"},{v:"schlachter",l:"📖  Schlachter 1951"}].forEach(o=>{
-    const op=el("option",{value:o.v},o.l);
-    if(src===o.v) op.setAttribute("selected","");
-    srcSel.appendChild(op);
-  });
+  [{v:"manual",l:"✏️  Manuell eingeben"},{v:"elberfelder1905",l:"📖  Elberfelder 1905"},{v:"schlachter",l:"📖  Schlachter 1951"}].forEach(o=>{const op=el("option",{value:o.v},o.l);if(src===o.v)op.setAttribute("selected","");srcSel.appendChild(op);});
   srcSel.onchange=e=>set({editSrc:e.target.value,editBook:0,editChap:1,editVers:1,apiPreview:"",editStelle:"",editText:""});
-
   const panel=div("form-panel",el("label",{cls:"f-label"},"Quelle"),srcSel);
-
   if(src==="manual"){
-    const inpS=el("input",{cls:"f-input",placeholder:"z.B. Johannes 3,16",value:S.editStelle||"",type:"text"});
-    inpS.oninput=e=>S.editStelle=e.target.value;
-    const inpT=el("textarea",{cls:"f-input f-textarea",placeholder:"Gib hier den Bibelvers ein…"});
-    inpT.value=S.editText||"";inpT.oninput=e=>S.editText=e.target.value;
+    const inpS=el("input",{cls:"f-input",placeholder:"z.B. Johannes 3,16",value:S.editStelle||"",type:"text"});inpS.oninput=e=>S.editStelle=e.target.value;
+    const inpT=el("textarea",{cls:"f-input f-textarea",placeholder:"Gib hier den Bibelvers ein…"});inpT.value=S.editText||"";inpT.oninput=e=>S.editText=e.target.value;
     panel.append(el("label",{cls:"f-label"},"Bibelstelle"),inpS,el("label",{cls:"f-label"},"Bibeltext"),inpT);
   } else {
-    // Buch
-    const bookSel=el("select",{cls:"f-input"});
-    BUECHER.forEach((b,i)=>{const o=el("option",{value:i},b);if(i===(S.editBook||0))o.setAttribute("selected","");bookSel.appendChild(o);});
+    const bookSel=el("select",{cls:"f-input"});BUECHER.forEach((b,i)=>{const o=el("option",{value:i},b);if(i===(S.editBook||0))o.setAttribute("selected","");bookSel.appendChild(o);});
     bookSel.onchange=e=>set({editBook:+e.target.value,editChap:1,editVers:1,apiPreview:"",editStelle:"",editText:""});
-
-    // Kapitel
-    const chapSel=el("select",{cls:"f-input"});
-    const numChap=KAPITEL[S.editBook||0]||50;
-    for(let i=1;i<=numChap;i++){const o=el("option",{value:i},`Kapitel ${i}`);if(i===(S.editChap||1))o.setAttribute("selected","");chapSel.appendChild(o);}
+    const chapSel=el("select",{cls:"f-input"});const numChap=KAPITEL[S.editBook||0]||50;for(let i=1;i<=numChap;i++){const o=el("option",{value:i},`Kapitel ${i}`);if(i===(S.editChap||1))o.setAttribute("selected","");chapSel.appendChild(o);}
     chapSel.onchange=e=>set({editChap:+e.target.value,editVers:1,apiPreview:"",editStelle:"",editText:""});
-
-    // Vers
-    const versSel=el("select",{cls:"f-input"});
-    const numVers=KAPITEL[S.editBook||0]||50;
-    for(let i=1;i<=numVers;i++){const o=el("option",{value:i},`Vers ${i}`);if(i===(S.editVers||1))o.setAttribute("selected","");versSel.appendChild(o);}
+    const versSel=el("select",{cls:"f-input"});const numVers=KAPITEL[S.editBook||0]||50;for(let i=1;i<=numVers;i++){const o=el("option",{value:i},`Vers ${i}`);if(i===(S.editVers||1))o.setAttribute("selected","");versSel.appendChild(o);}
     versSel.onchange=e=>set({editVers:+e.target.value,apiPreview:"",editStelle:"",editText:""});
-
-    // Laden-Button
     const loadB=btn("save-btn",S.apiLoading?"Lade…":"Vers laden",async()=>{
       set({apiLoading:true,apiPreview:"",editStelle:"",editText:""});
       const txt=await loadVerse(src,S.editBook||0,S.editChap||1,S.editVers||1);
-      if(txt){
-        const stelle=`${BUECHER[S.editBook||0]} ${S.editChap},${S.editVers}`;
-        set({apiLoading:false,apiPreview:txt,editText:txt,editStelle:stelle});
-      } else {
-        set({apiLoading:false,apiPreview:"Fehler beim Laden."});
-      }
-    });
-    loadB.style.marginBottom="10px";
-
-    panel.append(
-      el("label",{cls:"f-label"},"Bibelbuch"),bookSel,
-      el("label",{cls:"f-label"},"Kapitel"),chapSel,
-      el("label",{cls:"f-label"},"Vers"),versSel,
-      loadB
-    );
-
+      if(txt){const stelle=`${BUECHER[S.editBook||0]} ${S.editChap},${S.editVers}`;set({apiLoading:false,apiPreview:txt,editText:txt,editStelle:stelle});}
+      else set({apiLoading:false,apiPreview:"Fehler beim Laden."});
+    });loadB.style.marginBottom="10px";
+    panel.append(el("label",{cls:"f-label"},"Bibelbuch"),bookSel,el("label",{cls:"f-label"},"Kapitel"),chapSel,el("label",{cls:"f-label"},"Vers"),versSel,loadB);
     if(S.apiPreview&&S.apiPreview!=="Fehler beim Laden."){
-      const prev=div("",el("p",{style:"font-family:'Lora',serif;font-size:15px;line-height:1.7;color:rgba(237,233,254,.85);padding:10px 0 4px;font-style:italic"},`„${S.apiPreview}"`));
-      panel.appendChild(prev);
-      // Bibelstelle + Text editierbar machen
-      const inpS2=el("input",{cls:"f-input",value:S.editStelle||"",type:"text",style:"margin-top:8px"});
-      inpS2.oninput=e=>S.editStelle=e.target.value;
-      const inpT2=el("textarea",{cls:"f-input f-textarea",style:"margin-top:0"});
-      inpT2.value=S.editText||"";inpT2.oninput=e=>S.editText=e.target.value;
-      panel.append(el("label",{cls:"f-label",style:"margin-top:8px"},"Bibelstelle (anpassbar)"),inpS2,el("label",{cls:"f-label"},"Text (anpassbar)"),inpT2);
+      panel.appendChild(el("p",{style:"font-family:'Lora',serif;font-size:15px;line-height:1.7;color:rgba(237,233,254,.85);padding:10px 0 4px;font-style:italic"},`„${S.apiPreview}"`));
+      const inpS2=el("input",{cls:"f-input",value:S.editStelle||"",type:"text",style:"margin-top:8px"});inpS2.oninput=e=>S.editStelle=e.target.value;
+      const inpT2=el("textarea",{cls:"f-input f-textarea"});inpT2.value=S.editText||"";inpT2.oninput=e=>S.editText=e.target.value;
+      panel.append(el("label",{cls:"f-label",style:"margin-top:8px"},"Bibelstelle"),inpS2,el("label",{cls:"f-label"},"Text"),inpT2);
     } else if(S.apiPreview==="Fehler beim Laden."){
-      panel.appendChild(el("p",{style:"color:#fca5a5;font-size:13px;margin-top:6px"},"⚠️ Fehler beim Laden – bitte erneut versuchen."));
+      panel.appendChild(el("p",{style:"color:#fca5a5;font-size:13px;margin-top:6px"},"⚠️ Fehler – bitte erneut versuchen."));
     }
   }
-
   const saveB=btn("save-btn",S.editId?"Änderungen speichern":"Vers hinzufügen",async()=>{
     if(!S.editStelle.trim()||!S.editText.trim()) return;
-    let upd=S.editId
-      ?S.verses.map(v=>v.id===S.editId?{...v,stelle:S.editStelle.trim(),text:S.editText.trim()}:v)
-      :[...S.verses,{id:Date.now(),stelle:S.editStelle.trim(),text:S.editText.trim(),added:Date.now(),score:0,attempts:0}];
-    await saveVerses(upd);
-    S.editId=null;S.editStelle="";S.editText="";S.editSrc="manual";S.apiPreview="";S.apiChapData=null;render();
+    let upd=S.editId?S.verses.map(v=>v.id===S.editId?{...v,stelle:S.editStelle.trim(),text:S.editText.trim()}:v):[...S.verses,{id:Date.now(),stelle:S.editStelle.trim(),text:S.editText.trim(),added:Date.now(),score:0,attempts:0}];
+    await saveVerses(upd);S.editId=null;S.editStelle="";S.editText="";S.editSrc="manual";S.apiPreview="";render();
   });
   const canSave=!!(S.editStelle.trim()&&S.editText.trim());
   if(canSave) panel.appendChild(saveB);
-  if(S.editId) panel.appendChild(btn("cancel-lnk","Abbrechen",()=>set({editId:null,editStelle:"",editText:"",editSrc:"manual",apiPreview:"",apiChapData:null})));
-
+  if(S.editId) panel.appendChild(btn("cancel-lnk","Abbrechen",()=>set({editId:null,editStelle:"",editText:"",editSrc:"manual",apiPreview:""})));
   const list=div("vlist");
   if(!S.verses.length) list.appendChild(div("empty","Noch keine Verse – füge deinen ersten hinzu!"));
   [...S.verses].reverse().forEach(v=>{
-    const eb=btn("ibtn ibtn-e","✏️",()=>set({editId:v.id,editStelle:v.stelle,editText:v.text,editSrc:"manual",apiPreview:"",apiChapData:null}));
+    const eb=btn("ibtn ibtn-e","✏️",()=>set({editId:v.id,editStelle:v.stelle,editText:v.text,editSrc:"manual",apiPreview:""}));
     let db2;
     if(S.delV===v.id) db2=btn("ibtn ibtn-dc","Löschen?",async()=>{await saveVerses(S.verses.filter(x=>x.id!==v.id));S.delV=null;render();});
     else db2=btn("ibtn ibtn-d","🗑",()=>set({delV:v.id}));
-    list.appendChild(div("vitem",
-      el("div",{style:"flex:1"},p("v-stelle",v.stelle),p("v-text",v.text.length>90?v.text.slice(0,90)+"…":v.text),div("v-meta",scoreDots(Math.min(v.score,5)),span("",`${v.attempts} Versuche`))),
-      el("div",{style:"display:flex;gap:5px;flex-shrink:0"},eb,db2)
-    ));
+    list.appendChild(div("vitem",el("div",{style:"flex:1"},p("v-stelle",v.stelle),p("v-text",v.text.length>90?v.text.slice(0,90)+"…":v.text),div("v-meta",scoreDots(Math.min(v.score,5)),span("",`${v.attempts} Versuche`))),el("div",{style:"display:flex;gap:5px;flex-shrink:0"},eb,db2)));
   });
   return el("div",{},hdr,panel,list);
 }
 
 // ── Flashcard ────────────────────────────────────────────────────
 function renderFlash(){
-  const card=S.session[S.idx];
-  if(!card) return renderDone();
-  const inner=div("flip-inner"+(S.flipped?" flipped":""),
-    div("f-face f-front",span("card-eyebrow","Bibelstelle"),p("card-stelle",card.stelle),span("tap-hint","👆 Antippen zum Aufdecken")),
-    div("f-face f-back",span("back-eyebrow",card.stelle),p("back-verse",`„${card.text}"`))
-  );
-  const area=div("card-area",inner);
-  area.onclick=()=>{if(!S.flipped)set({flipped:true});};
+  const card=S.session[S.idx];if(!card) return renderDone();
+  const inner=div("flip-inner"+(S.flipped?" flipped":""),div("f-face f-front",span("card-eyebrow","Bibelstelle"),p("card-stelle",card.stelle),span("tap-hint","👆 Antippen zum Aufdecken")),div("f-face f-back",span("back-eyebrow",card.stelle),p("back-verse",`„${card.text}"`)));
+  const area=div("card-area",inner);area.onclick=()=>{if(!S.flipped)set({flipped:true});};
   const ans=div("ans-row",
-    btn("ans-btn ans-no","✗ Nicht gewusst",async()=>{
-      const upd=S.verses.map(v=>v.id===card.id?{...v,score:Math.max(0,v.score-1),attempts:v.attempts+1}:v);
-      await saveVerses(upd);
-      const res=[...S.results,{...card,correct:false}];
-      if(S.idx+1>=S.session.length) set({results:res,view:"done"});
-      else set({results:res,idx:S.idx+1,flipped:false});
-    }),
-    btn("ans-btn ans-yes","✓ Gewusst",async()=>{
-      const upd=S.verses.map(v=>v.id===card.id?{...v,score:v.score+1,attempts:v.attempts+1}:v);
-      await saveVerses(upd);
-      const res=[...S.results,{...card,correct:true}];
-      if(S.idx+1>=S.session.length) set({results:res,view:"done"});
-      else set({results:res,idx:S.idx+1,flipped:false});
-    })
+    btn("ans-btn ans-no","✗ Nicht gewusst",async()=>{const upd=S.verses.map(v=>v.id===card.id?{...v,score:Math.max(0,v.score-1),attempts:v.attempts+1}:v);await saveVerses(upd);const res=[...S.results,{...card,correct:false}];if(S.idx+1>=S.session.length)set({results:res,view:"done"});else set({results:res,idx:S.idx+1,flipped:false});}),
+    btn("ans-btn ans-yes","✓ Gewusst",async()=>{const upd=S.verses.map(v=>v.id===card.id?{...v,score:v.score+1,attempts:v.attempts+1}:v);await saveVerses(upd);const res=[...S.results,{...card,correct:true}];if(S.idx+1>=S.session.length)set({results:res,view:"done"});else set({results:res,idx:S.idx+1,flipped:false});})
   );
   if(!S.flipped) ans.classList.add("invisible");
   return el("div",{},progRow(S.idx,S.session.length,()=>set({view:"menu"})),area,ans);
 }
 
-// ── Bibelbücher sortieren ─────────────────────────────────────────
-function initBibelSort(){
-  // 5 zufällige Bücher aus dem ganzen Kanon, durchgemischt
-  const indices=[];
-  while(indices.length<5){
-    const r=Math.floor(Math.random()*BUECHER.length);
-    if(!indices.includes(r)) indices.push(r);
-  }
-  const correct=[...indices].sort((a,b)=>a-b);
-  // Mischen (sicherstellen, dass nicht zufällig schon korrekt)
-  let shuffled=[...indices].sort(()=>Math.random()-.5);
-  if(shuffled.every((v,i)=>v===correct[i])) shuffled=shuffled.reverse();
-  set({view:"bibelsort",bsCorrect:correct,bsCurrent:shuffled,bsSel:null,bsChecked:false});
-}
-
-function renderBibelSort(){
-  const hdr=div("page-header",
-    btn("back-btn","←",()=>set({view:"menu"})),
-    el("h2",{cls:"page-title"},"Bücher sortieren")
-  );
-
-  const{bsCorrect,bsCurrent,bsSel,bsChecked}=S;
-  const allCorrect=bsChecked&&bsCurrent.every((v,i)=>v===bsCorrect[i]);
-
-  const list=div("bs-books");
-  bsCurrent.forEach((bookIdx,pos)=>{
-    let cls="bs-item";
-    if(bsChecked) cls+=bsCurrent[pos]===bsCorrect[pos]?" correct":" wrong";
-    else if(bsSel===pos) cls+=" selected";
-    const item=div(cls,span("bs-pos",String(pos+1)),span("",BUECHER[bookIdx]));
-    if(!bsChecked) item.onclick=()=>{
-      if(bsSel===null||bsSel===undefined){
-        set({bsSel:pos});
-      } else if(bsSel===pos){
-        set({bsSel:null});
-      } else {
-        const nc=[...bsCurrent];
-        [nc[bsSel],nc[pos]]=[nc[pos],nc[bsSel]];
-        set({bsCurrent:nc,bsSel:null});
-      }
-    };
-    list.appendChild(item);
-  });
-
-  const wrap=el("div",{},hdr,
-    el("p",{style:"font-size:13px;color:rgba(196,181,253,.45);text-align:center;margin-bottom:14px;"},"Tippe zwei Bücher an, um sie zu tauschen."),
-    list
-  );
-
-  if(!bsChecked){
-    wrap.appendChild(btn("bs-check","Reihenfolge überprüfen ✓",()=>set({bsChecked:true})));
-  } else {
-    const res=div("bs-result "+(allCorrect?"ok":"no"),allCorrect?"🌟 Perfekt! Alle Bücher in der richtigen Reihenfolge!":"✗ Nicht ganz – hier ist die richtige Reihenfolge:");
-    wrap.appendChild(res);
-    if(!allCorrect){
-      const corrBox=div("bs-correct-order",span("bs-correct-label","Korrekte Reihenfolge"));
-      bsCorrect.forEach((idx,i)=>{
-        corrBox.appendChild(div("bs-correct-item",span("bs-correct-num",String(i+1)),span("",BUECHER[idx])));
-      });
-      wrap.appendChild(corrBox);
-    }
-    wrap.appendChild(btn("bo-next","Neue Runde →",()=>initBibelSort()));
-  }
-  return wrap;
-}
-
-// ── Bibelbuch-Reihenfolge ─────────────────────────────────────────
-function normalize(s){return s.trim().toLowerCase().replace(/[.\-]/g,"").replace(/\s+/g," ");}
-function renderBibelOrder(){
-  const i=S.boBook;
-  const book=BUECHER[i];
-  const vor=BUECHER[i-1];
-  const nach=BUECHER[i+1];
-
-  const hdr=div("page-header",
-    btn("back-btn","←",()=>set({view:"menu"})),
-    el("h2",{cls:"page-title"},"Bibelbuch-Reihenfolge")
-  );
-
-  const card=div("bo-card",
-    span("bo-label","Welches Buch kommt davor und danach?"),
-    p("bo-book",book)
-  );
-
-  const wrap=el("div",{},hdr,card);
-
-  if(S.boChecked){
-    const vorOk=normalize(S.boVor)===normalize(vor);
-    const nachOk=normalize(S.boNach)===normalize(nach);
-    const allOk=vorOk&&nachOk;
-
-    const resBox=div("",
-      el("div",{style:"margin-bottom:12px"},
-        span("bo-field-label","Vorgänger"),
-        el("div",{},
-          el("div",{cls:`bo-input ${vorOk?"correct":"wrong"}`,style:"padding:10px 13px;border-radius:11px;border:1px solid"},S.boVor||"(leer)"),
-          p("bo-hint "+(vorOk?"bo-hint-ok":"bo-hint-no"),vorOk?"✓ Richtig!":` ✗ Richtig: ${vor}`)
-        )
-      ),
-      el("div",{style:"margin-bottom:16px"},
-        span("bo-field-label","Nachfolger"),
-        el("div",{},
-          el("div",{cls:`bo-input ${nachOk?"correct":"wrong"}`,style:"padding:10px 13px;border-radius:11px;border:1px solid"},S.boNach||"(leer)"),
-          p("bo-hint "+(nachOk?"bo-hint-ok":"bo-hint-no"),nachOk?"✓ Richtig!":` ✗ Richtig: ${nach}`)
-        )
-      )
-    );
-
-    const nextB=btn("bo-next","Nächstes Buch →",()=>{
-      // Erstes und letztes Buch ausschliessen
-      let next;
-      do { next=Math.floor(Math.random()*(BUECHER.length-2))+1; } while(next===i);
-      set({boBook:next,boVor:"",boNach:"",boChecked:false});
-    });
-    wrap.append(resBox,nextB);
-
-  } else {
-    // Eingabe
-    const vorInp=el("input",{cls:"bo-input",type:"text",placeholder:"Vorgänger…"});
-    vorInp.value=S.boVor||"";
-    vorInp.oninput=e=>S.boVor=e.target.value;
-    vorInp.onkeydown=e=>{if(e.key==="Enter")nachInp.focus();};
-
-    const nachInp=el("input",{cls:"bo-input",type:"text",placeholder:"Nachfolger…"});
-    nachInp.value=S.boNach||"";
-    nachInp.oninput=e=>S.boNach=e.target.value;
-    nachInp.onkeydown=e=>{if(e.key==="Enter")checkB.click();};
-
-    const checkB=btn("bo-check","Überprüfen ✓",()=>set({boChecked:true}));
-
-    wrap.append(
-      el("div",{style:"margin-bottom:8px"},span("bo-field-label","Vorgänger"),vorInp),
-      el("div",{style:"margin-bottom:16px"},span("bo-field-label","Nachfolger"),nachInp),
-      checkB
-    );
-    setTimeout(()=>vorInp.focus(),50);
-  }
-
-  return wrap;
-}
-
 // ── Stats ────────────────────────────────────────────────────────
-function getPercent(v){if(!v.attempts)return null;return Math.round(Math.min(1,v.score/v.attempts)*100);}
+function getPercent(v){if(!v.attempts)return 0;return Math.round(Math.min(1,v.score/v.attempts)*100);}
 function renderStats(){
   const hdr=div("page-header",btn("back-btn","←",()=>set({view:"menu"})),el("h2",{cls:"page-title"},"Meine Statistik"));
-  const groups=[{label:"Noch zu üben",color:"#fca5a5",min:0,max:59},{label:"Auf gutem Weg",color:"#fcd34d",min:60,max:89},{label:"Kann ich auswendig",color:"#86efac",min:90,max:100}];
-  const untrained=S.verses.filter(v=>!v.attempts);
-  const trained=S.verses.filter(v=>v.attempts>0);
   const wrap=el("div",{},hdr);
   wrap.appendChild(el("p",{style:"font-size:12px;color:rgba(196,181,253,.35);margin-bottom:1rem;text-align:center;font-style:italic"},"Basiert ausschliesslich auf Karteikarten-Ergebnissen"));
   if(!S.verses.length){wrap.appendChild(div("empty","Noch keine Verse vorhanden."));return wrap;}
-  const sumBar=div("stats-bar");
+  const groups=[{label:"Noch zu üben",color:"#fca5a5",filter:v=>getPercent(v)<60},{label:"Auf gutem Weg",color:"#fcd34d",filter:v=>getPercent(v)>=60&&getPercent(v)<90},{label:"Kann ich auswendig",color:"#86efac",filter:v=>getPercent(v)>=90}];
   groups.forEach(g=>{
-    const count=trained.filter(v=>{const pct=getPercent(v);return pct!==null&&pct>=g.min&&pct<=g.max;}).length;
-    sumBar.appendChild(el("div",{style:`flex:${count||0};min-width:${count>0?8:0}px;background:${g.color};border-radius:4px;height:100%;`}));
-  });
-  wrap.appendChild(div("stats-bar-wrap",sumBar));
-  const legend=div("stats-legend");
-  groups.forEach(g=>{
-    const count=trained.filter(v=>{const pct=getPercent(v);return pct!==null&&pct>=g.min&&pct<=g.max;}).length;
-    legend.appendChild(div("legend-item",el("div",{style:`width:10px;height:10px;border-radius:50%;background:${g.color};flex-shrink:0`}),span("",`${g.label}: `),el("b",{},String(count))));
-  });
-  if(untrained.length) legend.appendChild(div("legend-item",el("div",{style:"width:10px;height:10px;border-radius:50%;background:rgba(196,181,253,.3);flex-shrink:0"}),span("",`Noch nicht geübt: `),el("b",{},String(untrained.length))));
-  wrap.appendChild(legend);
-  groups.forEach(g=>{
-    const gV=trained.filter(v=>{const pct=getPercent(v);return pct!==null&&pct>=g.min&&pct<=g.max;});
-    if(!gV.length)return;
-    wrap.appendChild(el("h3",{style:`font-size:12px;font-weight:500;letter-spacing:.8px;text-transform:uppercase;color:${g.color};margin:1.25rem 0 8px 2px;font-family:'Inter',sans-serif`},g.label));
-    gV.sort((a,b)=>getPercent(a)-getPercent(b)).forEach(v=>{
+    const gV=S.verses.filter(g.filter);if(!gV.length)return;
+    wrap.appendChild(el("h3",{style:`font-size:12px;font-weight:500;letter-spacing:.8px;text-transform:uppercase;color:${g.color};margin:1.25rem 0 8px 2px;font-family:'Inter',sans-serif`},`${g.label} (${gV.length})`));
+    gV.forEach(v=>{
       const pct=getPercent(v);
-      const row=div("stat-verse-row",
-        el("div",{style:"flex:1;min-width:0"},p("v-stelle",v.stelle),p("v-text",v.text.length>60?v.text.slice(0,60)+"…":v.text)),
-        el("div",{style:"flex-shrink:0;text-align:right"},el("div",{style:`font-size:15px;font-weight:500;color:${g.color};font-family:'Lora',serif`},`${pct}%`),el("div",{style:"font-size:11px;color:rgba(196,181,253,.35);margin-top:2px"},`${v.attempts} Versuche`))
-      );
-      const bw=el("div",{style:"width:100%;height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:6px;overflow:hidden"});
+      const row=div("stat-verse-row");
+      const left=el("div",{style:"flex:1;min-width:0;"});
+      left.appendChild(el("p",{cls:"v-stelle"},v.stelle));
+      left.appendChild(el("p",{cls:"v-text"},v.text.length>60?v.text.slice(0,60)+"…":v.text));
+      const right=el("div",{style:"flex-shrink:0;text-align:right;"});
+      right.appendChild(el("div",{style:`font-size:15px;font-weight:500;color:${g.color};font-family:'Lora',serif`},`${pct}%`));
+      right.appendChild(el("div",{style:"font-size:11px;color:rgba(196,181,253,.35);margin-top:2px"},v.attempts?`${v.attempts} Versuche`:"Noch nie geübt"));
+      const bw=el("div",{style:"width:100%;height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:6px;overflow:hidden;"});
       bw.appendChild(el("div",{style:`width:${pct}%;height:100%;background:${g.color};border-radius:2px;`}));
-      row.appendChild(bw);wrap.appendChild(row);
+      row.appendChild(left);row.appendChild(right);row.appendChild(bw);
+      wrap.appendChild(row);
     });
   });
-  if(untrained.length){
-    wrap.appendChild(el("h3",{style:"font-size:12px;font-weight:500;letter-spacing:.8px;text-transform:uppercase;color:rgba(196,181,253,.35);margin:1.25rem 0 8px 2px;font-family:'Inter',sans-serif"},"Noch nicht geübt"));
-    untrained.forEach(v=>wrap.appendChild(div("stat-verse-row",el("div",{style:"flex:1;min-width:0"},p("v-stelle",v.stelle),p("v-text",v.text.length>60?v.text.slice(0,60)+"…":v.text)),el("div",{style:"flex-shrink:0;text-align:right"},el("div",{style:"font-size:13px;color:rgba(196,181,253,.3)"},"–")))));
-  }
   return wrap;
 }
 
 // ── Lückentext ───────────────────────────────────────────────────
 function renderLuecke(){
-  const card=S.session[S.idx];
-  if(!card||!S.luecken) return div("");
+  const card=S.session[S.idx];if(!card||!S.luecken) return div("");
   const card2=div("luecke-card",span("stelle-label",card.stelle));
   S.luecken.forEach((tok,i)=>{
     if(!tok.isGap){card2.appendChild(document.createTextNode((i>0?" ":"")+tok.word));return;}
-    if(i>0) card2.appendChild(document.createTextNode(" "));
+    if(i>0)card2.appendChild(document.createTextNode(" "));
     if(tok.state==="correct"){card2.appendChild(span("gap-revealed",tok.word));return;}
     if(tok.state==="wrong"){card2.appendChild(span("gap-wrong",tok.word));return;}
     const inp=el("input",{cls:"gap-input",type:"text",placeholder:"…",style:`width:${Math.max(60,tok.word.length*13)}px`});
-    inp.value=tok.input;inp.oninput=e=>{S.luecken[i].input=e.target.value;};
-    inp.onkeydown=e=>{if(e.key==="Enter")checkLuecken();};
+    inp.value=tok.input;inp.oninput=e=>{S.luecken[i].input=e.target.value;};inp.onkeydown=e=>{if(e.key==="Enter")checkLuecken();};
     card2.appendChild(inp);
   });
   const allDone=S.luecken.filter(t=>t.isGap).every(t=>t.state==="correct"||t.state==="wrong");
@@ -786,79 +451,92 @@ function renderLuecke(){
   const nextB=btn("next-btn",S.idx+1>=S.session.length?"Auswertung →":"Nächster Vers →",async()=>{
     const allOk=S.luecken.filter(t=>t.isGap).every(t=>t.state==="correct");
     const upd=S.verses.map(v=>v.id===card.id?{...v,score:allOk?v.score+1:Math.max(0,v.score-1),attempts:v.attempts+1}:v);
-    await saveVerses(upd);
-    const res=[...S.results,{...card,correct:allOk}];
-    if(S.idx+1>=S.session.length) set({results:res,view:"done"});
-    else set({results:res,idx:S.idx+1,luecken:buildLuecken(S.session[S.idx+1])});
+    await saveVerses(upd);const res=[...S.results,{...card,correct:allOk}];
+    if(S.idx+1>=S.session.length)set({results:res,view:"done"});else set({results:res,idx:S.idx+1,luecken:buildLuecken(S.session[S.idx+1])});
   });
   return el("div",{},progRow(S.idx,S.session.length,()=>set({view:"menu"})),card2,allDone?nextB:checkB);
 }
-function checkLuecken(){
-  const clean=s=>s.trim().toLowerCase().replace(/[.,;:!?„"»«""]/g,"");
-  S.luecken.forEach(tok=>{if(!tok.isGap||tok.state==="correct"||tok.state==="wrong")return;tok.state=clean(tok.input)===clean(tok.word)?"correct":"wrong";});
-  set({luecken:[...S.luecken]});
-}
+function checkLuecken(){const clean=s=>s.trim().toLowerCase().replace(/[.,;:!?„"»«""]/g,"");S.luecken.forEach(tok=>{if(!tok.isGap||tok.state==="correct"||tok.state==="wrong")return;tok.state=clean(tok.input)===clean(tok.word)?"correct":"wrong";});set({luecken:[...S.luecken]});}
 
 // ── Reihenfolge ──────────────────────────────────────────────────
 function renderOrder(){
-  const card=S.session[S.idx];
-  if(!card||!S.order) return div("");
-  const{orig,cur,sel}=S.order;
-  const allOk=cur.every((c,i)=>c===orig[i]);
+  const card=S.session[S.idx];if(!card||!S.order)return div("");
+  const{orig,cur,sel}=S.order;const allOk=cur.every((c,i)=>c===orig[i]);
   const list=div("chunk-list",...cur.map((chunk,i)=>{
-    const isSel=sel===i;
-    const c=div("chunk"+(allOk?" correct-pos":isSel?" selected":""),span("chunk-num",String(i+1)),span("",chunk));
-    if(!allOk) c.onclick=()=>{
-      if(sel===null||sel===undefined){set({order:{...S.order,sel:i}});}
-      else if(sel===i){set({order:{...S.order,sel:null}});}
-      else{const nc=[...cur];[nc[sel],nc[i]]=[nc[i],nc[sel]];set({order:{orig,cur:nc,sel:null}});}
-    };
+    const isSel=sel===i;const c=div("chunk"+(allOk?" correct-pos":isSel?" selected":""),span("chunk-num",String(i+1)),span("",chunk));
+    if(!allOk)c.onclick=()=>{if(sel===null||sel===undefined)set({order:{...S.order,sel:i}});else if(sel===i)set({order:{...S.order,sel:null}});else{const nc=[...cur];[nc[sel],nc[i]]=[nc[i],nc[sel]];set({order:{orig,cur:nc,sel:null}});}};
     return c;
   }));
   let bottom;
-  if(allOk){
-    const nextB=btn("next-btn",S.idx+1>=S.session.length?"Fertig →":"Nächster Vers →",()=>{
-      const res=[...S.results,{...card,correct:true}];
-      if(S.idx+1>=S.session.length) set({results:res,view:"menu"});
-      else set({results:res,idx:S.idx+1,order:buildChunks(S.session[S.idx+1])});
-    });
-    nextB.style.width="100%";
-    bottom=el("div",{},p("order-success","✓ Perfekt! Richtige Reihenfolge!"),nextB);
-  } else bottom=p("","");
+  if(allOk){const nextB=btn("next-btn",S.idx+1>=S.session.length?"Fertig →":"Nächster Vers →",()=>{const res=[...S.results,{...card,correct:true}];if(S.idx+1>=S.session.length)set({results:res,view:"menu"});else set({results:res,idx:S.idx+1,order:buildChunks(S.session[S.idx+1])});});nextB.style.width="100%";bottom=el("div",{},p("order-success","✓ Perfekt! Richtige Reihenfolge!"),nextB);}
+  else bottom=p("","");
   return el("div",{},progRow(S.idx,S.session.length,()=>set({view:"menu"})),p("order-hint",`„${card.stelle}" – Tippe zwei Abschnitte an, um sie zu tauschen`),list,bottom);
 }
 
 // ── Done ─────────────────────────────────────────────────────────
 function renderDone(){
   const ok=S.results.filter(r=>r.correct).length,tot=S.results.length;
-  const emoji=ok>=8?"🌟":ok>=5?"👏":"💪";
-  const title=ok>=8?"Hervorragend!":ok>=5?"Gut gemacht!":"Weiter üben!";
+  const emoji=ok>=8?"🌟":ok>=5?"👏":"💪";const title=ok>=8?"Hervorragend!":ok>=5?"Gut gemacht!":"Weiter üben!";
   const dots=div("rdots",...S.results.map(r=>div("rdot "+(r.correct?"rdot-ok":"rdot-no"),r.correct?"✓":"✗")));
   const list=div("rlist",...S.results.map(r=>div("ritem",el("div",{cls:"ri-marker",style:`background:${r.correct?"#86efac":"#fca5a5"}`}),el("div",{},p("ri-stelle",r.stelle),p("ri-text",r.text.length>80?r.text.slice(0,80)+"…":r.text)))));
-  return el("div",{},
-    div("done-top",span("done-emoji",emoji),el("h2",{cls:"done-title"},title),p("done-sub",`${ok} von ${tot} Versen gewusst`),dots),
-    list,div("btn-row",btn("ghost-btn","Menü",()=>set({view:"menu"})),btn("prim-btn","Neue Runde",()=>set({view:"flash",session:pickTen(S.verses),idx:0,flipped:false,results:[]})))
-  );
+  return el("div",{},div("done-top",span("done-emoji",emoji),el("h2",{cls:"done-title"},title),p("done-sub",`${ok} von ${tot} Versen gewusst`),dots),list,div("btn-row",btn("ghost-btn","Menü",()=>set({view:"menu"})),btn("prim-btn","Neue Runde",()=>set({view:"flash",session:pickTen(S.verses),idx:0,flipped:false,results:[]}))));
 }
 
-// ── Profile ──────────────────────────────────────────────────────
+// ── Bibelbuch-Reihenfolge ─────────────────────────────────────────
+function renderBibelOrder(){
+  const i=S.boBook;const book=BUECHER[i];const vor=BUECHER[i-1];const nach=BUECHER[i+1];
+  const hdr=div("page-header",btn("back-btn","←",()=>set({view:"menu"})),el("h2",{cls:"page-title"},"Bibelbuch-Reihenfolge"));
+  const card=div("bo-card",span("bo-label","Welches Buch kommt davor und danach?"),p("bo-book",book));
+  const wrap=el("div",{},hdr,card);
+  if(S.boChecked){
+    const vorOk=normalize(S.boVor)===normalize(vor);const nachOk=normalize(S.boNach)===normalize(nach);
+    const resBox=el("div",{},
+      el("div",{style:"margin-bottom:12px"},span("f-label","Vorgänger"),el("div",{cls:`bo-input ${vorOk?"correct":"wrong"}`,style:"padding:10px 13px;border-radius:11px;border:1px solid"},S.boVor||"(leer)"),p("bo-hint "+(vorOk?"bo-hint-ok":"bo-hint-no"),vorOk?"✓ Richtig!":"✗ Richtig: "+vor)),
+      el("div",{style:"margin-bottom:16px"},span("f-label","Nachfolger"),el("div",{cls:`bo-input ${nachOk?"correct":"wrong"}`,style:"padding:10px 13px;border-radius:11px;border:1px solid"},S.boNach||"(leer)"),p("bo-hint "+(nachOk?"bo-hint-ok":"bo-hint-no"),nachOk?"✓ Richtig!":"✗ Richtig: "+nach))
+    );
+    const nextB=btn("bo-next","Nächstes Buch →",()=>{let next;do{next=Math.floor(Math.random()*(BUECHER.length-2))+1;}while(next===i);set({boBook:next,boVor:"",boNach:"",boChecked:false});});
+    wrap.append(resBox,nextB);
+  } else {
+    const vorInp=el("input",{cls:"bo-input",type:"text",placeholder:"Vorgänger…"});vorInp.value=S.boVor||"";vorInp.oninput=e=>S.boVor=e.target.value;vorInp.onkeydown=e=>{if(e.key==="Enter")nachInp.focus();};
+    const nachInp=el("input",{cls:"bo-input",type:"text",placeholder:"Nachfolger…"});nachInp.value=S.boNach||"";nachInp.oninput=e=>S.boNach=e.target.value;nachInp.onkeydown=e=>{if(e.key==="Enter")checkB.click();};
+    const checkB=btn("bo-check","Überprüfen ✓",()=>set({boChecked:true}));
+    wrap.append(el("div",{style:"margin-bottom:8px"},span("f-label","Vorgänger"),vorInp),el("div",{style:"margin-bottom:16px"},span("f-label","Nachfolger"),nachInp),checkB);
+    setTimeout(()=>vorInp.focus(),50);
+  }
+  return wrap;
+}
+
+// ── Bücher sortieren ──────────────────────────────────────────────
+function renderBibelSort(){
+  const hdr=div("page-header",btn("back-btn","←",()=>set({view:"menu"})),el("h2",{cls:"page-title"},"Bücher sortieren"));
+  const{bsCorrect,bsCurrent,bsSel,bsChecked}=S;const allOk=bsChecked&&bsCurrent.every((v,i)=>v===bsCorrect[i]);
+  const list=div("bs-books",...bsCurrent.map((bookIdx,pos)=>{
+    let cls="bs-item";if(bsChecked)cls+=bsCurrent[pos]===bsCorrect[pos]?" correct":" wrong";else if(bsSel===pos)cls+=" selected";
+    const item=div(cls,span("bs-pos",String(pos+1)),span("",BUECHER[bookIdx]));
+    if(!bsChecked)item.onclick=()=>{if(bsSel===null||bsSel===undefined)set({bsSel:pos});else if(bsSel===pos)set({bsSel:null});else{const nc=[...bsCurrent];[nc[bsSel],nc[pos]]=[nc[pos],nc[bsSel]];set({bsCurrent:nc,bsSel:null});}};
+    return item;
+  }));
+  const wrap=el("div",{},hdr,el("p",{style:"font-size:13px;color:rgba(196,181,253,.45);text-align:center;margin-bottom:14px;"},"Tippe zwei Bücher an, um sie zu tauschen."),list);
+  if(!bsChecked){wrap.appendChild(btn("bs-check","Reihenfolge überprüfen ✓",()=>set({bsChecked:true})));}
+  else{
+    const res=div("bs-result "+(allOk?"ok":"no"),allOk?"🌟 Perfekt!":"✗ Nicht ganz – richtige Reihenfolge:");
+    wrap.appendChild(res);
+    if(!allOk){const cb=div("bs-correct-order",span("bs-correct-label","Korrekte Reihenfolge"));bsCorrect.forEach((idx,i)=>{cb.appendChild(div("bs-correct-item",span("bs-correct-num",String(i+1)),span("",BUECHER[idx])));});wrap.appendChild(cb);}
+    wrap.appendChild(btn("bo-next","Neue Runde →",()=>initBibelSort()));
+  }
+  return wrap;
+}
+
+// ── Profile ───────────────────────────────────────────────────────
 function renderProfile(){
-  const u=S.user;
-  const mastered=S.verses.filter(v=>v.score>=5).length;
+  const u=S.user;const mastered=S.verses.filter(v=>v.score>=5).length;
   const hdr=div("page-header",btn("back-btn","←",()=>set({view:"menu"})),el("h2",{cls:"page-title"},"Profil bearbeiten"));
-  const hero=div("profile-hero",
-    el("div",{cls:"profile-big-avatar",style:`background:${S.pColor}30;border-color:${S.pColor}60;box-shadow:0 0 32px ${S.pColor}44`},S.pEmoji),
-    p("profile-name",u.name),p("profile-meta",`${S.verses.length} Verse · ${mastered} gemeistert`)
-  );
+  const hero=div("profile-hero",el("div",{cls:"profile-big-avatar",style:`background:${S.pColor}30;border-color:${S.pColor}60;box-shadow:0 0 32px ${S.pColor}44`},S.pEmoji),p("profile-name",u.name),p("profile-meta",`${S.verses.length} Verse · ${mastered} gemeistert`));
   const eRow=div("emoji-row",...EMOJIS.map(em=>btn("emoji-opt"+(S.pEmoji===em?" sel":""),em,()=>set({pEmoji:em}))));
   const cRow=div("color-row",...PALETTE.map(c=>{const d=div("color-opt"+(S.pColor===c?" sel":""));d.style.background=c;d.onclick=()=>set({pColor:c});return d;}));
   const changed=S.pEmoji!==u.emoji||S.pColor!==u.color;
-  const saveApp=btn("save-btn","Aussehen speichern",async()=>{
-    const upd={...u,emoji:S.pEmoji,color:S.pColor};
-    await saveUsers(S.users.map(x=>x.id===u.id?upd:x));
-    S.user=upd;render();
-  });
-  if(!changed) saveApp.disabled=true;
+  const saveApp=btn("save-btn","Aussehen speichern",async()=>{const upd={...u,emoji:S.pEmoji,color:S.pColor};await saveUsers(S.users.map(x=>x.id===u.id?upd:x));S.user=upd;render();});
+  if(!changed)saveApp.disabled=true;
   const pOldI=el("input",{cls:"f-input",type:"password",placeholder:"••••••"});pOldI.value=S.pOld;pOldI.oninput=e=>{S.pOld=e.target.value;S.pErr="";S.pOk=false;};
   const pNewI=el("input",{cls:"f-input",type:"password",placeholder:"Neues Passwort"});pNewI.value=S.pNew;pNewI.oninput=e=>{S.pNew=e.target.value;S.pErr="";S.pOk=false;};
   const pNew2I=el("input",{cls:"f-input",type:"password",placeholder:"Bestätigen",style:"margin-bottom:0"});pNew2I.value=S.pNew2;pNew2I.oninput=e=>{S.pNew2=e.target.value;S.pErr="";S.pOk=false;};
@@ -868,124 +546,69 @@ function renderProfile(){
     if(S.pOld!==u.pw){set({pErr:"Aktuelles Passwort ist falsch.",pOk:false});return;}
     if(S.pNew.length<2){set({pErr:"Neues Passwort zu kurz.",pOk:false});return;}
     if(S.pNew!==S.pNew2){set({pErr:"Passwörter stimmen nicht überein.",pOk:false});return;}
-    const upd={...u,pw:S.pNew};
-    await saveUsers(S.users.map(x=>x.id===u.id?upd:x));
-    S.user=upd;set({pOld:"",pNew:"",pNew2:"",pErr:"",pOk:true});
-  });
-  savePw.style.marginTop="12px";
+    const upd={...u,pw:S.pNew};await saveUsers(S.users.map(x=>x.id===u.id?upd:x));S.user=upd;set({pOld:"",pNew:"",pNew2:"",pErr:"",pOk:true});
+  });savePw.style.marginTop="12px";
   const pwPanel=div("form-panel",el("label",{cls:"f-label"},"Aktuelles Passwort"),pOldI,el("label",{cls:"f-label"},"Neues Passwort"),pNewI,el("label",{cls:"f-label"},"Wiederholen"),pNew2I,pErrEl,pOkEl,savePw);
   let dangerBtns;
-  if(!S.delU) dangerBtns=btn("danger-btn","Profil löschen",()=>set({delU:true}));
-  else dangerBtns=el("div",{style:"display:flex;gap:8px"},
-    btn("danger-btn danger-btn-confirm","Ja, endgültig löschen",async()=>{
-      await saveUsers(S.users.filter(x=>x.id!==u.id));
-      await fbDel("verses",u.id);
-      S.user=null;S.verses=[];S.view="select";S.delU=false;render();
-    }),
-    btn("danger-btn","Abbrechen",()=>set({delU:false}))
-  );
-  return el("div",{},hdr,hero,
-    div("profile-section",p("section-label","Symbol"),eRow,p("section-label","Farbe"),cRow,saveApp),
-    div("profile-section",p("section-label","Passwort ändern"),pwPanel),
-    div("danger-zone",p("danger-title","Gefahrenzone"),p("danger-sub","Profil löschen entfernt alle Verse und den Lernfortschritt unwiderruflich."),dangerBtns)
-  );
+  if(!S.delU)dangerBtns=btn("danger-btn","Profil löschen",()=>set({delU:true}));
+  else dangerBtns=el("div",{style:"display:flex;gap:8px"},btn("danger-btn danger-btn-confirm","Ja, endgültig löschen",async()=>{await saveUsers(S.users.filter(x=>x.id!==u.id));await fbDel("verses",u.id);S.user=null;S.verses=[];S.view="select";S.delU=false;render();}),btn("danger-btn","Abbrechen",()=>set({delU:false})));
+  return el("div",{},hdr,hero,div("profile-section",p("section-label","Symbol"),eRow,p("section-label","Farbe"),cRow,saveApp),div("profile-section",p("section-label","Passwort ändern"),pwPanel),div("danger-zone",p("danger-title","Gefahrenzone"),p("danger-sub","Profil löschen entfernt alle Verse und den Lernfortschritt unwiderruflich."),dangerBtns));
 }
 
-// ── Login Modal ──────────────────────────────────────────────────
+// ── Login Modal ───────────────────────────────────────────────────
 function renderLogin(){
-  const t=S.loginU;
-  const overlay=div("modal-overlay");
-  overlay.onclick=()=>set({modal:null});
-  const modal=div("modal");
-  modal.onclick=e=>e.stopPropagation();
-  const inp=el("input",{cls:"m-input"+(S.pwErr?" err":""),type:"password",placeholder:"••••••"});
+  const t=S.loginU;const overlay=div("modal-overlay");overlay.onclick=()=>set({modal:null});
+  const modal=div("modal");modal.onclick=e=>e.stopPropagation();
+  const form=el("form",{autocomplete:"on"});form.onsubmit=e=>{e.preventDefault();doLogin();};
+  const usrH=el("input",{type:"text",name:"username",autocomplete:"username",style:"display:none"});usrH.value=t.name;
+  const inp=el("input",{cls:"m-input"+(S.pwErr?" err":""),type:"password",name:"password",autocomplete:"current-password",placeholder:"••••••"});
   inp.value=S.pw;inp.oninput=e=>{S.pw=e.target.value;};
-  inp.onkeydown=e=>{if(e.key==="Enter")doLogin();};
-  const errEl=span("err-msg","Falsches Passwort. Nochmal versuchen.");if(!S.pwErr)errEl.style.display="none";
-  modal.append(
-    el("div",{style:"display:flex;align-items:center;gap:12px;margin-bottom:16px"},
-      el("div",{style:`width:46px;height:46px;border-radius:50%;background:${t.color}28;border:2px solid ${t.color}55;display:flex;align-items:center;justify-content:center;font-size:24px`},t.emoji),
-      el("div",{},p("modal-title",t.name),p("modal-sub","Passwort eingeben"))
-    ),
-    el("label",{cls:"m-label"},"Passwort"),inp,errEl,
-    div("modal-btns",btn("m-ghost","Abbrechen",()=>set({modal:null})),btn("m-prim","Anmelden",doLogin))
-  );
-  overlay.appendChild(modal);
-  setTimeout(()=>inp.focus(),50);
-  return overlay;
+  const errEl=span("err-msg","Falsches Passwort.");if(!S.pwErr)errEl.style.display="none";
+  form.append(usrH,el("label",{cls:"m-label"},"Passwort"),inp,errEl,div("modal-btns",btn("m-ghost","Abbrechen",()=>set({modal:null})),el("button",{cls:"m-prim",type:"submit"},"Anmelden")));
+  modal.append(el("div",{style:"display:flex;align-items:center;gap:12px;margin-bottom:16px"},el("div",{style:`width:46px;height:46px;border-radius:50%;background:${t.color}28;border:2px solid ${t.color}55;display:flex;align-items:center;justify-content:center;font-size:24px`},t.emoji),el("div",{},p("modal-title",t.name),p("modal-sub","Passwort eingeben"))),form);
+  overlay.appendChild(modal);setTimeout(()=>inp.focus(),50);return overlay;
 }
 async function doLogin(){
-  const t=S.loginU;
-  const h=await hashPw(S.pw);
-  if(h===t.pw){
-    S.modal=null;render();
-    const vd=await fbGet("verses",t.id);
-    S.verses=vd?(vd.list||[]):[];
-    S.counts={...S.counts,[t.id]:S.verses.length};
-    S.user=t;S.view="menu";render();
-  } else set({pwErr:true});
+  const t=S.loginU;const h=await hashPw(S.pw);
+  if(h===t.pw){S.modal=null;render();const vd=await fbGet("verses",t.id);S.verses=vd?(vd.list||[]):[];S.counts={...S.counts,[t.id]:S.verses.length};S.user=t;S.view="menu";render();}
+  else set({pwErr:true});
 }
 
-// ── New User Modal ───────────────────────────────────────────────
+// ── New User Modal ────────────────────────────────────────────────
 function renderNewUser(){
-  const overlay=div("modal-overlay");
-  overlay.onclick=()=>set({modal:null});
-  const modal=div("modal");
-  modal.onclick=e=>e.stopPropagation();
-  const nI=el("input",{cls:"m-input",placeholder:"Dein Name",type:"text",name:"username",autocomplete:"username"});nI.value=S.nName;nI.oninput=e=>S.nName=e.target.value;
+  const overlay=div("modal-overlay");overlay.onclick=()=>set({modal:null});
+  const modal=div("modal");modal.onclick=e=>e.stopPropagation();
+  const form=el("form",{autocomplete:"on"});form.onsubmit=e=>{e.preventDefault();doCreate();};
+  const nI=el("input",{cls:"m-input",name:"username",autocomplete:"username",placeholder:"Dein Name",type:"text"});nI.value=S.nName;nI.oninput=e=>S.nName=e.target.value;
   const eRow=div("emoji-row",...EMOJIS.map(em=>btn("emoji-opt"+(S.nEmoji===em?" sel":""),em,()=>set({nEmoji:em}))));
   const cRow=div("color-row",...PALETTE.map(c=>{const d=div("color-opt"+(S.nColor===c?" sel":""));d.style.background=c;d.onclick=()=>set({nColor:c});return d;}));
   const p1=el("input",{cls:"m-input",type:"password",name:"new-password",autocomplete:"new-password",placeholder:"Passwort wählen"});p1.value=S.nPw;p1.oninput=e=>S.nPw=e.target.value;
   const p2=el("input",{cls:"m-input",type:"password",name:"new-password-confirm",autocomplete:"new-password",placeholder:"Passwort bestätigen"});p2.value=S.nPw2;p2.oninput=e=>S.nPw2=e.target.value;
   const errEl=span("err-msg",S.nErr);if(!S.nErr)errEl.style.display="none";
-
-  const form=el("form",{autocomplete:"on"});
-  form.onsubmit=e=>{e.preventDefault();doCreate();};
-  form.append(
-    el("label",{cls:"m-label"},"Name"),nI,
-    el("label",{cls:"m-label"},"Symbol"),eRow,
-    el("label",{cls:"m-label"},"Farbe"),cRow,
-    el("label",{cls:"m-label"},"Passwort"),p1,
-    el("label",{cls:"m-label"},"Wiederholen"),p2,errEl,
-    div("modal-btns",
-      btn("m-ghost","Abbrechen",()=>set({modal:null})),
-      el("button",{cls:"m-prim",type:"submit"},"Profil erstellen")
-    )
-  );
+  form.append(el("label",{cls:"m-label"},"Name"),nI,el("label",{cls:"m-label"},"Symbol"),eRow,el("label",{cls:"m-label"},"Farbe"),cRow,el("label",{cls:"m-label"},"Passwort"),p1,el("label",{cls:"m-label"},"Wiederholen"),p2,errEl,div("modal-btns",btn("m-ghost","Abbrechen",()=>set({modal:null})),el("button",{cls:"m-prim",type:"submit"},"Profil erstellen")));
   modal.append(p("modal-title","Neuer Benutzer"),p("modal-sub","Erstelle dein persönliches Profil"),form);
-  overlay.appendChild(modal);
-  return overlay;
+  overlay.appendChild(modal);return overlay;
 }
 async function doCreate(){
   if(!S.nName.trim()){set({nErr:"Bitte einen Namen eingeben."});return;}
   if(S.nPw.length<4){set({nErr:"Passwort muss mindestens 4 Zeichen haben."});return;}
   if(S.nPw!==S.nPw2){set({nErr:"Passwörter stimmen nicht überein."});return;}
   const name=S.nName.trim(),pw=S.nPw,color=S.nColor,emoji=S.nEmoji;
-  const id="u_"+Date.now();
-  const h=await hashPw(pw);
-  const u={id,name,pw:h,color,emoji};
-  await saveUsers([...S.users,u]);
-  await fbSet("verses",id,{list:[]});
-  S.counts={...S.counts,[id]:0};
-  S.verses=[];S.user=u;S.view="menu";S.modal=null;
-  render();
+  const id="u_"+Date.now();const h=await hashPw(pw);const u={id,name,pw:h,color,emoji};
+  await saveUsers([...S.users,u]);await fbSet("verses",id,{list:[]});
+  S.counts={...S.counts,[id]:0};S.verses=[];S.user=u;S.view="menu";S.modal=null;render();
 }
 
-// ── Boot ─────────────────────────────────────────────────────────
+// ── Boot ──────────────────────────────────────────────────────────
 (async()=>{
-  // Sofort rendern mit leerem Zustand – kein Ladescreen
   render();
   try{
     let data=await fbGet("app","users");
     if(!data){await fbSet("app","users",{list:[]});data={list:[]};}
-    const userList=data.list||[];
-    const counts={};
-    for(const u of userList){
-      const vd=await fbGet("verses",u.id);
-      counts[u.id]=(vd?.list||[]).length;
-    }
+    const userList=data.list||[];const counts={};
+    for(const u of userList){const vd=await fbGet("verses",u.id);counts[u.id]=(vd?.list||[]).length;}
     S.users=userList;S.counts=counts;
-  } catch(e){console.error("Boot:",e);}
+  }catch(e){console.error("Boot:",e);}
   render();
 })();
 </script>
