@@ -62,7 +62,10 @@ body{font-family:'Inter',sans-serif;min-height:100vh;background:radial-gradient(
 .menu-bibelsort{background:linear-gradient(135deg,#134e4a,#0f766e 50%,#134e4a);border:1px solid rgba(20,184,166,.3);box-shadow:0 8px 32px rgba(13,148,136,.3);}
 .menu-allbooks{background:linear-gradient(135deg,#1a1a2e,#16213e 50%,#0f3460);border:1px solid rgba(232,197,71,.4);box-shadow:0 8px 32px rgba(232,197,71,.2);}
 .menu-stats{background:linear-gradient(135deg,#3d2e00,#4a3800 50%,#3d2e00);border:1px solid rgba(251,191,36,.55);box-shadow:0 8px 32px rgba(251,191,36,.2);}
-.menu-btn.disabled{opacity:.38;cursor:not-allowed;}
+.section-divider{display:flex;align-items:center;gap:10px;margin:16px 0 8px;padding:0 2px;}
+.section-divider-icon{font-size:16px;}
+.section-divider-label{font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:rgba(196,181,253,.45);}
+.section-divider-line{flex:1;height:1px;background:rgba(196,181,253,.12);}
 .mc-icon{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;background:rgba(255,255,255,.15);}
 .mc-title{font-weight:500;font-size:15px;color:rgba(237,233,254,.95);margin-bottom:2px;}
 .mc-sub{font-size:12px;color:rgba(255,255,255,.55);}
@@ -367,14 +370,18 @@ function renderMenu(){
     el("button",{type:"button",style:"font-size:12px;padding:5px 10px;margin-left:auto;background:linear-gradient(135deg,rgba(139,92,246,.15),rgba(99,102,241,.1));border:1px solid rgba(196,181,253,.2);color:rgba(221,214,254,.8);border-radius:10px;cursor:pointer;",onclick:()=>set({user:null,verses:[],view:"select"})},"Abmelden")
   );
   const mkBtn=(cls,icon,title,sub,action)=>el("button",{cls:`menu-btn ${cls}`,onclick:action,type:"button"},div("mc-icon",icon),el("div",{},p("mc-title",title),p("mc-sub",sub)));
+  const secDiv=(icon,label)=>el("div",{cls:"section-divider"},span("section-divider-icon",icon),span("section-divider-label",label),div("section-divider-line"));
   return el("div",{},hdr,
     mkBtn("menu-edit","📖","Verse verwalten","Hinzufügen, bearbeiten, löschen",()=>set({view:"edit",editId:null,editStelle:"",editText:""})),
-    mkBtn("menu-flash","🎯","Verse Test Karteikarten","Klassischer Flashcard-Modus",()=>set({view:"flash",session:pickTen(S.verses),idx:0,flipped:false,results:[]})),
-    mkBtn("menu-luecke","✏️","Verse Übung Lückentext","Fehlende Wörter ergänzen",()=>{const ses=pickTen(S.verses);set({view:"luecke",session:ses,idx:0,results:[],luecken:buildLuecken(ses[0])});}),
-    mkBtn("menu-order","🔀","Verse Übung Reihenfolge","Versabschnitte sortieren",()=>{const ses=pickTen(S.verses);set({view:"order",session:ses,idx:0,results:[],order:buildChunks(ses[0]),orderChecked:false});}),
-    mkBtn("menu-bibel","📜","Bibelbücher Übung Reihenfolge","Vorgänger und Nachfolger nennen",()=>set({view:"bibelorder",boBook:Math.floor(Math.random()*(BUECHER.length-2))+1,boVor:"",boNach:"",boChecked:false})),
-    mkBtn("menu-bibelsort","🔢","Bibelbücher Übung Ordnen","5 Bücher in die richtige Reihenfolge",()=>initBibelSort()),
-    mkBtn("menu-allbooks","🏆","Bibelbücher Test Reihenfolge","AT oder NT – Buch für Buch eingeben",()=>set({view:"allbooks",abTestament:null,abIdx:0,abInput:"",abFeedback:"",abFeedbackOk:null,abWon:false,abTrophySaved:false})),
+    secDiv("📖","Bibelverse"),
+    mkBtn("menu-flash","🎯","Karteikarten","Klassischer Flashcard-Modus",()=>set({view:"flash",session:pickTen(S.verses),idx:0,flipped:false,results:[]})),
+    mkBtn("menu-luecke","✏️","Lückentext","Fehlende Wörter ergänzen",()=>{const ses=pickTen(S.verses);set({view:"luecke",session:ses,idx:0,results:[],luecken:buildLuecken(ses[0])});}),
+    mkBtn("menu-order","🔀","Vers-Reihenfolge","Versabschnitte sortieren",()=>{const ses=pickTen(S.verses);set({view:"order",session:ses,idx:0,results:[],order:buildChunks(ses[0]),orderChecked:false});}),
+    secDiv("📚","Bibelbücher"),
+    mkBtn("menu-bibel","📜","Vorgänger & Nachfolger","Welches Buch kommt davor und danach?",()=>set({view:"bibelorder",boBook:Math.floor(Math.random()*(BUECHER.length-2))+1,boVor:"",boNach:"",boChecked:false})),
+    mkBtn("menu-bibelsort","🔢","Bücher ordnen","5 Bücher in die richtige Reihenfolge",()=>initBibelSort()),
+    mkBtn("menu-allbooks","🏆","Bücher der Reihe nach","AT oder NT – Buch für Buch eingeben",()=>set({view:"allbooks",abTestament:null,abIdx:0,abInput:"",abFeedback:"",abFeedbackOk:null,abWon:false,abTrophySaved:false})),
+    secDiv("⚙️","Einstellungen"),
     mkBtn("menu-stats","📊","Meine Statistik","Lernfortschritt im Überblick",()=>set({view:"stats"})),
     mkBtn("menu-profile","⚙️","Profil bearbeiten","Symbol, Farbe & Passwort ändern",()=>set({view:"profile",pEmoji:u.emoji,pColor:u.color,pOld:"",pNew:"",pNew2:"",pErr:"",pOk:false,delU:false})),
     div("stats",
