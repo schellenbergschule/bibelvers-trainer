@@ -664,10 +664,12 @@ function renderProfile(){
   const pErrEl=span("err-msg",S.pErr);if(!S.pErr)pErrEl.style.display="none";
   const pOkEl=span("success-msg","Passwort erfolgreich geändert.");if(!S.pOk)pOkEl.style.display="none";
   const savePw=btn("save-btn","Passwort ändern",async()=>{
-    if(S.pOld!==u.pw){set({pErr:"Aktuelles Passwort ist falsch.",pOk:false});return;}
+    const oldHash=await hashPw(S.pOld);
+    if(oldHash!==u.pw){set({pErr:"Aktuelles Passwort ist falsch.",pOk:false});return;}
     if(S.pNew.length<2){set({pErr:"Neues Passwort zu kurz.",pOk:false});return;}
     if(S.pNew!==S.pNew2){set({pErr:"Passwörter stimmen nicht überein.",pOk:false});return;}
-    const upd={...u,pw:S.pNew};await saveUsers(S.users.map(x=>x.id===u.id?upd:x));S.user=upd;set({pOld:"",pNew:"",pNew2:"",pErr:"",pOk:true});
+    const newHash=await hashPw(S.pNew);
+    const upd={...u,pw:newHash};await saveUsers(S.users.map(x=>x.id===u.id?upd:x));S.user=upd;set({pOld:"",pNew:"",pNew2:"",pErr:"",pOk:true});
   });savePw.style.marginTop="12px";
   const pwPanel=div("form-panel",el("label",{cls:"f-label"},"Aktuelles Passwort"),pOldI,el("label",{cls:"f-label"},"Neues Passwort"),pNewI,el("label",{cls:"f-label"},"Wiederholen"),pNew2I,pErrEl,pOkEl,savePw);
   let dangerBtns;
