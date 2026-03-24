@@ -383,7 +383,7 @@ function renderMenu(){
     mkBtn("menu-allbooks","🏆","Bücher der Reihe nach","AT oder NT – Buch für Buch eingeben",()=>set({view:"allbooks",abTestament:null,abIdx:0,abInput:"",abFeedback:"",abFeedbackOk:null,abWon:false,abTrophySaved:false})),
     secDiv("⚙️","Einstellungen"),
     mkBtn("menu-stats","📊","Meine Statistik","Lernfortschritt im Überblick",()=>set({view:"stats"})),
-    mkBtn("menu-profile","⚙️","Profil bearbeiten","Symbol, Farbe & Passwort ändern",()=>set({view:"profile",pEmoji:u.emoji,pColor:u.color,pOld:"",pNew:"",pNew2:"",pErr:"",pOk:false,delU:false})),
+    mkBtn("menu-profile","⚙️","Profil bearbeiten","Symbol, Farbe & Passwort ändern",()=>set({view:"profile",pEmoji:u.emoji,pColor:u.color,pName:u.name,pOld:"",pNew:"",pNew2:"",pErr:"",pOk:false,delU:false})),
     div("stats",
       div("stat",p("stat-n",String(S.verses.length)),p("stat-l","Verse gesamt")),
       div("stat",p("stat-n",String(learning)),p("stat-l","In Übung")),
@@ -404,6 +404,13 @@ function renderEdit(){
     const inpS=el("input",{cls:"f-input",placeholder:"z.B. Johannes 3,16",value:S.editStelle||"",type:"text"});inpS.oninput=e=>S.editStelle=e.target.value;
     const inpT=el("textarea",{cls:"f-input f-textarea",placeholder:"Gib hier den Bibelvers ein…"});inpT.value=S.editText||"";inpT.oninput=e=>S.editText=e.target.value;
     panel.append(el("label",{cls:"f-label"},"Bibelstelle"),inpS,el("label",{cls:"f-label"},"Bibeltext"),inpT);
+    // Speichern-Button immer sichtbar bei manueller Eingabe
+    panel.appendChild(btn("save-btn",S.editId?"Änderungen speichern":"Vers hinzufügen",async()=>{
+      if(!S.editStelle.trim()||!S.editText.trim())return;
+      let upd=S.editId?S.verses.map(v=>v.id===S.editId?{...v,stelle:S.editStelle.trim(),text:S.editText.trim()}:v):[...S.verses,{id:Date.now(),stelle:S.editStelle.trim(),text:S.editText.trim(),added:Date.now(),score:0,attempts:0}];
+      await saveVerses(upd);S.editId=null;S.editStelle="";S.editText="";S.editSrc="manual";S.apiPreview="";render();
+    }));
+    if(S.editId)panel.appendChild(btn("cancel-lnk","Abbrechen",()=>set({editId:null,editStelle:"",editText:"",editSrc:"manual",apiPreview:""})));
   } else {
     const bookSel=el("select",{cls:"f-input"});
     BUECHER.forEach((b,i)=>{const o=el("option",{value:i},b);if(i===(S.editBook||0))o.setAttribute("selected","");bookSel.appendChild(o);});
@@ -442,18 +449,17 @@ function renderEdit(){
       const inpS2=el("input",{cls:"f-input",value:S.editStelle||"",type:"text",style:"margin-top:8px"});inpS2.oninput=e=>S.editStelle=e.target.value;
       const inpT2=el("textarea",{cls:"f-input f-textarea"});inpT2.value=S.editText||"";inpT2.oninput=e=>S.editText=e.target.value;
       panel.append(el("label",{cls:"f-label",style:"margin-top:8px"},"Bibelstelle"),inpS2,el("label",{cls:"f-label"},"Text"),inpT2);
+      // Speichern-Button nach erfolgreichem Laden
+      panel.appendChild(btn("save-btn",S.editId?"Änderungen speichern":"Vers hinzufügen",async()=>{
+        if(!S.editStelle.trim()||!S.editText.trim())return;
+        let upd=S.editId?S.verses.map(v=>v.id===S.editId?{...v,stelle:S.editStelle.trim(),text:S.editText.trim()}:v):[...S.verses,{id:Date.now(),stelle:S.editStelle.trim(),text:S.editText.trim(),added:Date.now(),score:0,attempts:0}];
+        await saveVerses(upd);S.editId=null;S.editStelle="";S.editText="";S.editSrc="manual";S.apiPreview="";render();
+      }));
+      if(S.editId)panel.appendChild(btn("cancel-lnk","Abbrechen",()=>set({editId:null,editStelle:"",editText:"",editSrc:"manual",apiPreview:""})));
     } else if(S.apiPreview==="notexist"){
       panel.appendChild(el("p",{style:"color:#fcd34d;font-size:13px;margin-top:6px;padding:10px;border-radius:10px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);"},"📖 Dieser Vers existiert nicht."));
     }
   }
-  const saveB=btn("save-btn",S.editId?"Änderungen speichern":"Vers hinzufügen",async()=>{
-    if(!S.editStelle.trim()||!S.editText.trim())return;
-    let upd=S.editId?S.verses.map(v=>v.id===S.editId?{...v,stelle:S.editStelle.trim(),text:S.editText.trim()}:v):[...S.verses,{id:Date.now(),stelle:S.editStelle.trim(),text:S.editText.trim(),added:Date.now(),score:0,attempts:0}];
-    await saveVerses(upd);S.editId=null;S.editStelle="";S.editText="";S.editSrc="manual";S.apiPreview="";render();
-  });
-  const canSave=!!(S.editStelle.trim()&&S.editText.trim());
-  if(canSave)panel.appendChild(saveB);
-  if(S.editId)panel.appendChild(btn("cancel-lnk","Abbrechen",()=>set({editId:null,editStelle:"",editText:"",editSrc:"manual",apiPreview:""})));
   const list=div("vlist");
   if(!S.verses.length)list.appendChild(div("empty","Noch keine Verse – füge deinen ersten hinzu!"));
   [...S.verses].reverse().forEach(v=>{
@@ -659,11 +665,17 @@ function doCheckAB(books){
 function renderProfile(){
   const u=S.user;const mastered=S.verses.filter(v=>v.score>=5).length;
   const hdr=div("page-header",btn("back-btn","←",()=>set({view:"menu"})),el("h2",{cls:"page-title"},"Profil bearbeiten"));
-  const hero=div("profile-hero",el("div",{cls:"profile-big-avatar",style:`background:${S.pColor}30;border-color:${S.pColor}60;box-shadow:0 0 32px ${S.pColor}44`},S.pEmoji),p("profile-name",u.name),p("profile-meta",`${S.verses.length} Verse · ${mastered} gemeistert`));
+  const hero=div("profile-hero",el("div",{cls:"profile-big-avatar",style:`background:${S.pColor}30;border-color:${S.pColor}60;box-shadow:0 0 32px ${S.pColor}44`},S.pEmoji),p("profile-name",S.pName||u.name),p("profile-meta",`${S.verses.length} Verse · ${mastered} gemeistert`));
+  const nameInp=el("input",{cls:"f-input",type:"text",placeholder:"Benutzername",value:S.pName||u.name,style:"margin-bottom:10px;"});
+  nameInp.oninput=e=>set({pName:e.target.value});
   const eRow=div("emoji-row",...EMOJIS.map(em=>btn("emoji-opt"+(S.pEmoji===em?" sel":""),em,()=>set({pEmoji:em}))));
   const cRow=div("color-row",...PALETTE.map(c=>{const d=div("color-opt"+(S.pColor===c?" sel":""));d.style.background=c;d.onclick=()=>set({pColor:c});return d;}));
-  const changed=S.pEmoji!==u.emoji||S.pColor!==u.color;
-  const saveApp=btn("save-btn","Aussehen speichern",async()=>{const upd={...u,emoji:S.pEmoji,color:S.pColor};await saveUsers(S.users.map(x=>x.id===u.id?upd:x));S.user=upd;render();});
+  const changed=S.pEmoji!==u.emoji||S.pColor!==u.color||(S.pName&&S.pName!==u.name);
+  const saveApp=btn("save-btn","Aussehen speichern",async()=>{
+    const newName=(S.pName||u.name).trim()||u.name;
+    const upd={...u,emoji:S.pEmoji,color:S.pColor,name:newName};
+    await saveUsers(S.users.map(x=>x.id===u.id?upd:x));S.user=upd;S.counts={...S.counts};render();
+  });
   if(!changed)saveApp.disabled=true;
   const pOldI=el("input",{cls:"f-input",type:"password",placeholder:"••••••"});pOldI.value=S.pOld;pOldI.oninput=e=>{S.pOld=e.target.value;S.pErr="";S.pOk=false;};
   const pNewI=el("input",{cls:"f-input",type:"password",placeholder:"Neues Passwort"});pNewI.value=S.pNew;pNewI.oninput=e=>{S.pNew=e.target.value;S.pErr="";S.pOk=false;};
