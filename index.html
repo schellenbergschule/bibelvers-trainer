@@ -104,10 +104,38 @@ body{font-family:'Inter',sans-serif;min-height:100vh;background:radial-gradient(
 .prog-track{flex:1;height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;}
 .prog-fill{height:100%;background:linear-gradient(90deg,#a78bfa,#818cf8,#6d28d9);border-radius:2px;transition:width .4s ease;}
 .prog-lbl{font-size:12px;color:rgba(196,181,253,.4);white-space:nowrap;}
-.card-area{height:260px;perspective:1200px;margin-bottom:14px;cursor:pointer;user-select:none;}
+
+
+.card-area{
+  height:var(--card-h,260px);
+  perspective:1200px;
+  margin-bottom:14px;
+  cursor:pointer;
+  user-select:none;
+  transition:height .25s ease;
+}
+
+
 .flip-inner{width:100%;height:100%;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.4,0,.2,1);position:relative;}
 .flip-inner.flipped{transform:rotateY(180deg);}
-.f-face{position:absolute;width:100%;height:100%;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;overflow:hidden;}
+
+.f-face{
+  position:absolute;
+  width:100%;
+  min-height:100%;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  border-radius:22px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:2rem;
+  overflow:visible;
+}
+
+
 .f-front{background:linear-gradient(145deg,#4c1d95,#3730a3 40%,#1e1b4b 80%,#1a0533);border:1px solid rgba(196,181,253,.3);box-shadow:0 16px 48px rgba(79,70,229,.45),inset 0 1px 0 rgba(255,255,255,.12);}
 .f-back{background:linear-gradient(145deg,rgba(255,255,255,.09),rgba(139,92,246,.08) 50%,rgba(255,255,255,.05));border:1px solid rgba(196,181,253,.2);transform:rotateY(180deg);}
 .card-eyebrow,.back-eyebrow{font-size:10px;letter-spacing:2px;font-weight:500;color:rgba(196,181,253,.45);text-transform:uppercase;margin-bottom:14px;z-index:1;}
@@ -252,6 +280,99 @@ body{font-family:'Inter',sans-serif;min-height:100vh;background:radial-gradient(
 .vs-go{width:100%;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#b45309,#d97706);color:white;font-size:14px;font-weight:500;cursor:pointer;margin-bottom:8px;}
 .vs-cancel{width:100%;padding:9px;border-radius:11px;background:rgba(255,255,255,.06);border:1px solid rgba(196,181,253,.15);color:rgba(196,181,253,.6);font-size:13px;cursor:pointer;}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+.stats-pie-panel{
+  padding:16px;
+  margin-bottom:18px;
+  border-radius:18px;
+  background:linear-gradient(135deg,rgba(255,255,255,.05),rgba(139,92,246,.06));
+  border:1px solid rgba(196,181,253,.12);
+}
+
+.stats-pie-title{
+  font-size:13px;
+  font-weight:500;
+  color:rgba(237,233,254,.9);
+  margin-bottom:12px;
+  text-align:center;
+}
+
+.pie-wrap{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:18px;
+  flex-wrap:wrap;
+}
+
+.pie-chart{
+  width:150px;
+  height:150px;
+  border-radius:50%;
+  position:relative;
+  box-shadow:0 8px 28px rgba(0,0,0,.25);
+}
+
+.pie-chart::after{
+  content:"";
+  position:absolute;
+  inset:34px;
+  border-radius:50%;
+  background:#17122f;
+  border:1px solid rgba(196,181,253,.12);
+}
+
+.pie-center-text{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  z-index:1;
+  pointer-events:none;
+}
+
+.pie-center-number{
+  font-family:'Lora',serif;
+  font-size:24px;
+  color:#ede9fe;
+}
+
+.pie-center-label{
+  font-size:10px;
+  color:rgba(196,181,253,.45);
+}
+
+.pie-legend{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  min-width:150px;
+}
+
+.pie-legend-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:12px;
+  color:rgba(196,181,253,.7);
+}
+
+.pie-legend-dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  flex-shrink:0;
+}
+
+.pie-legend-value{
+  margin-left:auto;
+  color:rgba(237,233,254,.9);
+  font-weight:500;
+}
+
+
 </style>
 </head>
 <body>
@@ -295,8 +416,36 @@ function getWeight(v){const d=(Date.now()-v.added)/86400000;const nb=d<2?4:d<7?2
 function pickTen(verses){if(!verses.length)return[];const w=verses.map(getWeight),tot=w.reduce((a,b)=>a+b,0);const chosen=[],used=new Set(),cnt=Math.min(10,verses.length);let t=0;while(chosen.length<cnt&&t<500){t++;let r=Math.random()*tot;for(let i=0;i<verses.length;i++){r-=w[i];if(r<=0&&!used.has(i)){used.add(i);chosen.push({...verses[i]});break;}}}return chosen.sort(()=>Math.random()-.5);}
 function addHistory(v,ok){const h=[...(v.history||[]),ok];return h.slice(-10);}
 function getPct(v){const h=v.history||[];if(!h.length)return null;return Math.round(h.filter(Boolean).length/h.length*100);}
-function gapCount(s){return s<=1?1:s<=3?2:3;}
-function buildLuecken(v){const w=v.text.split(" ");const n=gapCount(v.score||0);const idx=new Set();while(idx.size<Math.min(n,w.length))idx.add(Math.floor(Math.random()*w.length));return w.map((x,i)=>({word:x,isGap:idx.has(i),input:"",state:"idle"}));}
+function getPctLast5(v){
+  const h=(v.history||[]).slice(-5);
+  if(!h.length)return null;
+  return Math.round(h.filter(Boolean).length/h.length*100);
+}
+
+
+function gapCount(words){
+  return Math.max(1, Math.round(words.length * 0.2));
+}
+
+function buildLuecken(v){
+  const w=v.text.trim().split(/\s+/);
+  const n=gapCount(w);
+
+  const idx=new Set();
+
+  while(idx.size<Math.min(n,w.length)){
+    idx.add(Math.floor(Math.random()*w.length));
+  }
+
+  return w.map((x,i)=>({
+    word:x,
+    isGap:idx.has(i),
+    input:"",
+    state:"idle"
+  }));
+}
+
+
 function buildChunks(v){const w=v.text.trim().split(/\s+/);const sz=w.length<=6?2:w.length<=12?3:4;const orig=[];for(let i=0;i<w.length;i+=sz)orig.push(w.slice(i,i+sz).join(" "));const cur=[...orig];for(let i=cur.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[cur[i],cur[j]]=[cur[j],cur[i]];}if(cur.every((c,i)=>c===orig[i])&&orig.length>1)[cur[0],cur[1]]=[cur[1],cur[0]];return{orig,cur,sel:null};}
 function initBibelSort(){const idx=[];while(idx.length<5){const r=Math.floor(Math.random()*BUECHER.length);if(!idx.includes(r))idx.push(r);}const correct=[...idx].sort((a,b)=>a-b);let sh=[...idx].sort(()=>Math.random()-.5);if(sh.every((v,i)=>v===correct[i]))sh=sh.reverse();set({view:"bibelsort",bsCorrect:correct,bsCurrent:sh,bsSel:null,bsChecked:false});}
 
@@ -322,10 +471,26 @@ const span=(cls,txt)=>el("span",{cls},txt);
 function scoreDots(score){return div("dots",...[0,1,2,3,4].map(i=>{const d=div("dot");d.style.background=i<score?"#a78bfa":"rgba(255,255,255,.1)";return d;}));}
 function progRow(idx,total,back){return div("prog-row",btn("back-btn","←",back),el("div",{cls:"prog-track"},el("div",{cls:"prog-fill",style:`width:${(idx/total)*100}%`})),span("prog-lbl",`${idx+1} / ${total}`));}
 
-const S={users:[],counts:{},user:null,verses:[],view:"select",session:[],idx:0,flipped:false,results:[],luecken:null,order:null,orderChecked:false,editId:null,editStelle:"",editText:"",editSrc:"manual",editBook:0,editChap:1,editVers:1,editVerseCount:null,apiLoading:false,apiPreview:"",delV:null,delU:false,modal:null,loginU:null,pw:"",pwErr:false,nName:"",nPw:"",nPw2:"",nEmoji:"✝",nColor:PALETTE[0],nErr:"",pEmoji:"",pColor:"",pName:"",pOld:"",pNew:"",pNew2:"",pErr:"",pOk:false,boBook:1,boVor:"",boNach:"",boChecked:false,bsCorrect:[],bsCurrent:[],bsSel:null,bsChecked:false,abTestament:null,abIdx:0,abInput:"",abFeedback:"",abFeedbackOk:null,abWon:false,abTrophySaved:false,vsMode:"flash",vsFilterPct:""};
+const S={users:[],counts:{},user:null,verses:[],view:"select",session:[],idx:0,flipped:false,results:[],luecken:null,order:null,orderChecked:false,editId:null,editStelle:"",editText:"",editSrc:"manual",editBook:0,editChap:1,editVers:1,editVerseCount:null,apiLoading:false,apiPreview:"",delV:null,delU:false,modal:null,loginU:null,pw:"",pwErr:false,nName:"",nPw:"",nPw2:"",nEmoji:"✝",nColor:PALETTE[0],nErr:"",pEmoji:"",pColor:"",pName:"",pOld:"",pNew:"",pNew2:"",pErr:"",pOk:false,boBook:1,boVor:"",boNach:"",boChecked:false,bsCorrect:[],bsCurrent:[],bsSel:null,bsChecked:false,abTestament:null,abIdx:0,abInput:"",abFeedback:"",abFeedbackOk:null,abWon:false,abTrophySaved:false,
+
+
+vsMode:"flash",
+vsFilterPct:"",
+vsCustomOpen:false,
+vsCustomIds:[]
+
+
+};
 function set(patch){Object.assign(S,patch);render();}
 async function saveUsers(list){S.users=list;await fbSet("app","users",{list});}
 async function saveVerses(list){S.verses=list;S.counts={...S.counts,[S.user.id]:list.length};await fbSet("verses",S.user.id,{list});render();}
+
+async function saveLastVerseSelection(ids){
+  if(!S.user)return;
+  const upd={...S.user,lastVerseSelectionIds:ids};
+  S.user=upd;
+  await saveUsers(S.users.map(u=>u.id===upd.id?upd:u));
+}
 
 function startMode(mode,verses){
   set({modal:null});
@@ -353,38 +518,152 @@ function render(){
   else if(S.view==="profile"){try{root.appendChild(renderProfile());}catch(e){const d=document.createElement("div");d.style.cssText="color:#fca5a5;padding:2rem;font-size:13px;font-family:monospace;white-space:pre-wrap;";d.textContent="FEHLER: "+e.message+"\n"+e.stack;root.appendChild(d);}}
 }
 
+
 function renderVerseSelect(){
   const overlay=el("div",{cls:"vs-overlay"});
-  overlay.onclick=()=>set({modal:null});
+  overlay.onclick=()=>set({modal:null,vsCustomOpen:false});
+
   const box=el("div",{cls:"vs-box"});
   box.onclick=e=>e.stopPropagation();
+
   const titles={flash:"Karteikarten",luecke:"Lückentext",order:"Vers-Reihenfolge"};
+
   box.appendChild(el("p",{cls:"vs-title"},titles[S.vsMode]||"Üben"));
+
+  // Eigene Auswahl Detailansicht
+  if(S.vsCustomOpen){
+    box.appendChild(el("p",{cls:"vs-sub"},"Wähle genau die Verse aus, die du üben möchtest."));
+
+    const selectedIds=new Set(S.vsCustomIds||[]);
+    const list=el("div",{style:"max-height:340px;overflow:auto;margin-bottom:14px;padding-right:4px;"});
+
+    if(!S.verses.length){
+      list.appendChild(div("empty","Noch keine Verse vorhanden."));
+    }
+
+    S.verses.forEach(v=>{
+      const checked=selectedIds.has(v.id);
+      const row=el("button",{
+        type:"button",
+        style:`
+          width:100%;
+          padding:11px 12px;
+          border-radius:12px;
+          margin-bottom:7px;
+          text-align:left;
+          cursor:pointer;
+          display:flex;
+          gap:10px;
+          align-items:flex-start;
+          background:${checked?"rgba(139,92,246,.18)":"rgba(255,255,255,.05)"};
+          border:1px solid ${checked?"rgba(167,139,250,.55)":"rgba(196,181,253,.12)"};
+          color:#ede9fe;
+        `
+      });
+
+      row.onclick=()=>{
+        const ids=new Set(S.vsCustomIds||[]);
+        if(ids.has(v.id))ids.delete(v.id);
+        else ids.add(v.id);
+        set({vsCustomIds:[...ids]});
+      };
+
+      row.appendChild(el("span",{style:"font-size:16px;color:#c4b5fd;line-height:1.2;"},checked?"☑":"☐"));
+
+      row.appendChild(el("div",{},
+        el("div",{style:"font-size:13px;font-weight:500;color:#c4b5fd;margin-bottom:3px;"},v.stelle),
+        el("div",{style:"font-size:12px;color:rgba(196,181,253,.55);line-height:1.4;"},v.text.length>80?v.text.slice(0,80)+"…":v.text)
+      ));
+
+      list.appendChild(row);
+    });
+
+    const selectedVerses=S.verses.filter(v=>(S.vsCustomIds||[]).includes(v.id));
+
+    const start=btn("vs-go",`Auswahl starten (${selectedVerses.length})`,async()=>{
+      if(!selectedVerses.length)return;
+      await saveLastVerseSelection(S.vsCustomIds||[]);
+      startMode(S.vsMode,selectedVerses);
+    });
+
+    if(!selectedVerses.length){
+      start.style.opacity=".4";
+      start.style.cursor="not-allowed";
+    }
+
+    box.appendChild(list);
+    box.appendChild(start);
+    box.appendChild(btn("vs-cancel","Zurück",()=>set({vsCustomOpen:false})));
+
+    overlay.appendChild(box);
+    return overlay;
+  }
+
+  // Hauptauswahl
   box.appendChild(el("p",{cls:"vs-sub"},"Welche Verse möchtest du üben?"));
 
+  const mustLearn=S.verses.filter(v=>(v.history||[]).slice(-5).includes(false));
+
   const options=[
-    {icon:"📖",title:"Alle Verse",sub:`${S.verses.length} Verse`,filter:null,color:"rgba(139,92,246,.2)",border:"rgba(196,181,253,.25)"},
-    {icon:"🔄",title:"Noch nicht sicher",sub:"Verse unter 60% – weiter festigen",filter:v=>(getPct(v)??0)<60,color:"rgba(251,191,36,.12)",border:"rgba(251,191,36,.3)"},
-    {icon:"🎯",title:"Muss ich noch lernen",sub:"Verse unter 30% – dringend üben",filter:v=>(getPct(v)??0)<30,color:"rgba(239,68,68,.1)",border:"rgba(252,165,165,.3)"},
+    {
+      icon:"📖",
+      title:"Alle Verse",
+      sub:`${S.verses.length} Verse`,
+      verses:S.verses,
+      color:"rgba(139,92,246,.2)",
+      border:"rgba(196,181,253,.25)",
+      action:()=>startMode(S.vsMode,S.verses)
+    },
+    {
+      icon:"☑️",
+      title:"Eigene Auswahl treffen",
+      sub:`${(S.vsCustomIds||[]).filter(id=>S.verses.some(v=>v.id===id)).length} zuletzt ausgewählt`,
+      verses:S.verses,
+      color:"rgba(56,189,248,.12)",
+      border:"rgba(56,189,248,.3)",
+      action:()=>set({vsCustomOpen:true})
+    },
+    {
+      icon:"🎯",
+      title:"Muss ich noch lernen",
+      sub:"Mind. 1× Nicht gewusst in den letzten 5 Karteikarten-Versuchen",
+      verses:mustLearn,
+      color:"rgba(239,68,68,.1)",
+      border:"rgba(252,165,165,.3)",
+      action:()=>startMode(S.vsMode,mustLearn)
+    }
   ];
 
   options.forEach(o=>{
-    const verses=o.filter?S.verses.filter(o.filter):S.verses;
-    const cnt=verses.length;
-    const b=el("button",{cls:"vs-option",type:"button",style:`background:linear-gradient(135deg,${o.color},transparent);border:1px solid ${o.border};${cnt===0?"opacity:.4;cursor:not-allowed;":""}`});
+    const cnt=o.verses.length;
+
+    const b=el("button",{
+      cls:"vs-option",
+      type:"button",
+      style:`background:linear-gradient(135deg,${o.color},transparent);border:1px solid ${o.border};${cnt===0&&o.title!=="Eigene Auswahl treffen"?"opacity:.4;cursor:not-allowed;":""}`
+    });
+
     b.appendChild(span("vs-opt-icon",o.icon));
+
     const txt=el("div",{});
     txt.appendChild(el("div",{cls:"vs-opt-title"},o.title));
-    txt.appendChild(el("div",{cls:"vs-opt-sub"},cnt>0?`${cnt} Vers${cnt===1?"":"e"} · ${o.sub}`:o.sub+" (keine vorhanden)"));
+    txt.appendChild(el("div",{cls:"vs-opt-sub"},o.title==="Eigene Auswahl treffen"?o.sub:`${cnt} Vers${cnt===1?"":"e"} · ${o.sub}`));
+
     b.appendChild(txt);
-    if(cnt>0)b.onclick=()=>startMode(S.vsMode,verses);
+
+    if(cnt>0 || o.title==="Eigene Auswahl treffen")b.onclick=o.action;
+
     box.appendChild(b);
   });
 
-  box.appendChild(btn("vs-cancel","Abbrechen",()=>set({modal:null})));
+  box.appendChild(btn("vs-cancel","Abbrechen",()=>set({modal:null,vsCustomOpen:false})));
+
   overlay.appendChild(box);
   return overlay;
 }
+
+
+
 
 function renderSelect(){
   const grid=div("user-grid",...S.users.map(u=>{const c=div("user-card",el("div",{cls:"user-avatar",style:`background:${u.color}28;border-color:${u.color}55`},u.emoji),p("user-name",u.name),p("user-count",`${S.counts[u.id]??0} Verse`));c.onclick=()=>set({modal:"login",loginU:u,pw:"",pwErr:false});return c;}));
@@ -407,10 +686,9 @@ function renderMenu(){
   return el("div",{},hdr,
     mkBtn("menu-edit","📖","Verse verwalten","Hinzufügen, bearbeiten, löschen",()=>set({view:"edit",editId:null,editStelle:"",editText:""})),
     secDiv("📖","Bibelverse"),
-    mkBtn("menu-flash","🎯","Karteikarten","Klassischer Flashcard-Modus",()=>set({modal:"verseselect",vsMode:"flash",vsFilterPct:""})),
-    mkBtn("menu-luecke","✏️","Lückentext","Fehlende Wörter ergänzen",()=>set({modal:"verseselect",vsMode:"luecke",vsFilterPct:""})),
-    mkBtn("menu-order","🔀","Vers-Reihenfolge","Versabschnitte sortieren",()=>set({modal:"verseselect",vsMode:"order",vsFilterPct:""})),
-    secDiv("📚","Bibelbücher"),
+mkBtn("menu-flash","🎯","Karteikarten","Klassischer Flashcard-Modus",()=>set({modal:"verseselect",vsMode:"flash",vsCustomOpen:false})),
+mkBtn("menu-luecke","✏️","Lückentext","Fehlende Wörter ergänzen",()=>set({modal:"verseselect",vsMode:"luecke",vsCustomOpen:false})),
+mkBtn("menu-order","🔀","Vers-Reihenfolge","Versabschnitte sortieren",()=>set({modal:"verseselect",vsMode:"order",vsCustomOpen:false})),    secDiv("📚","Bibelbücher"),
     mkBtn("menu-bibel","📜","Vorgänger & Nachfolger","Welches Buch kommt davor und danach?",()=>set({view:"bibelorder",boBook:Math.floor(Math.random()*(BUECHER.length-2))+1,boVor:"",boNach:"",boChecked:false})),
     mkBtn("menu-bibelsort","🔢","Bücher ordnen","5 Bücher in die richtige Reihenfolge",()=>initBibelSort()),
     mkBtn("menu-allbooks","🏆","Bücher der Reihe nach","AT oder NT – Buch für Buch eingeben",()=>set({view:"allbooks",abTestament:null,abIdx:0,abInput:"",abFeedback:"",abFeedbackOk:null,abWon:false,abTrophySaved:false})),
@@ -486,8 +764,28 @@ function renderEdit(){
 function renderFlash(){
   const card=S.session[S.idx];if(!card)return renderDone();
   const inner=div("flip-inner"+(S.flipped?" flipped":""),div("f-face f-front",span("card-eyebrow","Bibelstelle"),p("card-stelle",card.stelle),span("tap-hint","👆 Antippen zum Aufdecken")),div("f-face f-back",span("back-eyebrow",card.stelle),p("back-verse",`„${card.text}"`)));
-  const area=div("card-area",inner);area.onclick=()=>{if(!S.flipped)set({flipped:true});};
-  const ans=div("ans-row",
+ 
+
+const area = div("card-area", inner);
+
+requestAnimationFrame(() => {
+  const front = area.querySelector(".f-front");
+  const back = area.querySelector(".f-back");
+
+  const frontH = front.scrollHeight;
+  const backH = back.scrollHeight;
+
+  const cardH = Math.max(260, frontH, backH) + 24;
+
+  area.style.setProperty("--card-h", cardH + "px");
+});
+
+area.onclick = () => {
+  if (!S.flipped) set({flipped:true});
+};
+
+
+ const ans=div("ans-row",
     btn("ans-btn ans-no","✗ Nicht gewusst",async()=>{const upd=S.verses.map(v=>v.id===card.id?{...v,score:Math.max(0,v.score-1),attempts:v.attempts+1,history:addHistory(v,false)}:v);await saveVerses(upd);const res=[...S.results,{...card,correct:false}];if(S.idx+1>=S.session.length)set({results:res,view:"done"});else set({results:res,idx:S.idx+1,flipped:false});}),
     btn("ans-btn ans-yes","✓ Gewusst",async()=>{const upd=S.verses.map(v=>v.id===card.id?{...v,score:v.score+1,attempts:v.attempts+1,history:addHistory(v,true)}:v);await saveVerses(upd);const res=[...S.results,{...card,correct:true}];if(S.idx+1>=S.session.length)set({results:res,view:"done"});else set({results:res,idx:S.idx+1,flipped:false});})
   );
@@ -495,10 +793,94 @@ function renderFlash(){
   return el("div",{},progRow(S.idx,S.session.length,()=>set({view:"menu"})),area,ans);
 }
 
+
+function renderStatsPie(){
+  const total=S.verses.length;
+
+  const cats=[
+    {
+      label:"Noch zu üben",
+      color:"#fca5a5",
+      count:S.verses.filter(v=>{
+        const pp=getPctLast5(v);
+        return pp===null || pp<60;
+      }).length
+    },
+    {
+      label:"Auf gutem Weg",
+      color:"#fcd34d",
+      count:S.verses.filter(v=>{
+        const pp=getPctLast5(v);
+        return pp!==null && pp>=60 && pp<90;
+      }).length
+    },
+    {
+      label:"Kann ich auswendig",
+      color:"#86efac",
+      count:S.verses.filter(v=>{
+        const pp=getPctLast5(v);
+        return pp!==null && pp>=90;
+      }).length
+    }
+  ];
+
+  let start=0;
+
+  const gradientParts=cats.map(c=>{
+    const end=start+(c.count/total*100);
+    const part=`${c.color} ${start}% ${end}%`;
+    start=end;
+    return part;
+  }).join(",");
+
+  const panel=div("stats-pie-panel");
+  panel.appendChild(p("stats-pie-title","Verteilung deiner gespeicherten Verse"));
+
+  const pie=div("pie-chart");
+  pie.style.background=`conic-gradient(${gradientParts})`;
+
+  pie.appendChild(
+    div("pie-center-text",
+      span("pie-center-number",String(total)),
+      span("pie-center-label","Verse")
+    )
+  );
+
+  const legend=div("pie-legend");
+
+  cats.forEach(c=>{
+    const pct=total?Math.round(c.count/total*100):0;
+
+    const dot=span("pie-legend-dot","");
+    dot.style.background=c.color;
+
+    legend.appendChild(
+      div("pie-legend-row",
+        dot,
+        span("",c.label),
+        span("pie-legend-value",`${c.count} · ${pct}%`)
+      )
+    );
+  });
+
+  panel.appendChild(
+    div("pie-wrap",
+      pie,
+      legend
+    )
+  );
+
+  return panel;
+}
+
 function renderStats(){
   const hdr=div("page-header",btn("back-btn","←",()=>set({view:"menu"})),el("h2",{cls:"page-title"},"Meine Statistik"));
   const wrap=el("div",{},hdr);
-  wrap.appendChild(el("p",{style:"font-size:12px;color:rgba(196,181,253,.35);margin-bottom:1rem;text-align:center;font-style:italic"},"Basiert auf den letzten 10 Karteikarten-Versuchen pro Vers"));
+  wrap.appendChild(el("p",{style:"font-size:12px;color:rgba(196,181,253,.35);margin-bottom:1rem;text-align:center;font-style:italic"},"Basiert auf den letzten 5 Karteikarten-Versuchen pro Vers"));
+if(S.verses.length){
+  wrap.appendChild(renderStatsPie());
+}
+
   const tAT=S.user?S.user.trophiesAT||0:0,tNT=S.user?S.user.trophiesNT||0:0;
   const tSec=div("trophy-section");
   tSec.appendChild(el("p",{cls:"trophy-title"},"🏆 Pokale – Bücher der Reihe nach"));
@@ -510,15 +892,44 @@ function renderStats(){
   ntRow.appendChild(tNT>0?div("trophy-row",...Array(Math.min(tNT,20)).fill("").map(()=>el("span",{},"🏆"))):el("p",{cls:"trophy-count"},"Noch kein Pokal"));
   tSec.append(atRow,ntRow);wrap.appendChild(tSec);
   if(!S.verses.length){wrap.appendChild(div("empty","Noch keine Verse vorhanden."));return wrap;}
-  const groups=[{label:"Noch zu üben",color:"#fca5a5",filter:v=>(getPct(v)??0)<60},{label:"Auf gutem Weg",color:"#fcd34d",filter:v=>{const pp=getPct(v);return pp!==null&&pp>=60&&pp<90;}},{label:"Kann ich auswendig",color:"#86efac",filter:v=>(getPct(v)??-1)>=90}];
+
+const groups=[
+  {
+    label:"Noch zu üben",
+    color:"#fca5a5",
+    filter:v=>{
+      const pp=getPctLast5(v);
+      return pp===null || pp<60;
+    }
+  },
+  {
+    label:"Auf gutem Weg",
+    color:"#fcd34d",
+    filter:v=>{
+      const pp=getPctLast5(v);
+      return pp!==null && pp>=60 && pp<90;
+    }
+  },
+  {
+    label:"Kann ich auswendig",
+    color:"#86efac",
+    filter:v=>{
+      const pp=getPctLast5(v);
+      return pp!==null && pp>=90;
+    }
+  }
+];
+
+
+
   groups.forEach(g=>{
     const gV=S.verses.filter(g.filter);if(!gV.length)return;
     wrap.appendChild(el("h3",{style:`font-size:12px;font-weight:500;letter-spacing:.8px;text-transform:uppercase;color:${g.color};margin:1.25rem 0 8px 2px;font-family:'Inter',sans-serif`},`${g.label} (${gV.length})`));
     gV.forEach(v=>{
-      const pp=getPct(v)??0;const row=div("stat-verse-row");
+      const pp=getPctLast5(v)??0;const row=div("stat-verse-row");
       const left=el("div",{style:"flex:1;min-width:0;"});
       left.appendChild(el("p",{cls:"v-stelle"},v.stelle));left.appendChild(el("p",{cls:"v-text"},v.text.length>60?v.text.slice(0,60)+"…":v.text));
-      const hist=v.history||[];
+      const hist=(v.history||[]).slice(-5);
       if(hist.length){
         const dotsW=el("div",{style:"display:flex;gap:3px;margin-top:5px;flex-wrap:wrap;"});
         hist.forEach(ok=>{const d=document.createElement("div");d.style.cssText=`width:8px;height:8px;border-radius:50%;background:${ok?"#86efac":"#fca5a5"};flex-shrink:0;`;dotsW.appendChild(d);});
@@ -710,9 +1121,24 @@ function renderLogin(){
   overlay.appendChild(modal);setTimeout(()=>inp.focus(),50);return overlay;
 }
 async function doLogin(){
-  const t=S.loginU;const h=await hashPw(S.pw);
-  if(h===t.pw){S.modal=null;render();const vd=await fbGet("verses",t.id);S.verses=vd?(vd.list||[]):[];S.counts={...S.counts,[t.id]:S.verses.length};S.user=t;S.view="menu";render();}
-  else set({pwErr:true});
+  const t=S.loginU;
+  const h=await hashPw(S.pw);
+
+  if(h===t.pw){
+    S.modal=null;
+    render();
+
+    const vd=await fbGet("verses",t.id);
+    S.verses=vd?(vd.list||[]):[];
+    S.counts={...S.counts,[t.id]:S.verses.length};
+    S.user=t;
+    S.vsCustomIds=t.lastVerseSelectionIds || [];
+    S.view="menu";
+
+    render();
+  } else {
+    set({pwErr:true});
+  }
 }
 
 function renderNewUser(){
