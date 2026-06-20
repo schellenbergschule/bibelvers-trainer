@@ -537,15 +537,15 @@ vsCustomIds:[]
 function set(patch){Object.assign(S,patch);render();}
 async function saveUsers(list){S.users=list;await fbSet("app","users",{list});}
 async function saveVerses(list){S.verses=list;S.counts={...S.counts,[S.user.id]:list.length};await fbSet("verses",S.user.id,{list});render();}
-async function loadUserCloud(uid){return await fbGet("user_data",uid)||{};}
-async function saveUserCloudPatch(uid,patch){if(!uid||!patch)return;await fbMerge("user_data",uid,patch);}
+async function loadProfileCloud(uid){return await fbGet("user_profiles",uid)||{};}
+async function saveProfileCloudPatch(uid,patch){if(!uid||!patch)return;await fbMerge("user_profiles",uid,patch);}
 
 async function saveLastVerseSelection(ids){
   if(!S.user)return;
   const upd={...S.user,lastVerseSelectionIds:ids};
   S.user=upd;
   await saveUsers(S.users.map(u=>u.id===upd.id?upd:u));
-  await saveUserCloudPatch(upd.id,{lastVerseSelectionIds:ids});
+  await saveProfileCloudPatch(upd.id,{lastVerseSelectionIds:ids});
 }
 
 function startMode(mode,verses){
@@ -1189,7 +1189,7 @@ async function doLogin(){
     render();
 
     const vd=await fbGet("verses",t.id);
-    const cloud=await loadUserCloud(t.id);
+    const cloud=await loadProfileCloud(t.id);
     const mergedUser={...t,...cloud};
     S.verses=vd?(vd.list||[]):[];
     S.counts={...S.counts,[t.id]:S.verses.length};
@@ -1197,22 +1197,6 @@ async function doLogin(){
     S.users=S.users.map(u=>u.id===mergedUser.id?mergedUser:u);
     S.vsCustomIds=mergedUser.lastVerseSelectionIds || [];
     S.view="menu";
-
-    // Bestehende profilbezogene Daten in separaten Cloud-Speicher zurückschreiben.
-    saveUserCloudPatch(mergedUser.id,{
-      quizHighscores:Array.isArray(mergedUser.quizHighscores)?mergedUser.quizHighscores:[],
-      quizQuestions:Array.isArray(mergedUser.quizQuestions)?mergedUser.quizQuestions:[],
-      lastVerseSelectionIds:Array.isArray(mergedUser.lastVerseSelectionIds)?mergedUser.lastVerseSelectionIds:[],
-      trophiesAT:mergedUser.trophiesAT||0,
-      trophiesNT:mergedUser.trophiesNT||0,
-      journeyWinsAT:mergedUser.journeyWinsAT||0,
-      journeyWinsNT:mergedUser.journeyWinsNT||0,
-      journeyWinsALL:mergedUser.journeyWinsALL||0,
-      templeWinsAT:mergedUser.templeWinsAT||0,
-      templeWinsNT:mergedUser.templeWinsNT||0,
-      templeWinsALL:mergedUser.templeWinsALL||0,
-      bookFillHighscores:Array.isArray(mergedUser.bookFillHighscores)?mergedUser.bookFillHighscores:[]
-    });
 
     render();
   } else {
@@ -1240,7 +1224,7 @@ async function doCreate(){
   if(S.nPw!==S.nPw2){set({nErr:"Passwörter stimmen nicht überein."});return;}
   const name=S.nName.trim(),pw=S.nPw,color=S.nColor,emoji=S.nEmoji;
   const id="u_"+Date.now();const h=await hashPw(pw);const u={id,name,pw:h,color,emoji};
-  await saveUsers([...S.users,u]);await fbSet("verses",id,{list:[]});await fbMerge("user_data",id,{quizHighscores:[],quizQuestions:[],lastVerseSelectionIds:[]});
+  await saveUsers([...S.users,u]);await fbSet("verses",id,{list:[]});await fbMerge("user_profiles",id,{quizHighscores:[],quizQuestions:[],lastVerseSelectionIds:[]});
   S.counts={...S.counts,[id]:0};S.verses=[];S.user=u;S.view="menu";S.activeTab='books';S.modal=null;render();showToast(`Profil ${name} ist bereit!`,'stats',"Let's go",1500);
 }
 
@@ -1287,7 +1271,7 @@ const css=`
 `;
 const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
 const ensure=()=>{S.activeTab=S.activeTab||'books';S.journeyClaimed=S.journeyClaimed||[];S.bfStreak=S.bfStreak||1;S.bfInput=S.bfInput||'';S.bfMsg=S.bfMsg||'';S.bfMsgOk=S.bfMsgOk??null;['journeyStep','journeyDouble','journeyJoker','journeySkip','journeyHint','journeyTurbo','journeyShield','templeStones','bfScore','bfCorrect'].forEach(k=>S[k]=S[k]||0);};ensure();
-function saveUserPatch(p){if(!S.user)return;const upd={...S.user,...p};S.user=upd;const users=S.users.map(u=>u.id===upd.id?upd:u);S.users=users;saveUsers(users);saveUserCloudPatch(upd.id,p);}
+function saveUserPatch(p){if(!S.user)return;const upd={...S.user,...p};S.user=upd;const users=S.users.map(u=>u.id===upd.id?upd:u);S.users=users;saveUsers(users);saveProfileCloudPatch(upd.id,p);}
 function incUser(k){saveUserPatch({[k]:(S.user&&S.user[k]||0)+1});}
 function scopeKey(prefix,scope){return prefix+(scope==='AT'?'AT':scope==='NT'?'NT':'ALL');}
 function scopeLabel(s){return s==='AT'?'AT':s==='NT'?'NT':'AT & NT';}
@@ -1369,13 +1353,15 @@ const QUIZ_ACCENT = {
 };
 const prevEnsure = typeof ensure==='function' ? ensure : null;
 const QUIZ_STORE_PREFIX='bvt_quiz_';
+async function loadQuizCloudState(uid){ const cloud = await loadProfileCloud(uid); if(!S.user || S.user.id!==uid) return cloud; if(Array.isArray(cloud.quizHighscores)) { S.quizHighscoresLocal=[...cloud.quizHighscores]; S.user={...S.user,quizHighscores:[...cloud.quizHighscores]}; } if(Array.isArray(cloud.quizQuestions) && cloud.quizQuestions.length){ S.quizQuestions=[...cloud.quizQuestions]; S.user={...S.user,quizQuestions:[...cloud.quizQuestions]}; } return cloud; }
+function ensureQuizCloudHydrated(){ const uid=S.user?.id; if(!uid || S.quizCloudLoading || S.quizCloudHydratedFor===uid) return; S.quizCloudLoading=true; loadQuizCloudState(uid).then(()=>{ S.quizCloudHydratedFor=uid; S.quizCloudLoading=false; render(); }).catch(()=>{ S.quizCloudLoading=false; }); }
 function quizStoreKey(type){ return S.user?.id ? `${QUIZ_STORE_PREFIX}${S.user.id}_${type}` : null; }
 function quizReadLocal(type){ try{ const k=quizStoreKey(type); if(!k) return null; const raw=localStorage.getItem(k); return raw?JSON.parse(raw):null; }catch{return null;} }
 function quizWriteLocal(type,val){ try{ const k=quizStoreKey(type); if(!k) return; localStorage.setItem(k,JSON.stringify(val)); }catch{} }
 function mergeScoreLists(a,b){ return [...(Array.isArray(a)?a:[]), ...(Array.isArray(b)?b:[])].filter(Boolean).sort((x,y)=>(y.score||0)-(x.score||0) || String(y.date||'').localeCompare(String(x.date||''))).reduce((acc,it)=>{ const key=`${it.score||0}|${it.date||''}|${it.seconds||0}`; if(!acc.some(z=>`${z.score||0}|${z.date||''}|${z.seconds||0}`===key)) acc.push(it); return acc; },[]).slice(0,5); }
 function hydrateQuizHighscores(){ const local=quizReadLocal('highscores'); const cloud=Array.isArray(S.user?.quizHighscores)?S.user.quizHighscores:[]; const merged=mergeScoreLists(local,cloud); if(merged.length) quizWriteLocal('highscores',merged); return merged; }
 function quizSeedBank(){ const localQuestions=quizReadLocal('questions'); const existing=Array.isArray(S.user?.quizQuestions) && S.user.quizQuestions.length ? S.user.quizQuestions : null; const custom=Array.isArray(S.user?.quizCustomQuestions) ? S.user.quizCustomQuestions : []; const baseBank=existing ? existing.map((x,i)=>({id:x.id||('qq_old_'+(i+1)),q:x.q||x.question||'',a:x.a||x.answer||''})) : [...QUIZ_RAW.map((qa,i)=>({id:'bq_'+(i+1),q:qa[0],a:qa[1]})), ...custom.map((q,i)=>({id:q.id||('qc_old_'+(i+1)),q:q.q||q.question||'',a:q.a||q.answer||''}))]; if(Array.isArray(localQuestions) && localQuestions.length){ const merged=[...baseBank]; localQuestions.forEach(item=>{ const idx=merged.findIndex(x=>x.id===item.id); if(idx>=0) merged[idx]=item; else merged.push(item); }); return merged; } return baseBank; }
-ensure = function(){ if(prevEnsure) prevEnsure(); const uid=S.user?.id||null; if(S.quizOwnerId!==uid){ S.quizOwnerId=uid; S.quizQuestions=quizSeedBank(); S.quizHighscoresLocal=hydrateQuizHighscores(); S.quizDraftQ=''; S.quizDraftA=''; S.quizDraftErr=''; S.quizEditId=null; } else { if(!Array.isArray(S.quizQuestions)) S.quizQuestions=quizSeedBank(); if(!Array.isArray(S.quizHighscoresLocal)) S.quizHighscoresLocal=hydrateQuizHighscores(); } S.quizPhase=S.quizPhase||'idle'; S.quizScore=Number(S.quizScore||0); S.quizTimeLeft=Number(S.quizTimeLeft||QUIZ_TOTAL); S.quizQueue=Array.isArray(S.quizQueue)?S.quizQueue:[]; S.quizIdx=Number(S.quizIdx||0); S.quizShowAnswer=!!S.quizShowAnswer; S.quizTimerId=S.quizTimerId||null; S.quizSaved=!!S.quizSaved; };
+ensure = function(){ if(prevEnsure) prevEnsure(); const uid=S.user?.id||null; if(S.quizOwnerId!==uid){ S.quizOwnerId=uid; S.quizQuestions=quizSeedBank(); S.quizHighscoresLocal=hydrateQuizHighscores(); S.quizDraftQ=''; S.quizDraftA=''; S.quizDraftErr=''; S.quizEditId=null; S.quizCloudHydratedFor=null; S.quizCloudLoading=false; } else { if(!Array.isArray(S.quizQuestions)) S.quizQuestions=quizSeedBank(); if(!Array.isArray(S.quizHighscoresLocal)) S.quizHighscoresLocal=hydrateQuizHighscores(); } if(uid) ensureQuizCloudHydrated(); S.quizPhase=S.quizPhase||'idle'; S.quizScore=Number(S.quizScore||0); S.quizTimeLeft=Number(S.quizTimeLeft||QUIZ_TOTAL); S.quizQueue=Array.isArray(S.quizQueue)?S.quizQueue:[]; S.quizIdx=Number(S.quizIdx||0); S.quizShowAnswer=!!S.quizShowAnswer; S.quizTimerId=S.quizTimerId||null; S.quizSaved=!!S.quizSaved; };
 ensure();
 function quizShuffle(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 function quizAllQuestions(){ ensure(); return (S.quizQuestions||[]).filter(x=>(x.q||'').trim() && (x.a||'').trim()); }
@@ -1383,22 +1369,22 @@ function quizHighscores(){ ensure(); return Array.isArray(S.quizHighscoresLocal)
 function mergeQuizScores(base,extra){ return mergeScoreLists(base,extra); }
 function quizProjectedScores(){ const base=quizHighscores(); if(S.quizPhase==='ended' && (S.quizScore||0)>0 && !S.quizSaved){ const probe={date:new Date().toISOString(),score:S.quizScore||0,totalQuestions:(S.quizQueue||[]).length||0,seconds:QUIZ_TOTAL}; return mergeQuizScores(base,[probe]); } return base; }
 function quizBestScore(){ return quizProjectedScores()[0]?.score || 0; }
-function saveQuizQuestionBank(){ const bank=[...(S.quizQuestions||[])]; quizWriteLocal('questions',bank); saveUserPatch({quizQuestions:bank}); saveUserCloudPatch(S.user?.id,{quizQuestions:bank}); }
+function saveQuizQuestionBank(){ const bank=[...(S.quizQuestions||[])]; quizWriteLocal('questions',bank); saveUserPatch({quizQuestions:bank}); saveProfileCloudPatch(S.user?.id,{quizQuestions:bank}); }
 function clearQuizTimer(){ if(S.quizTimerId){ clearInterval(S.quizTimerId); S.quizTimerId=null; } }
 function quizCurrent(){ return (S.quizQueue||[])[S.quizIdx] || null; }
 function finishQuiz(){ clearQuizTimer(); S.quizPhase='ended'; render(); saveQuizScore().then(()=>render()); }
 function startQuizGame(){ const all=quizAllQuestions(); if(!all.length){ showToast('Noch keine Wissensfragen vorhanden.','error','Wissen leer',2200); return; } clearQuizTimer(); S.quizQueue=quizShuffle(all); S.quizIdx=0; S.quizScore=0; S.quizTimeLeft=QUIZ_TOTAL; S.quizShowAnswer=false; S.quizPhase='playing'; S.quizSaved=false; S.view='quiz'; S.activeTab='quiz'; S.quizTimerId=setInterval(()=>{ if(S.view!=='quiz' || S.quizPhase!=='playing'){ clearQuizTimer(); return; } S.quizTimeLeft=Math.max(0,(S.quizTimeLeft||0)-1); if(S.quizTimeLeft<=0){ finishQuiz(); return; } render(); },1000); render(); }
 function exitQuizToTab(){ clearQuizTimer(); set({view:'menu',activeTab:'quiz',quizPhase:'idle',quizShowAnswer:false}); }
 function quizNext(correct){ if(correct) S.quizScore=(S.quizScore||0)+1; S.quizShowAnswer=false; if((S.quizIdx||0)+1 >= (S.quizQueue||[]).length) S.quizQueue=quizShuffle(quizAllQuestions()); S.quizIdx=((S.quizIdx||0)+1) % Math.max(1,(S.quizQueue||[]).length||1); render(); }
-async function saveQuizScore(){ ensure(); if(!S.user || S.quizSaved) return; S.quizSaved=true; const entry={date:new Date().toISOString(),score:S.quizScore||0,totalQuestions:(S.quizQueue||[]).length||0,seconds:QUIZ_TOTAL}; const merged=mergeQuizScores(quizHighscores(),[entry]); S.quizHighscoresLocal=[...merged]; quizWriteLocal('highscores',merged); saveUserPatch({quizHighscores:merged}); await saveUserCloudPatch(S.user.id,{quizHighscores:merged}); }
+async function saveQuizScore(){ ensure(); if(!S.user || S.quizSaved) return; S.quizSaved=true; const entry={date:new Date().toISOString(),score:S.quizScore||0,totalQuestions:(S.quizQueue||[]).length||0,seconds:QUIZ_TOTAL}; const merged=mergeQuizScores(quizHighscores(),[entry]); S.quizHighscoresLocal=[...merged]; quizWriteLocal('highscores',merged); saveUserPatch({quizHighscores:merged}); await saveProfileCloudPatch(S.user.id,{quizHighscores:merged}); const fresh=await loadProfileCloud(S.user.id); if(Array.isArray(fresh.quizHighscores)){ S.quizHighscoresLocal=[...fresh.quizHighscores]; S.user={...S.user,quizHighscores:[...fresh.quizHighscores]}; } }
 function quizLoadEdit(item){ set({quizEditId:item.id, quizDraftQ:item.q||'', quizDraftA:item.a||'', quizDraftErr:''}); }
 function quizDelete(id){ S.quizQuestions=(S.quizQuestions||[]).filter(q=>q.id!==id); saveQuizQuestionBank(); if(S.quizEditId===id){ S.quizEditId=null; S.quizDraftQ=''; S.quizDraftA=''; S.quizDraftErr=''; } showToast('Wissensfrage gelöscht.','success','Entfernt',1300); render(); }
-function renderQuizHighscorePanel(){ const scores=quizProjectedScores(); const panel=div('quiz-stat-panel'); panel.appendChild(p('quiz-stat-title','Deine besten 5 Resultate')); if(!scores.length){ panel.appendChild(div('empty','Noch kein Wissenstest gespielt.')); return panel; } scores.forEach((s,i)=>panel.appendChild(div('quiz-score-row',span('quiz-score-rank','#'+(i+1)),el('div',{style:'flex:1'},el('div',{style:'font-size:13px;font-weight:600;color:#fdf2f8'},`${s.score} Punkt${s.score===1?'':'e'}`),el('div',{style:'font-size:11px;color:rgba(251,207,232,.58);margin-top:2px;'},typeof fmtDate==='function'?fmtDate(s.date):String(s.date||''))),span('quiz-score-value',String(s.score))))); return panel; }
+function renderQuizHighscorePanel(){ ensureQuizCloudHydrated(); const scores=quizProjectedScores(); const panel=div('quiz-stat-panel'); panel.appendChild(p('quiz-stat-title','Deine besten 5 Resultate')); if(!scores.length){ panel.appendChild(div('empty',S.quizCloudLoading?'Lade Wissen-Resultate aus Firebase…':'Noch kein Wissenstest gespielt.')); return panel; } scores.forEach((s,i)=>panel.appendChild(div('quiz-score-row',span('quiz-score-rank','#'+(i+1)),el('div',{style:'flex:1'},el('div',{style:'font-size:13px;font-weight:600;color:#fdf2f8'},`${s.score} Punkt${s.score===1?'':'e'}`),el('div',{style:'font-size:11px;color:rgba(251,207,232,.58);margin-top:2px;'},typeof fmtDate==='function'?fmtDate(s.date):String(s.date||''))),span('quiz-score-value',String(s.score))))); return panel; }
 function renderQuizManageView(){ const hdr=div('page-header',btn('back-btn','←',()=>set({view:'menu',activeTab:'quiz'})),el('h2',{cls:'page-title'},'Wissensfragen verwalten')); const wrap=el('div',{},hdr,tabTitle('','Wissensfragen verwalten','Alle Wissensfragen können bearbeitet oder gelöscht werden. Zusätzliche Fragen kannst du hier ebenfalls erfassen.')); const panel=div('form-panel quiz-manage-panel'); panel.appendChild(el('label',{cls:'f-label'},'Frage')); const qInp=el('textarea',{cls:'f-input f-textarea',placeholder:'Frage eingeben…'}); qInp.value=S.quizDraftQ||''; qInp.oninput=e=>S.quizDraftQ=e.target.value; panel.appendChild(qInp); panel.appendChild(el('label',{cls:'f-label'},'Antwort')); const aInp=el('textarea',{cls:'f-input f-textarea',placeholder:'Antwort eingeben…',style:'min-height:70px;'}); aInp.value=S.quizDraftA||''; aInp.oninput=e=>S.quizDraftA=e.target.value; panel.appendChild(aInp); if(S.quizDraftErr) panel.appendChild(span('err-msg',S.quizDraftErr)); const primary=btn('save-btn quiz-save-btn',S.quizEditId?'Änderungen speichern':'Wissensfrage speichern',()=>{ const q=(S.quizDraftQ||'').trim(), a=(S.quizDraftA||'').trim(); if(!q || !a) return set({quizDraftErr:'Bitte Frage und Antwort eingeben.'}); if(S.quizEditId) S.quizQuestions=(S.quizQuestions||[]).map(item=>item.id===S.quizEditId?{...item,q,a}:item); else S.quizQuestions=[...(S.quizQuestions||[]),{id:'qq_'+Date.now(),q,a}]; saveQuizQuestionBank(); const savedEdit=!!S.quizEditId; S.quizEditId=null; S.quizDraftQ=''; S.quizDraftA=''; S.quizDraftErr=''; showToast(savedEdit?'Wissensfrage aktualisiert.':'Wissensfrage gespeichert.','success',savedEdit?'Aktualisiert':'Gesichert',1400); render(); }); panel.appendChild(primary); if(S.quizEditId) panel.appendChild(btn('cancel-lnk','Abbrechen',()=>set({quizEditId:null,quizDraftQ:'',quizDraftA:'',quizDraftErr:''}))); wrap.appendChild(panel); const list=div('vlist'); const all=quizAllQuestions(); if(!all.length) list.appendChild(div('empty','Keine Fragen vorhanden.')); all.forEach(item=>{ const editBtn=btn('ibtn ibtn-e','✏️',()=>quizLoadEdit(item)); const delBtn=btn('ibtn ibtn-d','🗑',()=>quizDelete(item.id)); list.appendChild(div('vitem',el('div',{style:'flex:1'},p('v-stelle',item.q),p('v-text',item.a),div('v-meta',span('',`ID: ${item.id}`))),el('div',{style:'display:flex;gap:5px;flex-shrink:0'},editBtn,delBtn))); }); wrap.appendChild(list); return wrap; }
 function renderQuizPlayView(){ ensure(); const current=quizCurrent(); if(!current) return renderQuizTab(); const hdr=div('page-header',btn('back-btn','←',()=>exitQuizToTab()),el('h2',{cls:'page-title'},'Bibel-Wissen')); const wrap=el('div',{},hdr,tabTitle('','Bibel-Wissen','Teste dich selbst. Wie viele Fragen kannst du in 60 Sekunden korrekt beantworten?')); if(S.quizPhase==='ended'){ const score=S.quizScore||0, emoji=score>=20?'🏆':score>=10?'🌟':'📖', title=score>=20?'Starke Runde!':score>=10?'Gut gemacht!':'Zeit abgelaufen!'; const replay=btn('prim-btn quiz-start-btn','Nochmal spielen',()=>startQuizGame()); wrap.appendChild(el('div',{cls:'quiz-result-panel'},el('div',{cls:'quiz-result-emoji'},emoji),el('h2',{cls:'quiz-result-title'},title),p('quiz-result-sub',`Du hast ${score} Frage${score!==1?'n':''} richtig beantwortet.`),el('div',{cls:'quiz-final-score'},p('quiz-final-label','Dein Score'),p('quiz-final-number',String(score)),p('quiz-final-note',score>=20?'Exzellent — du bist ein Bibelexperte! 🎉':score>=10?'Richtig stark — weiter so! 💪':'Sauber gespielt!')),renderQuizHighscorePanel(),div('btn-row',btn('ghost-btn','Zurück',()=>exitQuizToTab()),replay))); return wrap; } const pct=((S.quizTimeLeft||0)/QUIZ_TOTAL)*100, timerColor=(S.quizTimeLeft||0)>20?'#22c55e':(S.quizTimeLeft||0)>10?'#f59e0b':'#ef4444'; const progress=el('div',{style:'display:flex;align-items:center;gap:16px;margin-bottom:18px;'},el('div',{style:'flex:1;background:#1e1630;border-radius:99px;height:12px;overflow:hidden;border:1px solid rgba(244,114,182,.14);'},el('div',{style:`width:${pct}%;height:100%;background:${timerColor};transition:width 1s linear, background .3s;border-radius:99px;`})),el('div',{style:`color:${timerColor};font-weight:800;font-size:1.3rem;min-width:42px;text-align:right;transition:color .3s;`},`${S.quizTimeLeft||0}s`),el('div',{cls:'quiz-score-badge'},`⭐ ${S.quizScore||0}`)); const card=el('div',{cls:'quiz-question-card'},el('p',{cls:'quiz-question-meta'},`Frage ${(S.quizIdx||0)+1} von ${(S.quizQueue||[]).length}`),el('p',{cls:'quiz-question-title'},current.q)); if(S.quizShowAnswer) card.appendChild(el('div',{cls:'quiz-answer-card'},el('p',{cls:'quiz-answer-kicker'},'Antwort'),el('p',{cls:'quiz-answer-text'},current.a))); wrap.append(progress,card); if(!S.quizShowAnswer) wrap.appendChild(btn('ghost-btn quiz-reveal-btn','👁️ Antwort anzeigen',()=>set({quizShowAnswer:true}))); else wrap.appendChild(div('btn-row',btn('quiz-correct-btn','✅ Korrekt',()=>quizNext(true)),btn('quiz-wrong-btn','❌ Falsch',()=>quizNext(false)))); return wrap; }
 function renderQuizTab(){ ensure(); const all=quizAllQuestions(), best=quizBestScore(); const mk=(c,i,t,s,a)=>el('button',{cls:`menu-btn ${c}`,onclick:a,type:'button'},div('mc-icon',i),el('div',{},p('mc-title',t),p('mc-sub',s))); return el('div',{},tabTitle('','Wissen','Teste dich selbst. Wie viele Fragen kannst du in 60 Sekunden korrekt beantworten?'),div('quick-stats',div('quick-stat',p('quick-stat-n',String(all.length)),p('quick-stat-l','Fragen gesamt')),div('quick-stat',p('quick-stat-n',String(best)),p('quick-stat-l','Bester Score')),div('quick-stat',p('quick-stat-n',String(quizProjectedScores().length)),p('quick-stat-l','Top-Resultate'))),mk('quiz-manage','✏️','Wissensfragen verwalten','Fragen bearbeiten, löschen oder ergänzen',()=>set({view:'quizmanage',activeTab:'quiz'})),mk('quiz-start','💡','Quiz starten','Teste dich selbst. Wie viele Fragen kannst du in 60 Sekunden korrekt beantworten?',()=>startQuizGame()),renderQuizHighscorePanel()); }
 renderTabNav = function(){ const tabs=[{id:'books',icon:'📚',label:'Bücher'},{id:'verse',icon:'📖',label:'Verse'},{id:'quiz',icon:'💡',label:'Wissen'},{id:'stats',icon:'📊',label:'Statistik'},{id:'profile',icon:'⚙️',label:'Profil'}]; const nav=el('div',{cls:'tab-nav quiz-tab-nav'},...tabs.map(t=>{const b=el('button',{cls:'tab-btn'+((S.activeTab||'books')===t.id?' active':''),type:'button'},span('tab-icon',t.icon),span('tab-label',t.label)); b.onclick=()=>set({activeTab:t.id,view:'menu'}); return b;})); nav.style.gridTemplateColumns='repeat(5,1fr)'; nav.style.width='min(540px,calc(100vw - 20px))'; return nav; };
-renderStats = (function(oldRenderStats){ return function(){ const wrap=oldRenderStats(); ensure(); const sec=div('stat-section',p('stat-section-title','💡 Wissen – beste 5 Resultate')); const scores=quizProjectedScores(); if(!scores.length) sec.appendChild(div('bestbox','Noch kein Wissenstest gespielt.')); else scores.forEach((s,i)=>sec.appendChild(div('quiz-stat-line',span('quiz-stat-rank','#'+(i+1)),el('div',{style:'flex:1'},el('div',{style:'font-size:13px;color:#fde7f3;font-weight:600'},`${s.score} Punkt${s.score===1?'':'e'}`),el('div',{style:'font-size:11px;color:rgba(251,207,232,.56);margin-top:2px;'},typeof fmtDate==='function'?fmtDate(s.date):String(s.date||''))),span('quiz-stat-score',String(s.score))))); const sections=[...wrap.querySelectorAll('.stat-section')]; const verseSec=sections.find(section=>section.textContent && section.textContent.includes('Vers-Lernstand')); if(verseSec) wrap.insertBefore(sec, verseSec); else wrap.appendChild(sec); return wrap; }; })(renderStats);
+renderStats = (function(oldRenderStats){ return function(){ const wrap=oldRenderStats(); ensure(); ensureQuizCloudHydrated(); const sec=div('stat-section',p('stat-section-title','💡 Wissen – beste 5 Resultate')); const scores=quizProjectedScores(); if(!scores.length) sec.appendChild(div('bestbox',S.quizCloudLoading?'Lade Wissen-Resultate aus Firebase…':'Noch kein Wissenstest gespielt.')); else scores.forEach((s,i)=>sec.appendChild(div('quiz-stat-line',span('quiz-stat-rank','#'+(i+1)),el('div',{style:'flex:1'},el('div',{style:'font-size:13px;color:#fde7f3;font-weight:600'},`${s.score} Punkt${s.score===1?'':'e'}`),el('div',{style:'font-size:11px;color:rgba(251,207,232,.56);margin-top:2px;'},typeof fmtDate==='function'?fmtDate(s.date):String(s.date||''))),span('quiz-stat-score',String(s.score))))); const sections=[...wrap.querySelectorAll('.stat-section')]; const verseSec=sections.find(section=>section.textContent && section.textContent.includes('Vers-Lernstand')); if(verseSec) wrap.insertBefore(sec, verseSec); else wrap.appendChild(sec); return wrap; }; })(renderStats);
 renderStatsTab = function(){ const w=renderStats(); if(w.firstChild) w.removeChild(w.firstChild); w.insertBefore(tabTitle('Meine Statistik','Meine Statistik','Mein Lernen - meine Erfolge!'), w.firstChild||null); return w; };
 renderMenu = function(){ ensure(); const u=S.user, active=S.activeTab||'books'; const hdr=div('page-header',el('div',{style:`width:42px;height:42px;border-radius:50%;background:${u.color}28;border:1.5px solid ${u.color}55;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0`},u.emoji),el('div',{},el('p',{style:'font-size:15px;font-weight:500;color:rgba(237,233,254,.92);margin-bottom:1px'},`Hallo, ${u.name}!`)),el('button',{type:'button',style:'font-size:12px;padding:5px 10px;margin-left:auto;background:linear-gradient(135deg,rgba(139,92,246,.15),rgba(99,102,241,.1));border:1px solid rgba(196,181,253,.2);color:rgba(221,214,254,.8);border-radius:10px;cursor:pointer;',onclick:()=>set({user:null,verses:[],view:'select',activeTab:'books'})},'Abmelden')); const content=active==='books'?renderBooksTab():active==='quiz'?renderQuizTab():active==='stats'?renderStatsTab():active==='profile'?renderProfileTab():renderVerseTab(); return el('div',{cls:'tab-shell'},hdr,div('tab-content',content),renderTabNav()); };
 render = function(){ ensure(); const root=document.getElementById('app'); root.innerHTML=''; if(S.modal==='login') root.appendChild(renderLogin()); if(S.modal==='new') root.appendChild(renderNewUser()); if(S.modal==='verseselect') root.appendChild(renderVerseSelect()); if(S.view==='select') root.appendChild(renderSelect()); else if(S.view==='menu') root.appendChild(renderMenu()); else if(S.view==='edit') root.appendChild(renderEdit()); else if(S.view==='flash') root.appendChild(renderFlash()); else if(S.view==='done') root.appendChild(renderDone()); else if(S.view==='luecke') root.appendChild(renderLuecke()); else if(S.view==='order') root.appendChild(renderOrder()); else if(S.view==='bibelorder') root.appendChild(renderBibelOrder()); else if(S.view==='bibelsort') root.appendChild(renderBibelSort()); else if(S.view==='bookfill') root.appendChild(renderBookFill()); else if(S.view==='allbooks') root.appendChild(renderAllBooks()); else if(S.view==='quiz') root.appendChild(renderQuizPlayView()); else if(S.view==='quizmanage') root.appendChild(renderQuizManageView()); else if(S.view==='stats') root.appendChild(renderStats()); else if(S.view==='profile') root.appendChild(renderProfile()); };
@@ -1426,6 +1412,309 @@ const style=document.createElement('style'); style.textContent=`
 .tab-shell .ghost-btn.active{border-color:${QUIZ_ACCENT.border};color:${QUIZ_ACCENT.text};background:rgba(190,24,93,.08)}
 @media (max-width:520px){.quiz-tab-nav .tab-label{font-size:10px}.quiz-tab-nav{width:min(96vw,560px)!important}}
 `; document.head.appendChild(style);
+})();
+</script>
+
+
+<script>
+/* v086 – Wissen Top 5 + Statistik robust/stilistisch vereinheitlicht */
+(function(){
+  if(typeof window==='undefined' || typeof S!=='object') return;
+
+  const QUIZ_SCORE_LIMIT = 5;
+  const safeFmtDate = iso => {
+    try{
+      if(typeof fmtDate==='function') return fmtDate(iso);
+      return new Date(iso).toLocaleDateString('de-CH',{day:'2-digit',month:'2-digit',year:'numeric'});
+    }catch(_){
+      return String(iso||'');
+    }
+  };
+  const safeScopeLabel = scope => {
+    try{
+      if(typeof scopeLabel==='function') return scopeLabel(scope);
+    }catch(_){ }
+    return scope==='AT' ? 'AT' : scope==='NT' ? 'NT' : 'AT & NT';
+  };
+
+  function qNorm(entry){
+    if(!entry || typeof entry!=='object') return null;
+    const score = Math.max(0, Number(entry.score||0) || 0);
+    const totalQuestions = Math.max(0, Number(entry.totalQuestions||0) || 0);
+    const seconds = Math.max(0, Number(entry.seconds||QUIZ_TOTAL) || QUIZ_TOTAL);
+    let date = entry.date;
+    try{
+      const d = date ? new Date(date) : new Date();
+      date = isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
+    }catch(_){
+      date = new Date().toISOString();
+    }
+    return {date,score,totalQuestions,seconds};
+  }
+
+  function qClean(list){
+    const seen = new Set();
+    const out = [];
+    (Array.isArray(list)?list:[]).forEach(item=>{
+      const e = qNorm(item);
+      if(!e) return;
+      const key = [e.score,e.date,e.totalQuestions,e.seconds].join('|');
+      if(seen.has(key)) return;
+      seen.add(key);
+      out.push(e);
+    });
+    out.sort((a,b)=>(b.score||0)-(a.score||0) || String(b.date||'').localeCompare(String(a.date||'')));
+    return out.slice(0, QUIZ_SCORE_LIMIT);
+  }
+
+  function qStoreKey(){
+    return S.user?.id ? `bvt_quiz_${S.user.id}_highscores` : null;
+  }
+  function qReadLocal(){
+    try{
+      const key = qStoreKey();
+      if(!key) return [];
+      const raw = localStorage.getItem(key);
+      return qClean(raw ? JSON.parse(raw) : []);
+    }catch(_){
+      return [];
+    }
+  }
+  function qWriteLocal(scores){
+    try{
+      const key = qStoreKey();
+      if(!key) return;
+      localStorage.setItem(key, JSON.stringify(qClean(scores)));
+    }catch(_){ }
+  }
+  function qSetState(scores){
+    const clean = qClean(scores);
+    S.quizHighscoresLocal = [...clean];
+    if(S.user){
+      S.user = {...S.user, quizHighscores:[...clean]};
+      if(Array.isArray(S.users)){
+        S.users = S.users.map(u=>u.id===S.user.id ? {...u, quizHighscores:[...clean]} : u);
+      }
+    }
+    qWriteLocal(clean);
+    return clean;
+  }
+  async function qPersist(scores){
+    const clean = qSetState(scores);
+    if(!S.user?.id) return clean;
+    try{ await fbSet('app','users',{list:Array.isArray(S.users)?S.users:[]}); }catch(e){ console.error(e); }
+    try{ await saveProfileCloudPatch(S.user.id,{quizHighscores:[...clean]}); }catch(e){ console.error(e); }
+    return clean;
+  }
+  async function qLoad(uid, force){
+    if(!uid) return [];
+    if(!force && S.quizCloudLoading) return qClean(S.quizHighscoresLocal);
+    if(!force && S.quizCloudHydratedFor===uid && Array.isArray(S.quizHighscoresLocal)) return qClean(S.quizHighscoresLocal);
+    S.quizCloudLoading = true;
+    try{
+      const cloud = await loadProfileCloud(uid) || {};
+      if(!S.user || S.user.id!==uid) return [];
+      const appUser = Array.isArray(S.users) ? (S.users.find(u=>u.id===uid) || {}) : {};
+      const merged = qClean([
+        ...(Array.isArray(cloud.quizHighscores) ? cloud.quizHighscores : []),
+        ...(Array.isArray(appUser.quizHighscores) ? appUser.quizHighscores : []),
+        ...(Array.isArray(S.user.quizHighscores) ? S.user.quizHighscores : []),
+        ...qReadLocal()
+      ]);
+      qSetState(merged);
+      S.quizCloudHydratedFor = uid;
+      const cloudClean = qClean(cloud.quizHighscores);
+      const appClean = qClean(appUser.quizHighscores);
+      if(JSON.stringify(cloudClean)!==JSON.stringify(merged) || JSON.stringify(appClean)!==JSON.stringify(merged)){
+        await qPersist(merged);
+      }
+      return merged;
+    }catch(e){
+      console.error(e);
+      return qClean(S.quizHighscoresLocal);
+    }finally{
+      S.quizCloudLoading = false;
+    }
+  }
+
+  hydrateQuizHighscores = function(){
+    return qSetState([
+      ...(Array.isArray(S.user?.quizHighscores) ? S.user.quizHighscores : []),
+      ...qReadLocal()
+    ]);
+  };
+  ensureQuizCloudHydrated = function(){
+    const uid = S.user?.id;
+    if(!uid || S.quizCloudLoading || S.quizCloudHydratedFor===uid) return;
+    qLoad(uid,false).then(()=>render()).catch(err=>console.error(err));
+  };
+  quizHighscores = function(){
+    return qClean(Array.isArray(S.quizHighscoresLocal) ? S.quizHighscoresLocal : hydrateQuizHighscores());
+  };
+  mergeQuizScores = function(base, extra){
+    return qClean([...(Array.isArray(base)?base:[]), ...(Array.isArray(extra)?extra:[])]);
+  };
+  quizProjectedScores = function(){
+    const base = quizHighscores();
+    if(S.quizPhase==='ended' && (S.quizScore||0)>0 && !S.quizSaved){
+      return mergeQuizScores(base,[qNorm({date:new Date().toISOString(),score:S.quizScore||0,totalQuestions:(S.quizQueue||[]).length||0,seconds:QUIZ_TOTAL})]);
+    }
+    return base;
+  };
+  quizBestScore = function(){ return quizHighscores()[0]?.score || 0; };
+
+  saveQuizScore = async function(){
+    ensure();
+    if(!S.user || S.quizSaved) return;
+    S.quizSaved = true;
+    const entry = qNorm({date:new Date().toISOString(),score:S.quizScore||0,totalQuestions:(S.quizQueue||[]).length||0,seconds:QUIZ_TOTAL});
+    await qPersist(mergeQuizScores(quizHighscores(), [entry]));
+    await qLoad(S.user.id, true);
+  };
+
+  const prevDoLogin = typeof doLogin==='function' ? doLogin : null;
+  if(prevDoLogin){
+    doLogin = async function(){
+      await prevDoLogin();
+      if(S.user?.id){
+        await qLoad(S.user.id, true);
+        render();
+      }
+    };
+  }
+
+  renderQuizHighscorePanel = function(){
+    ensureQuizCloudHydrated();
+    const scores = quizHighscores();
+    const panel = div('quiz-stat-panel');
+    panel.appendChild(p('quiz-stat-title','Deine besten 5 Resultate'));
+    if(!scores.length){
+      panel.appendChild(div('empty',S.quizCloudLoading?'Lade Resultate aus Firebase…':'Noch kein Quiz gespielt.'));
+      return panel;
+    }
+    scores.forEach((s,i)=>panel.appendChild(
+      div('quiz-score-row',
+        span('quiz-score-rank','#'+(i+1)),
+        el('div',{style:'flex:1'},
+          el('div',{style:'font-size:13px;font-weight:600;color:#fdf2f8'},`${s.score} Punkt${s.score===1?'':'e'}`),
+          el('div',{style:'font-size:11px;color:rgba(251,207,232,.58);margin-top:2px;'},safeFmtDate(s.date))
+        ),
+        span('quiz-score-value',String(s.score))
+      )
+    ));
+    return panel;
+  };
+
+  function quizMenuButton(cls,icon,title,sub,action){
+    return el('button',{cls:`menu-btn ${cls}`,onclick:action,type:'button'},div('mc-icon',icon),el('div',{},p('mc-title',title),p('mc-sub',sub)));
+  }
+
+  renderQuizTab = function(){
+    ensure();
+    const all = quizAllQuestions();
+    const best = quizBestScore();
+    return el('div',{},
+      tabTitle('','Wissen','Teste dich selbst. Wie viele Fragen kannst du in 60 Sekunden korrekt beantworten?'),
+      div('quick-stats',
+        div('quick-stat',p('quick-stat-n',String(all.length)),p('quick-stat-l','Fragen gesamt')),
+        div('quick-stat',p('quick-stat-n',String(best)),p('quick-stat-l','Bester Score')),
+        div('quick-stat',p('quick-stat-n',String(quizHighscores().length)),p('quick-stat-l','Top-5 gespeichert'))
+      ),
+      quizMenuButton('quiz-manage','✏️','Wissensfragen verwalten','Fragen bearbeiten, löschen oder ergänzen',()=>set({view:'quizmanage',activeTab:'quiz'})),
+      quizMenuButton('quiz-start','💡','Quiz starten','Teste dich selbst. Wie viele Fragen kannst du in 60 Sekunden korrekt beantworten?',()=>startQuizGame()),
+      renderQuizHighscorePanel()
+    );
+  };
+
+  if(typeof renderQuizPlayView==='function'){
+    renderQuizPlayView = function(){
+      ensure();
+      const hdr=div('page-header',btn('back-btn','←',()=>exitQuizToTab()),el('h2',{cls:'page-title'},'Wissen'));
+      const wrap=el('div',{},hdr);
+      const current=quizCurrent();
+      if(S.quizPhase==='ended'){
+        const score=S.quizScore||0;
+        const emoji=score>=20?'🏆':score>=12?'✨':'💡';
+        const title=score>=20?'Herausragend!':score>=12?'Stark!':'Gut gemacht!';
+        const replay=btn('prim-btn','Nochmal spielen',()=>startQuizGame());
+        wrap.appendChild(el('div',{cls:'quiz-result-panel'},
+          el('div',{cls:'quiz-result-emoji'},emoji),
+          el('h2',{cls:'quiz-result-title'},title),
+          p('quiz-result-sub',`Du hast ${score} Frage${score!==1?'n':''} richtig beantwortet.`),
+          el('div',{cls:'quiz-final-score'},
+            p('quiz-final-label','Dein Score'),
+            p('quiz-final-number',String(score)),
+            p('quiz-final-note',score>=20?'Exzellent — du bist ein Bibelexperte! 🎉':score>=10?'Richtig stark — weiter so! 💪':'Sauber gespielt!')
+          ),
+          div('btn-row',btn('ghost-btn','Zurück',()=>exitQuizToTab()),replay)
+        ));
+        return wrap;
+      }
+      const pct=((S.quizTimeLeft||0)/QUIZ_TOTAL)*100;
+      const timerColor=(S.quizTimeLeft||0)>20?'#22c55e':(S.quizTimeLeft||0)>10?'#f59e0b':'#ef4444';
+      const progress=el('div',{style:'display:flex;align-items:center;gap:16px;margin-bottom:18px;'},
+        el('div',{style:'flex:1;background:#1e1630;border-radius:99px;height:12px;overflow:hidden;border:1px solid rgba(244,114,182,.14);'},el('div',{style:`width:${pct}%;height:100%;background:${timerColor};transition:width 1s linear, background .3s;border-radius:99px;`})),
+        el('div',{style:`color:${timerColor};font-weight:800;font-size:1.3rem;min-width:42px;text-align:right;transition:color .3s;`},`${S.quizTimeLeft||0}s`),
+        el('div',{cls:'quiz-score-badge'},`⭐ ${S.quizScore||0}`)
+      );
+      const card=el('div',{cls:'quiz-question-card'},el('p',{cls:'quiz-question-meta'},`Frage ${(S.quizIdx||0)+1} von ${(S.quizQueue||[]).length}`),el('p',{cls:'quiz-question-title'},current.q));
+      if(S.quizShowAnswer) card.appendChild(el('div',{cls:'quiz-answer-card'},el('p',{cls:'quiz-answer-kicker'},'Antwort'),el('p',{cls:'quiz-answer-text'},current.a)));
+      wrap.append(progress,card);
+      if(!S.quizShowAnswer) wrap.appendChild(btn('ghost-btn quiz-reveal-btn','👁️ Antwort anzeigen',()=>set({quizShowAnswer:true})));
+      else wrap.appendChild(div('btn-row',btn('quiz-correct-btn','✅ Korrekt',()=>quizNext(true)),btn('quiz-wrong-btn','❌ Falsch',()=>quizNext(false))));
+      return wrap;
+    };
+  }
+
+  const statCardSafe = (label,n)=>div('stat-card',p('n',String(n||0)),p('l',label));
+  const trophyVisualSafe = n=>n>0 ? div('trophy-icons',...Array(Math.min(n,20)).fill('').map(()=>span('', '🏆'))) : p('trophy-count','Noch kein Pokal');
+  function bestBookFillBox(){
+    const scores = Array.isArray(S.user?.bookFillHighscores) ? S.user.bookFillHighscores : [];
+    if(!scores.length) return div('bestbox','Noch keine Runde in „Lücke füllen“ gespeichert.');
+    const b=[...scores].sort((a,b)=>(b.score||0)-(a.score||0) || String(b.date||'').localeCompare(String(a.date||'')))[0];
+    return div('bestbox',`Beste Runde: ${b.score||0} Punkte · ${b.correct||0} richtige Lücken · ${safeScopeLabel(b.scope)} · ${safeFmtDate(b.date)}`);
+  }
+  function bestQuizBox(){
+    const b=quizHighscores()[0];
+    if(!b) return div('bestbox','Noch kein Quiz gespielt.');
+    return div('bestbox',`Bestes Resultat: ${b.score||0} Punkte · ${safeFmtDate(b.date)} · ${b.totalQuestions||0} Fragenbasis`);
+  }
+
+  renderStats = function(){
+    try{
+      const u=S.user||{};
+      const hdr=div('page-header',el('h2',{cls:'page-title'},'Meine Statistik'));
+      const wrap=el('div',{},hdr);
+      wrap.appendChild(p('stat-note','Deine Erfolge in der gewünschten Reihenfolge.'));
+      wrap.appendChild(div('stat-section',p('stat-section-title','🗺️ Reise nach Kanaan'),div('stat-grid-3',statCardSafe('AT',u.journeyWinsAT||0),statCardSafe('NT',u.journeyWinsNT||0),statCardSafe('AT & NT',u.journeyWinsALL||0))));
+      wrap.appendChild(div('stat-section',p('stat-section-title','🏛️ Tempelbau'),div('stat-grid-3',statCardSafe('AT',u.templeWinsAT||0),statCardSafe('NT',u.templeWinsNT||0),statCardSafe('AT & NT',u.templeWinsALL||0))));
+      wrap.appendChild(div('stat-section',p('stat-section-title','🧩 Lücke füllen'),bestBookFillBox()));
+      const at=u.trophiesAT||0, nt=u.trophiesNT||0;
+      wrap.appendChild(div('stat-section',p('stat-section-title','🏆 Pokale'),div('stat-grid-2',div('stat-card',p('n',String(at)),p('l','Altes Testament'),trophyVisualSafe(at)),div('stat-card',p('n',String(nt)),p('l','Neues Testament'),trophyVisualSafe(nt)))));
+      if(S.verses && S.verses.length && typeof renderStatsPie==='function'){
+        wrap.appendChild(div('stat-section',p('stat-section-title','📖 Vers-Lernstand'),renderStatsPie()));
+      } else {
+        wrap.appendChild(div('stat-section',p('stat-section-title','📖 Vers-Lernstand'),div('stat-empty','Noch keine Verse vorhanden – sobald du Verse lernst, erscheint hier das Kuchendiagramm.')));
+      }
+      wrap.appendChild(div('stat-section',p('stat-section-title','💡 Quiz-Resultate'),bestQuizBox()));
+      return wrap;
+    }catch(e){
+      console.error('renderStats v086:', e);
+      return el('div',{},div('page-header',el('h2',{cls:'page-title'},'Meine Statistik')),div('stat-section',p('stat-section-title','⚠️ Statistik'),div('stat-empty','Die Statistik konnte nicht geladen werden.')));
+    }
+  };
+
+  renderStatsTab = function(){
+    try{
+      const w = renderStats();
+      if(w.firstChild) w.removeChild(w.firstChild);
+      w.insertBefore(tabTitle('Meine Statistik','Meine Statistik','Mein Lernen - meine Erfolge!'), w.firstChild || null);
+      return w;
+    }catch(e){
+      console.error('renderStatsTab v086:', e);
+      return el('div',{},tabTitle('Meine Statistik','Meine Statistik','Mein Lernen - meine Erfolge!'),div('stat-section',p('stat-section-title','⚠️ Statistik'),div('stat-empty','Die Statistik konnte nicht geöffnet werden.')));
+    }
+  };
 })();
 </script>
 
