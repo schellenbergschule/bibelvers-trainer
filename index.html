@@ -439,6 +439,7 @@ firebase.initializeApp({
 const db=firebase.firestore();
 async function fbGet(c,d){try{const s=await db.collection(c).doc(d).get();return s.exists?s.data():null;}catch(e){console.error(e);return null;}}
 async function fbSet(c,d,v){try{await db.collection(c).doc(d).set(v);}catch(e){console.error(e);}}
+async function fbMerge(c,d,v){try{await db.collection(c).doc(d).set(v,{merge:true});}catch(e){console.error(e);}}
 async function fbDel(c,d){try{await db.collection(c).doc(d).delete();}catch(e){console.error(e);}}
 
 const PALETTE=["#8b5cf6","#6366f1","#ec4899","#f97316","#14b8a6","#10b981","#3b82f6","#f59e0b"];
@@ -536,12 +537,15 @@ vsCustomIds:[]
 function set(patch){Object.assign(S,patch);render();}
 async function saveUsers(list){S.users=list;await fbSet("app","users",{list});}
 async function saveVerses(list){S.verses=list;S.counts={...S.counts,[S.user.id]:list.length};await fbSet("verses",S.user.id,{list});render();}
+async function loadUserCloud(uid){return await fbGet("user_data",uid)||{};}
+async function saveUserCloudPatch(uid,patch){if(!uid||!patch)return;await fbMerge("user_data",uid,patch);}
 
 async function saveLastVerseSelection(ids){
   if(!S.user)return;
   const upd={...S.user,lastVerseSelectionIds:ids};
   S.user=upd;
   await saveUsers(S.users.map(u=>u.id===upd.id?upd:u));
+  await saveUserCloudPatch(upd.id,{lastVerseSelectionIds:ids});
 }
 
 function startMode(mode,verses){
@@ -1185,11 +1189,30 @@ async function doLogin(){
     render();
 
     const vd=await fbGet("verses",t.id);
+    const cloud=await loadUserCloud(t.id);
+    const mergedUser={...t,...cloud};
     S.verses=vd?(vd.list||[]):[];
     S.counts={...S.counts,[t.id]:S.verses.length};
-    S.user=t;
-    S.vsCustomIds=t.lastVerseSelectionIds || [];
+    S.user=mergedUser;
+    S.users=S.users.map(u=>u.id===mergedUser.id?mergedUser:u);
+    S.vsCustomIds=mergedUser.lastVerseSelectionIds || [];
     S.view="menu";
+
+    // Bestehende profilbezogene Daten in separaten Cloud-Speicher zurückschreiben.
+    saveUserCloudPatch(mergedUser.id,{
+      quizHighscores:Array.isArray(mergedUser.quizHighscores)?mergedUser.quizHighscores:[],
+      quizQuestions:Array.isArray(mergedUser.quizQuestions)?mergedUser.quizQuestions:[],
+      lastVerseSelectionIds:Array.isArray(mergedUser.lastVerseSelectionIds)?mergedUser.lastVerseSelectionIds:[],
+      trophiesAT:mergedUser.trophiesAT||0,
+      trophiesNT:mergedUser.trophiesNT||0,
+      journeyWinsAT:mergedUser.journeyWinsAT||0,
+      journeyWinsNT:mergedUser.journeyWinsNT||0,
+      journeyWinsALL:mergedUser.journeyWinsALL||0,
+      templeWinsAT:mergedUser.templeWinsAT||0,
+      templeWinsNT:mergedUser.templeWinsNT||0,
+      templeWinsALL:mergedUser.templeWinsALL||0,
+      bookFillHighscores:Array.isArray(mergedUser.bookFillHighscores)?mergedUser.bookFillHighscores:[]
+    });
 
     render();
   } else {
@@ -1217,7 +1240,7 @@ async function doCreate(){
   if(S.nPw!==S.nPw2){set({nErr:"Passwörter stimmen nicht überein."});return;}
   const name=S.nName.trim(),pw=S.nPw,color=S.nColor,emoji=S.nEmoji;
   const id="u_"+Date.now();const h=await hashPw(pw);const u={id,name,pw:h,color,emoji};
-  await saveUsers([...S.users,u]);await fbSet("verses",id,{list:[]});
+  await saveUsers([...S.users,u]);await fbSet("verses",id,{list:[]});await fbMerge("user_data",id,{quizHighscores:[],quizQuestions:[],lastVerseSelectionIds:[]});
   S.counts={...S.counts,[id]:0};S.verses=[];S.user=u;S.view="menu";S.activeTab='books';S.modal=null;render();showToast(`Profil ${name} ist bereit!`,'stats',"Let's go",1500);
 }
 
@@ -1264,7 +1287,7 @@ const css=`
 `;
 const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
 const ensure=()=>{S.activeTab=S.activeTab||'books';S.journeyClaimed=S.journeyClaimed||[];S.bfStreak=S.bfStreak||1;S.bfInput=S.bfInput||'';S.bfMsg=S.bfMsg||'';S.bfMsgOk=S.bfMsgOk??null;['journeyStep','journeyDouble','journeyJoker','journeySkip','journeyHint','journeyTurbo','journeyShield','templeStones','bfScore','bfCorrect'].forEach(k=>S[k]=S[k]||0);};ensure();
-function saveUserPatch(p){if(!S.user)return;const upd={...S.user,...p};S.user=upd;saveUsers(S.users.map(u=>u.id===upd.id?upd:u));}
+function saveUserPatch(p){if(!S.user)return;const upd={...S.user,...p};S.user=upd;const users=S.users.map(u=>u.id===upd.id?upd:u);S.users=users;saveUsers(users);saveUserCloudPatch(upd.id,p);}
 function incUser(k){saveUserPatch({[k]:(S.user&&S.user[k]||0)+1});}
 function scopeKey(prefix,scope){return prefix+(scope==='AT'?'AT':scope==='NT'?'NT':'ALL');}
 function scopeLabel(s){return s==='AT'?'AT':s==='NT'?'NT':'AT & NT';}
@@ -1360,14 +1383,14 @@ function quizHighscores(){ ensure(); return Array.isArray(S.quizHighscoresLocal)
 function mergeQuizScores(base,extra){ return mergeScoreLists(base,extra); }
 function quizProjectedScores(){ const base=quizHighscores(); if(S.quizPhase==='ended' && (S.quizScore||0)>0 && !S.quizSaved){ const probe={date:new Date().toISOString(),score:S.quizScore||0,totalQuestions:(S.quizQueue||[]).length||0,seconds:QUIZ_TOTAL}; return mergeQuizScores(base,[probe]); } return base; }
 function quizBestScore(){ return quizProjectedScores()[0]?.score || 0; }
-function saveQuizQuestionBank(){ const bank=[...(S.quizQuestions||[])]; quizWriteLocal('questions',bank); saveUserPatch({quizQuestions:bank}); }
+function saveQuizQuestionBank(){ const bank=[...(S.quizQuestions||[])]; quizWriteLocal('questions',bank); saveUserPatch({quizQuestions:bank}); saveUserCloudPatch(S.user?.id,{quizQuestions:bank}); }
 function clearQuizTimer(){ if(S.quizTimerId){ clearInterval(S.quizTimerId); S.quizTimerId=null; } }
 function quizCurrent(){ return (S.quizQueue||[])[S.quizIdx] || null; }
 function finishQuiz(){ clearQuizTimer(); S.quizPhase='ended'; render(); saveQuizScore().then(()=>render()); }
 function startQuizGame(){ const all=quizAllQuestions(); if(!all.length){ showToast('Noch keine Wissensfragen vorhanden.','error','Wissen leer',2200); return; } clearQuizTimer(); S.quizQueue=quizShuffle(all); S.quizIdx=0; S.quizScore=0; S.quizTimeLeft=QUIZ_TOTAL; S.quizShowAnswer=false; S.quizPhase='playing'; S.quizSaved=false; S.view='quiz'; S.activeTab='quiz'; S.quizTimerId=setInterval(()=>{ if(S.view!=='quiz' || S.quizPhase!=='playing'){ clearQuizTimer(); return; } S.quizTimeLeft=Math.max(0,(S.quizTimeLeft||0)-1); if(S.quizTimeLeft<=0){ finishQuiz(); return; } render(); },1000); render(); }
 function exitQuizToTab(){ clearQuizTimer(); set({view:'menu',activeTab:'quiz',quizPhase:'idle',quizShowAnswer:false}); }
 function quizNext(correct){ if(correct) S.quizScore=(S.quizScore||0)+1; S.quizShowAnswer=false; if((S.quizIdx||0)+1 >= (S.quizQueue||[]).length) S.quizQueue=quizShuffle(quizAllQuestions()); S.quizIdx=((S.quizIdx||0)+1) % Math.max(1,(S.quizQueue||[]).length||1); render(); }
-async function saveQuizScore(){ ensure(); if(!S.user || S.quizSaved) return; S.quizSaved=true; const entry={date:new Date().toISOString(),score:S.quizScore||0,totalQuestions:(S.quizQueue||[]).length||0,seconds:QUIZ_TOTAL}; const merged=mergeQuizScores(quizHighscores(),[entry]); S.quizHighscoresLocal=[...merged]; quizWriteLocal('highscores',merged); saveUserPatch({quizHighscores:merged}); }
+async function saveQuizScore(){ ensure(); if(!S.user || S.quizSaved) return; S.quizSaved=true; const entry={date:new Date().toISOString(),score:S.quizScore||0,totalQuestions:(S.quizQueue||[]).length||0,seconds:QUIZ_TOTAL}; const merged=mergeQuizScores(quizHighscores(),[entry]); S.quizHighscoresLocal=[...merged]; quizWriteLocal('highscores',merged); saveUserPatch({quizHighscores:merged}); await saveUserCloudPatch(S.user.id,{quizHighscores:merged}); }
 function quizLoadEdit(item){ set({quizEditId:item.id, quizDraftQ:item.q||'', quizDraftA:item.a||'', quizDraftErr:''}); }
 function quizDelete(id){ S.quizQuestions=(S.quizQuestions||[]).filter(q=>q.id!==id); saveQuizQuestionBank(); if(S.quizEditId===id){ S.quizEditId=null; S.quizDraftQ=''; S.quizDraftA=''; S.quizDraftErr=''; } showToast('Wissensfrage gelöscht.','success','Entfernt',1300); render(); }
 function renderQuizHighscorePanel(){ const scores=quizProjectedScores(); const panel=div('quiz-stat-panel'); panel.appendChild(p('quiz-stat-title','Deine besten 5 Resultate')); if(!scores.length){ panel.appendChild(div('empty','Noch kein Wissenstest gespielt.')); return panel; } scores.forEach((s,i)=>panel.appendChild(div('quiz-score-row',span('quiz-score-rank','#'+(i+1)),el('div',{style:'flex:1'},el('div',{style:'font-size:13px;font-weight:600;color:#fdf2f8'},`${s.score} Punkt${s.score===1?'':'e'}`),el('div',{style:'font-size:11px;color:rgba(251,207,232,.58);margin-top:2px;'},typeof fmtDate==='function'?fmtDate(s.date):String(s.date||''))),span('quiz-score-value',String(s.score))))); return panel; }
