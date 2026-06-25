@@ -2,8 +2,8 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Bibelvers-Trainer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Bibel-Trainer</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#2c3e50">
 
@@ -419,6 +419,51 @@ body{font-family:'Inter',sans-serif;min-height:100vh;background:radial-gradient(
 /* Verse: Auswahlmenü */
 .vs-box{background:linear-gradient(145deg,rgba(27,39,81,.97),rgba(15,18,51,.98))!important;border:1px solid rgba(99,184,255,.22)!important}
 .vs-title{color:#e8f6ff!important}.vs-sub{color:rgba(196,226,255,.72)!important}
+
+
+/* v092 – Adaptive Layout: Desktop/Tablet gross wie früher, Mobile optimiert
+   Desktop bleibt bei der ursprünglichen, grosszügigen Darstellung. Mobile-Optimierungen greifen nur bei wenig Platz. */
+:root{--app-vvh:100dvh;--mobile-nav-h:76px;}
+html{min-height:100%;min-height:100dvh;width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+body{min-height:100vh;min-height:100dvh;width:100%;overflow-x:hidden;overflow-y:auto;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);}
+body.is-mobile html,body.is-mobile{scroll-behavior:smooth;}
+body.is-mobile #app{max-width:100%;width:100%;min-height:100dvh;padding-top:1rem;padding-left:max(.95rem,env(safe-area-inset-left));padding-right:max(.95rem,env(safe-area-inset-right));padding-bottom:calc(6rem + env(safe-area-inset-bottom));scroll-padding-top:calc(env(safe-area-inset-top) + 62px);scroll-padding-bottom:calc(var(--mobile-nav-h) + 1.5rem + env(safe-area-inset-bottom));}
+body.is-mobile .tab-shell{padding-bottom:calc(var(--mobile-nav-h) + 1rem + env(safe-area-inset-bottom))!important;}
+body.is-mobile .tab-nav{width:min(456px,calc(100vw - 18px));bottom:max(8px,env(safe-area-inset-bottom));}
+body.is-mobile.keyboard-open{overflow-y:auto!important;}body.is-mobile.keyboard-open #app{min-height:auto!important;padding-top:.7rem!important;padding-bottom:calc(1.25rem + env(safe-area-inset-bottom))!important;scroll-padding-bottom:calc(2rem + env(safe-area-inset-bottom));}body.is-mobile.keyboard-open .tab-shell{padding-bottom:calc(1.25rem + env(safe-area-inset-bottom))!important;}
+body.is-mobile.keyboard-open .tab-nav{position:static!important;left:auto!important;bottom:auto!important;transform:none!important;width:100%!important;margin:14px auto 0!important;opacity:1!important;pointer-events:auto!important;padding:6px!important;gap:5px!important;border-radius:18px!important;box-shadow:0 10px 30px rgba(0,0,0,.34)!important;}
+body.is-mobile.keyboard-open .tab-btn{padding:7px 3px 6px!important;border-radius:13px!important;}body.is-mobile.keyboard-open .tab-icon{font-size:16px!important;}body.is-mobile.keyboard-open .tab-label{font-size:10px!important;}
+body.is-mobile.keyboard-open .orb1,body.is-mobile.keyboard-open .orb2,body.is-mobile.keyboard-open .orb3,body.is-mobile.keyboard-open .stars{opacity:.18;}body.is-mobile.keyboard-open .page-header{margin-bottom:.55rem!important;}body.is-mobile.keyboard-open .tab-title-block{margin-bottom:8px!important;}body.is-mobile.keyboard-open .tab-title{font-size:18px!important;}body.is-mobile.keyboard-open .tab-sub{font-size:12px!important;line-height:1.35!important;}
+.mobile-session-bar,.keyboard-nav-helper{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 8px);transform:translateX(-50%) translateY(-130%);z-index:260;display:flex;gap:6px;padding:5px;border-radius:999px;background:linear-gradient(145deg,rgba(15,12,41,.96),rgba(30,41,59,.94));border:1px solid rgba(196,181,253,.22);box-shadow:0 14px 36px rgba(0,0,0,.42);opacity:0;pointer-events:none;transition:transform .22s ease,opacity .22s ease;backdrop-filter:blur(14px);}
+body.is-mobile.in-session:not(.keyboard-open) .mobile-session-bar{transform:translateX(-50%) translateY(0);opacity:1;pointer-events:auto;}body.is-mobile.keyboard-open .keyboard-nav-helper{transform:translateX(-50%) translateY(0);opacity:1;pointer-events:auto;}.mobile-session-bar button,.keyboard-nav-helper button{appearance:none;-webkit-appearance:none;border:0;border-radius:999px;padding:8px 11px;font-family:'Inter',sans-serif;font-size:12px;font-weight:650;color:#ede9fe;background:rgba(255,255,255,.08);cursor:pointer;}.mobile-session-bar .msb-exit,.keyboard-nav-helper .knh-back{background:linear-gradient(135deg,rgba(139,92,246,.32),rgba(99,102,241,.22));}.mobile-session-bar .msb-top,.keyboard-nav-helper .knh-close{color:rgba(237,233,254,.78);}
+body.is-mobile.in-session:not(.keyboard-open) #app{padding-top:calc(2.75rem + env(safe-area-inset-top));}
+body.is-mobile .modal,body.is-mobile .vs-box,body.is-mobile .loot-card,body.is-mobile .temple-phase-card{max-height:calc(100dvh - 2rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow:auto;-webkit-overflow-scrolling:touch;}
+body.is-mobile .journey-map{height:132px!important;border-radius:18px!important;margin-bottom:9px!important;background:radial-gradient(circle at 14% 44%,rgba(245,158,11,.15),transparent 23%),radial-gradient(circle at 88% 48%,rgba(34,197,94,.14),transparent 22%),linear-gradient(90deg,#1e1b4b 0%,#3b2a14 58%,#355f2a 100%)!important;}body.is-mobile .route-path{stroke-width:3!important;stroke-dasharray:7 8!important;}body.is-mobile .route-dot{width:8px!important;height:8px!important;}body.is-mobile .route-dot.loot{width:18px!important;height:18px!important;font-size:10px!important;}body.is-mobile .traveler{font-size:23px!important;}body.is-mobile .map-label{font-size:10px!important;}body.is-mobile .map-label.start{left:8%!important;top:76%!important;}body.is-mobile .map-label.goal{left:91%!important;top:28%!important;}body.is-mobile .journey-legend{padding:9px 10px!important;margin-bottom:9px!important;border-radius:13px!important;}body.is-mobile.keyboard-open .journey-map{height:82px!important;margin-bottom:7px!important;}body.is-mobile.keyboard-open .journey-legend{display:none!important;}
+body.is-mobile.keyboard-open .journey-progress,body.is-mobile.keyboard-open .temple-progress,body.is-mobile.keyboard-open .prog-row{margin-bottom:7px!important;}body.is-mobile.keyboard-open .journey-question,body.is-mobile.keyboard-open .form-panel,body.is-mobile.keyboard-open .bf-panel,body.is-mobile.keyboard-open .bo-card,body.is-mobile.keyboard-open .luecke-card{padding:.8rem!important;margin-bottom:.65rem!important;border-radius:16px!important;}body.is-mobile.keyboard-open .journey-book,body.is-mobile.keyboard-open .bo-book{font-size:clamp(22px,6vw,28px)!important;margin:4px 0 8px!important;}body.is-mobile.keyboard-open input,body.is-mobile.keyboard-open textarea,body.is-mobile.keyboard-open select{font-size:16px!important;}
+body.is-mobile .temple-image-area{padding:10px 10px 8px!important;margin-bottom:10px!important;border-radius:18px!important;overflow:visible!important;}body.is-mobile .temple-phase-img{display:none!important;}body.is-mobile .temple-sky{margin-bottom:7px!important;font-size:12px!important;}body.is-mobile .temple-phase{margin:6px 0 8px!important;font-size:12px!important;}body.is-mobile .temple-phase-progress{max-width:100%!important;margin:8px auto 2px!important;padding:16px 10px 38px!important;}body.is-mobile .temple-phase-track{height:8px!important;}body.is-mobile .temple-phase-mark{min-width:42px!important;}body.is-mobile .temple-phase-emoji{width:24px!important;height:24px!important;font-size:14px!important;}body.is-mobile .temple-phase-name{font-size:8.5px!important;max-width:54px!important;}
+body.is-mobile.keyboard-open .temple-image-area{padding:8px!important;margin-bottom:7px!important;}body.is-mobile.keyboard-open .temple-sky,body.is-mobile.keyboard-open .temple-phase{display:none!important;}body.is-mobile.keyboard-open .temple-phase-progress{padding:12px 8px 31px!important;margin:0 auto!important;}body.is-mobile.keyboard-open .bs-books,body.is-mobile.keyboard-open .chunk-list,body.is-mobile.keyboard-open .temple-list{gap:6px!important;margin-bottom:.65rem!important;}body.is-mobile.keyboard-open .bs-item,body.is-mobile.keyboard-open .chunk{padding:9px 12px!important;font-size:14px!important;border-radius:11px!important;}body.is-mobile.keyboard-open .save-btn,body.is-mobile.keyboard-open .check-btn,body.is-mobile.keyboard-open .next-btn,body.is-mobile.keyboard-open .bo-check,body.is-mobile.keyboard-open .bo-next,body.is-mobile.keyboard-open .bs-check,body.is-mobile.keyboard-open .ab-check,body.is-mobile.keyboard-open .prim-btn{padding:11px 12px!important;border-radius:12px!important;}
+.temple-win-img{display:block;width:100%;max-width:360px;margin:0 auto 14px;border-radius:18px;border:1px solid rgba(251,191,36,.34);box-shadow:0 16px 44px rgba(0,0,0,.45);background:#17122f;}.temple-phase-pop{position:fixed;inset:0;z-index:240;display:flex;align-items:center;justify-content:center;padding:1rem;background:rgba(0,0,0,.62);backdrop-filter:blur(8px);}.temple-phase-card{width:100%;max-width:360px;padding:18px;border-radius:24px;text-align:center;background:linear-gradient(145deg,rgba(30,27,75,.98),rgba(69,39,12,.94));border:1px solid rgba(251,191,36,.35);box-shadow:0 24px 70px rgba(0,0,0,.62);}.temple-popup-img{display:block;width:100%;border-radius:18px;border:1px solid rgba(251,191,36,.32);box-shadow:0 14px 34px rgba(0,0,0,.42);background:#17122f;margin-bottom:12px;}.temple-popup-title{font-family:'Lora',serif;font-size:22px;color:#fde68a;margin-bottom:4px;}.temple-popup-sub{font-size:13px;color:rgba(254,243,199,.72);line-height:1.45;margin-bottom:14px;}
+body.is-mobile .form-panel,body.is-mobile .journey-question,body.is-mobile .bf-panel,body.is-mobile .temple-image-area{scroll-margin-top:calc(env(safe-area-inset-top) + 68px);scroll-margin-bottom:calc(var(--mobile-nav-h) + 1rem);}@media (max-width:430px) and (min-aspect-ratio:18/9){body.is-mobile .journey-map{height:118px!important;}body.is-mobile .tab-title{font-size:22px;}body.is-mobile .tab-sub{font-size:12px;}body.is-mobile .menu-btn{padding:13px 14px;}.temple-phase-card{max-width:330px;padding:14px;}}@media (max-height:720px){body.is-mobile .journey-map{height:104px!important;}body.is-mobile .quick-stats{display:none!important;}body.is-mobile .temple-phase-progress{padding-bottom:34px!important;}.temple-popup-img{max-height:42vh;object-fit:contain;}}@supports not (height:100dvh){body.is-mobile #app{min-height:100vh;}}
+
+
+
+/* v093 – Fast Profile Loading ohne lokale Speicherung
+   Profile erscheinen nach einer Cloud-Abfrage sofort; Verszahlen werden parallel im Hintergrund geprüft. */
+.profile-load-box{padding:18px 14px;margin-bottom:14px;border-radius:18px;text-align:center;background:linear-gradient(135deg,rgba(255,255,255,.05),rgba(139,92,246,.06));border:1px solid rgba(196,181,253,.13);color:rgba(237,233,254,.78);font-size:13px;line-height:1.45;}
+.profile-load-spinner{width:26px;height:26px;border-radius:50%;border:3px solid rgba(196,181,253,.18);border-top-color:#c4b5fd;margin:0 auto 10px;animation:profileSpin .85s linear infinite;}
+@keyframes profileSpin{to{transform:rotate(360deg)}}
+.user-count.syncing::after{content:' · syncing';font-size:10px;color:rgba(134,239,172,.45);}
+
+/* v094 – Profilkarten: AT/NT Pokal-Badges
+   Zeigt pro Profil dezent an, ob AT-/NT-Pokale vorhanden sind. 🌱 = noch am Lernen, 🏆 = mindestens ein Pokal. */
+.profile-trophy-row{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:7px;flex-wrap:wrap;}
+.profile-trophy-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:999px;font-size:10px;font-weight:600;letter-spacing:.25px;background:rgba(255,255,255,.045);border:1px solid rgba(196,181,253,.12);color:rgba(196,181,253,.62);line-height:1;}
+.profile-trophy-badge.won{background:rgba(251,191,36,.10);border-color:rgba(251,191,36,.26);color:#fef3c7;}
+.profile-trophy-badge.learning{background:rgba(34,197,94,.075);border-color:rgba(74,222,128,.18);color:rgba(220,252,231,.72);}
+.profile-trophy-emoji{font-size:12px;line-height:1;}
+body.is-mobile .profile-trophy-row{gap:6px;margin-top:6px;}
+body.is-mobile .profile-trophy-badge{font-size:9.5px;padding:3px 6px;}
+
 </style>
 </head>
 <body>
@@ -530,13 +575,28 @@ const S={users:[],counts:{},user:null,verses:[],view:"select",session:[],idx:0,f
 vsMode:"flash",
 vsFilterPct:"",
 vsCustomOpen:false,
-vsCustomIds:[]
-
-
+vsCustomIds:[],
+profilesLoading:true,
+countsLoading:false
 };
 function set(patch){Object.assign(S,patch);render();}
 async function saveUsers(list){S.users=list;await fbSet("app","users",{list});}
-async function saveVerses(list){S.verses=list;S.counts={...S.counts,[S.user.id]:list.length};await fbSet("verses",S.user.id,{list});render();}
+async function saveVerses(list){
+  S.verses=list;
+  const count=list.length;
+  if(S.user){
+    const prev=Number(S.user.verseCount??S.counts[S.user.id]??count);
+    S.counts={...S.counts,[S.user.id]:count};
+    if(prev!==count){
+      const upd={...S.user,verseCount:count};
+      S.user=upd;
+      S.users=S.users.map(u=>u.id===upd.id?{...u,verseCount:count}:u);
+      await fbSet("app","users",{list:S.users});
+    }
+  }
+  await fbSet("verses",S.user.id,{list});
+  render();
+}
 async function loadProfileCloud(uid){return await fbGet("user_profiles",uid)||{};}
 async function saveProfileCloudPatch(uid,patch){if(!uid||!patch)return;await fbMerge("user_profiles",uid,patch);}
 
@@ -723,12 +783,29 @@ function renderVerseSelect(){
 
 
 function renderSelect(){
-  const grid=div("user-grid",...S.users.map(u=>{const c=div("user-card",el("div",{cls:"user-avatar",style:`background:${u.color}28;border-color:${u.color}55`},u.emoji),p("user-name",u.name),p("user-count",`${S.counts[u.id]??0} Verse`));c.onclick=()=>set({modal:"login",loginU:u,pw:"",pwErr:false});return c;}));
-  const addB=btn("add-user-btn","+ Neuen Benutzer anlegen",()=>set({modal:"new",nName:"",nPw:"",nPw2:"",nEmoji:"✝",nColor:PALETTE[0],nErr:""}));
   const halo=div("halo");halo.innerHTML=`<svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round"><line x1="12" y1="3" x2="12" y2="21"/><line x1="4" y1="9" x2="20" y2="9"/></svg>`;
-  return el("div",{},div("logo-wrap",halo,el("h1",{cls:"app-title"},"Bibelvers-Trainer"),div("sync-badge",span("sync-dot")," Geräteübergreifend gespeichert"),p("app-sub","Wer möchte heute lernen?")),grid,addB);
+  const head=div("logo-wrap",halo,el("h1",{cls:"app-title"},"Bibel-Trainer"),div("sync-badge",span("sync-dot"),S.countsLoading?" Profile werden abgeglichen":" Geräteübergreifend gespeichert"),p("app-sub","Wer möchte heute lernen?"));
+  if(S.profilesLoading && !S.users.length){
+    return el("div",{},head,div("profile-load-box",div("profile-load-spinner"),p("","Profile werden geladen …")));
+  }
+  const trophyBadge=(label,count)=>{
+    const won=Number(count||0)>0;
+    return el("span",{cls:"profile-trophy-badge "+(won?"won":"learning")},
+      span("profile-trophy-label",label),
+      span("profile-trophy-emoji",won?"🏆":"🌱")
+    );
+  };
+  const grid=div("user-grid",...S.users.map(u=>{
+    const count=S.counts[u.id] ?? u.verseCount ?? 0;
+    const countEl=p("user-count"+(S.countsLoading?" syncing":""),`${count} Verse`);
+    const trophies=div("profile-trophy-row",trophyBadge("AT",u.trophiesAT),trophyBadge("NT",u.trophiesNT));
+    const c=div("user-card",el("div",{cls:"user-avatar",style:`background:${u.color}28;border-color:${u.color}55`},u.emoji),p("user-name",u.name),countEl,trophies);
+    c.onclick=()=>set({modal:"login",loginU:u,pw:"",pwErr:false});
+    return c;
+  }));
+  const addB=btn("add-user-btn","+ Neuen Benutzer anlegen",()=>set({modal:"new",nName:"",nPw:"",nPw2:"",nEmoji:"✝",nColor:PALETTE[0],nErr:""}));
+  return el("div",{},head,grid,addB);
 }
-
 function renderMenu(){
   const u=S.user;
   const mastered=S.verses.filter(v=>v.score>=5).length;
@@ -1223,7 +1300,7 @@ async function doCreate(){
   if(S.nPw.length<4){set({nErr:"Passwort muss mindestens 4 Zeichen haben."});return;}
   if(S.nPw!==S.nPw2){set({nErr:"Passwörter stimmen nicht überein."});return;}
   const name=S.nName.trim(),pw=S.nPw,color=S.nColor,emoji=S.nEmoji;
-  const id="u_"+Date.now();const h=await hashPw(pw);const u={id,name,pw:h,color,emoji};
+  const id="u_"+Date.now();const h=await hashPw(pw);const u={id,name,pw:h,color,emoji,verseCount:0};
   await saveUsers([...S.users,u]);await fbSet("verses",id,{list:[]});await fbMerge("user_profiles",id,{quizHighscores:[],quizQuestions:[],lastVerseSelectionIds:[]});
   S.counts={...S.counts,[id]:0};S.verses=[];S.user=u;S.view="menu";S.activeTab='books';S.modal=null;render();showToast(`Profil ${name} ist bereit!`,'stats',"Let's go",1500);
 }
@@ -1233,11 +1310,45 @@ async function doCreate(){
   try{
     let data=await fbGet("app","users");
     if(!data){await fbSet("app","users",{list:[]});data={list:[]};}
-    const userList=data.list||[];const counts={};
-    for(const u of userList){const vd=await fbGet("verses",u.id);counts[u.id]=(vd?.list||[]).length;}
-    S.users=userList;S.counts=counts;
-  }catch(e){console.error("Boot:",e);}
-  render();
+    const userList=data.list||[];
+
+    // Schnellstart: Profile sofort anzeigen, ohne zuerst alle Vers-Dokumente zu laden.
+    const initialCounts={};
+    userList.forEach(u=>{initialCounts[u.id]=Number.isFinite(Number(u.verseCount))?Number(u.verseCount):0;});
+    S.users=userList;
+    S.counts=initialCounts;
+    S.profilesLoading=false;
+    S.countsLoading=userList.length>0;
+    render();
+
+    // Danach Verszahlen parallel im Hintergrund prüfen und ggf. in app/users korrigieren.
+    if(userList.length){
+      const entries=await Promise.all(userList.map(async u=>{
+        const vd=await fbGet("verses",u.id);
+        return [u.id,(vd?.list||[]).length];
+      }));
+      const counts=Object.fromEntries(entries);
+      let changed=false;
+      const updatedUsers=userList.map(u=>{
+        const realCount=counts[u.id]??0;
+        if(Number(u.verseCount??-1)!==realCount){changed=true;return {...u,verseCount:realCount};}
+        return u;
+      });
+      S.users=updatedUsers;
+      S.counts=counts;
+      S.countsLoading=false;
+      render();
+      if(changed)await fbSet("app","users",{list:updatedUsers});
+    } else {
+      S.countsLoading=false;
+      render();
+    }
+  }catch(e){
+    console.error("Boot:",e);
+    S.profilesLoading=false;
+    S.countsLoading=false;
+    render();
+  }
 })();
 
 
@@ -1317,10 +1428,11 @@ initBibelSort=function(s){if(!s)return set({view:'bibelsort',activeTab:'books',t
 renderTempleScopeSelect=function(){const hdr=div('page-header',btn('back-btn','←',()=>set({view:'menu',activeTab:'books'})),el('h2',{cls:'page-title'},'Tempelbau')),c=(s,i,t)=>el('button',{cls:'scope-btn',type:'button',onclick:()=>{S.templeStones=0;S.templeDone=false;S.templeStatsSaved=false;initBibelSort(s);}},span('scope-icon',i),el('div',{},p('scope-title',t),p('scope-sub','5 Phasen · 3 Schritte pro Phase')));return el('div',{},hdr,tabTitle('','Bücher ordnen','Wähle, welche Bücher im Tempelbau vorkommen sollen.'),div('scope-grid',c('AT','📜','Nur Altes Testament'),c('NT','✝️','Nur Neues Testament'),c('ALL','📖','AT & NT gemeinsam')));};
 renderTempleProgress=function(n){const phase=templeCurrentPhase(),pct=Math.min(100,(n/TEMPLE_TOTAL_STEPS)*100),wrap=div('temple-phase-progress');const track=el('div',{cls:'temple-phase-track'},el('div',{cls:'temple-phase-fill',style:`width:${pct}%`}));const marks=div('temple-phase-marks');TEMPLE_PHASES.forEach((p,i)=>{const reached=phase>=i+1,step=(i+1)*TEMPLE_PHASE_SIZE,pos=(step/TEMPLE_TOTAL_STEPS)*100;marks.appendChild(el('div',{cls:'temple-phase-mark '+(reached?'done':''),style:`left:${pos}%`},span('temple-phase-emoji',p.emoji),span('temple-phase-name',p.label)));});track.appendChild(marks);wrap.appendChild(track);return wrap;};
 renderTemple=function(){const n=S.templeStones||0,phase=templeCurrentPhase();const area=div('temple-image-area');area.appendChild(div('temple-sky',`🏗️ Tempelbau · ${n} / ${TEMPLE_TOTAL_STEPS} Schritte`));const img=el('img',{cls:'temple-phase-img',src:TEMPLE_PHASE_IMAGES[phase],alt:`Tempelbau Phase ${phase} von 5`});area.appendChild(img);area.appendChild(p('temple-phase',templePhaseLabel(n)));area.appendChild(renderTempleProgress(n));return area;};
-checkTempleOrder=function(){const ok=S.bsCurrent.every((v,i)=>v===S.bsCorrect[i]);const before=S.templeStones||0;const floor=templePhaseFloor(before);const ns=ok?Math.min(TEMPLE_TOTAL_STEPS,before+1):Math.max(floor,before-1);const beforePhase=Math.floor(before/TEMPLE_PHASE_SIZE),afterPhase=Math.floor(ns/TEMPLE_PHASE_SIZE);let msg;if(ok&&ns>=TEMPLE_TOTAL_STEPS)msg='Der Tempel wurde vollendet.';else if(ok&&afterPhase>beforePhase)msg=`Phase ${afterPhase} erreicht: ${TEMPLE_PHASES[afterPhase-1].label}.`;else if(ok)msg='Ein Schritt wurde geschafft.';else if(ns<before)msg='Eine falsche Antwort wirft dich einen Schritt zurück.';else msg='Die Phase bleibt erhalten.';const p={bsChecked:true,templeStones:ns,templeDone:ns>=TEMPLE_TOTAL_STEPS,templeMsg:msg,templeMsgOk:ok};if(ns>=TEMPLE_TOTAL_STEPS&&!S.templeStatsSaved){p.templeStatsSaved=true;incUser(scopeKey('templeWins',S.templeScope));}showToast(msg,ok?'success':'error',ok?'Tempelbau':'Nicht ganz',ok?1500:2600);set(p);};
+checkTempleOrder=function(){const ok=S.bsCurrent.every((v,i)=>v===S.bsCorrect[i]);const before=S.templeStones||0;const floor=templePhaseFloor(before);const ns=ok?Math.min(TEMPLE_TOTAL_STEPS,before+1):Math.max(floor,before-1);const beforePhase=Math.floor(before/TEMPLE_PHASE_SIZE),afterPhase=Math.floor(ns/TEMPLE_PHASE_SIZE);let msg;if(ok&&ns>=TEMPLE_TOTAL_STEPS)msg='Der Tempel wurde vollendet.';else if(ok&&afterPhase>beforePhase)msg=`Phase ${afterPhase} erreicht: ${TEMPLE_PHASES[afterPhase-1].label}.`;else if(ok)msg='Ein Schritt wurde geschafft.';else if(ns<before)msg='Eine falsche Antwort wirft dich einen Schritt zurück.';else msg='Die Phase bleibt erhalten.';const p={bsChecked:true,templeStones:ns,templeDone:ns>=TEMPLE_TOTAL_STEPS,templeMsg:msg,templeMsgOk:ok};if(ok&&afterPhase>beforePhase)p.templePhasePopup=afterPhase;if(ns>=TEMPLE_TOTAL_STEPS&&!S.templeStatsSaved){p.templeStatsSaved=true;incUser(scopeKey('templeWins',S.templeScope));}showToast(msg,ok?'success':'error',ok?'Tempelbau':'Nicht ganz',ok?1500:2600);set(p);};
 moveBook=function(f,t){if(f===t||f==null||t==null)return;const a=[...S.bsCurrent],[it]=a.splice(f,1);a.splice(t,0,it);S.bsCurrent=a;S.bsDrag=t;S.bsDragOver=t;render();};
 beginTempleDrag=function(pos,e){if(S.bsChecked)return;e.preventDefault();S.bsDrag=pos;S.bsDragOver=pos;const move=ev=>{ev.preventDefault();const row=document.elementFromPoint(ev.clientX,ev.clientY)?.closest?.('[data-bs-pos]');if(row){const to=Number(row.getAttribute('data-bs-pos'));if(to!==S.bsDrag)moveBook(S.bsDrag,to);}},up=()=>{document.removeEventListener('pointermove',move);document.removeEventListener('pointerup',up);document.removeEventListener('pointercancel',up);S.bsDrag=null;S.bsDragOver=null;render();};document.addEventListener('pointermove',move,{passive:false});document.addEventListener('pointerup',up,{once:true});document.addEventListener('pointercancel',up,{once:true});};
-renderBibelSort=function(){if(!S.templeScope)return renderTempleScopeSelect();const hdr=div('page-header',btn('back-btn','←',()=>set({view:'menu',activeTab:'books'})),el('h2',{cls:'page-title'},'Tempelbau')),wrap=el('div',{},hdr,tabTitle('','Bücher ordnen',`${templeRange(S.templeScope).label} · 5 Phasen à 3 Schritte`),renderTemple());if(S.templeDone){wrap.append(renderConfetti(),div('temple-win',span('temple-win-emoji','🏛️'),p('temple-win-title','Der Tempel wurde gebaut!'),p('temple-win-sub','Du hast alle 5 Phasen vollendet: Mauer, Treppe, Säulen, Dach und Licht.'),btn('prim-btn','Neuer Tempel',()=>set({templeScope:null,templeDone:false,templeStones:0,bsChecked:false}))));return wrap;}const list=div('bs-books temple-list',...S.bsCurrent.map((idx,pos)=>{let cl='bs-item';if(S.bsChecked)cl+=S.bsCurrent[pos]===S.bsCorrect[pos]?' correct':' wrong';else if(S.bsDragOver===pos)cl+=' drag-over';const it=div(cl,span('bs-pos',String(pos+1)),span('',BUECHER[idx]),span('drag-handle','↕'));it.setAttribute('data-bs-pos',String(pos));if(!S.bsChecked)it.onpointerdown=e=>beginTempleDrag(pos,e);return it;}));wrap.append(p('mode-help','Ziehe die 5 aufeinanderfolgenden Bücher in die richtige Reihenfolge, um den Tempel schrittweise auszubauen.'),el('ul',{cls:'mode-bullets'},el('li',{},'Eine falsche Antwort wirft dich einen Schritt zurück.'),el('li',{},'Eine einmal abgeschlossene Phase kannst du nicht mehr verlieren!')),list);if(!S.bsChecked)wrap.appendChild(btn('bs-check','Antwort prüfen ✓',checkTempleOrder));else wrap.append(btn('bo-next','Nächste Aufgabe →',()=>initBibelSort(S.templeScope)));return wrap;};
+renderTemplePhasePopup=function(){const ph=S.templePhasePopup;if(!ph)return null;const idx=Math.max(0,Math.min(5,ph));const title=idx>=5?'Tempel vollendet!':`Phase ${idx} erreicht`;const sub=idx>=5?'Das fertige Tempelbild ist erreicht.':`${TEMPLE_PHASES[idx-1].emoji} ${TEMPLE_PHASES[idx-1].label} wurde fertiggestellt.`;return div('temple-phase-pop',div('temple-phase-card',el('img',{cls:'temple-popup-img',src:TEMPLE_PHASE_IMAGES[idx],alt:title}),p('temple-popup-title',title),p('temple-popup-sub',sub),btn('prim-btn','Weiter',()=>set({templePhasePopup:null}))));};
+renderBibelSort=function(){if(!S.templeScope)return renderTempleScopeSelect();const popup=renderTemplePhasePopup();const hdr=div('page-header',btn('back-btn','←',()=>set({view:'menu',activeTab:'books'})),el('h2',{cls:'page-title'},'Tempelbau')),wrap=el('div',{},hdr,tabTitle('','Bücher ordnen',`${templeRange(S.templeScope).label} · 5 Phasen à 3 Schritte`),renderTemple());if(S.templeDone){wrap.append(renderConfetti(),div('temple-win',el('img',{cls:'temple-win-img',src:TEMPLE_PHASE_IMAGES[5],alt:'Fertig gebauter Tempel'}),p('temple-win-title','Der Tempel wurde gebaut!'),p('temple-win-sub','Du hast alle 5 Phasen vollendet: Mauer, Treppe, Säulen, Dach und Licht.'),btn('prim-btn','Neuer Tempel',()=>set({templeScope:null,templeDone:false,templeStones:0,templePhasePopup:null,bsChecked:false}))));if(popup)wrap.appendChild(popup);return wrap;}const list=div('bs-books temple-list',...S.bsCurrent.map((idx,pos)=>{let cl='bs-item';if(S.bsChecked)cl+=S.bsCurrent[pos]===S.bsCorrect[pos]?' correct':' wrong';else if(S.bsDragOver===pos)cl+=' drag-over';const it=div(cl,span('bs-pos',String(pos+1)),span('',BUECHER[idx]),span('drag-handle','↕'));it.setAttribute('data-bs-pos',String(pos));if(!S.bsChecked)it.onpointerdown=e=>beginTempleDrag(pos,e);return it;}));wrap.append(p('mode-help','Ziehe die 5 aufeinanderfolgenden Bücher in die richtige Reihenfolge, um den Tempel schrittweise auszubauen.'),el('ul',{cls:'mode-bullets'},el('li',{},'Eine falsche Antwort wirft dich einen Schritt zurück.'),el('li',{},'Eine einmal abgeschlossene Phase kannst du nicht mehr verlieren!')),list);if(!S.bsChecked)wrap.appendChild(btn('bs-check','Antwort prüfen ✓',checkTempleOrder));else wrap.append(btn('bo-next','Nächste Aufgabe →',()=>initBibelSort(S.templeScope)));if(popup)wrap.appendChild(popup);return wrap;};
 // Lücke füllen
 bfRange=s=>s==='AT'?{min:0,max:38,label:'AT'}:s==='NT'?{min:39,max:65,label:'NT'}:{min:0,max:65,label:'AT & NT'};bfNext=function(){const r=bfRange(S.bfScope);S.bfIdx=r.min+Math.floor(Math.random()*(r.max-r.min-1));S.bfInput='';};updateBfTimer=function(){const rem=Math.max(0,Math.ceil(((S.bfEndAt||Date.now())-Date.now())/1000));const t=document.getElementById('bfTimer');if(t)t.textContent=String(rem);const b=document.getElementById('bfTimeBar');if(b)b.style.width=(rem/90*100)+'%';};startBookFill=function(s){if(S.bfTimerId)clearInterval(S.bfTimerId);Object.assign(S,{bfScope:s,bfScore:0,bfStreak:1,bfCorrect:0,bfDone:false,bfSaved:false,bfMsg:'',bfMsgOk:null,bfEndAt:Date.now()+90000});bfNext();S.bfTimerId=setInterval(()=>{if(S.view!=='bookfill'){clearInterval(S.bfTimerId);S.bfTimerId=null;return;}if(Date.now()>=S.bfEndAt)finishBookFill();else updateBfTimer();},250);set({view:'bookfill',activeTab:'books',bfFocus:true});};bfHighscores=()=>S.user?.bookFillHighscores||[];saveBookFillScore=async function(){if(!S.user||S.bfSaved)return;S.bfSaved=true;const entry={date:new Date().toISOString(),score:S.bfScore||0,scope:S.bfScope||'ALL',correct:S.bfCorrect||0};const scores=[...bfHighscores(),entry].sort((a,b)=>(b.score||0)-(a.score||0)).slice(0,5);saveUserPatch({bookFillHighscores:scores});};finishBookFill=function(){if(S.bfTimerId){clearInterval(S.bfTimerId);S.bfTimerId=null;}S.bfDone=true;S.bfEndAt=Date.now();saveBookFillScore().then(()=>render());render();};checkBookFill=function(){if(S.bfDone)return;const target=BUECHER[(S.bfIdx||0)+1];if(abMatch(S.bfInput||'',target)){const pts=Math.max(1,S.bfStreak||1);S.bfScore+=pts;S.bfCorrect++;S.bfStreak++;S.bfMsg='';S.bfMsgOk=true;showToast(`+${pts} Punkte – richtig!`,'books','Treffer',900);bfNext();}else{S.bfStreak=1;S.bfMsg='';S.bfMsgOk=false;showToast(`Richtig wäre: ${target}`,'error','Nicht ganz',1400);bfNext();}S.bfFocus=true;render();};renderBookFillScopeSelect=function(){const hdr=div('page-header',btn('back-btn','←',()=>set({view:'menu',activeTab:'books'})),el('h2',{cls:'page-title'},'Lücke füllen')),c=(s,i,t,sub)=>el('button',{cls:'scope-btn',type:'button',onclick:()=>startBookFill(s)},span('scope-icon',i),el('div',{},p('scope-title',t),p('scope-sub',sub)));return el('div',{},hdr,tabTitle('','Lücke füllen','Fülle in 90 Sekunden möglichst viele mittlere Bibelbücher korrekt aus.'),div('scope-grid',c('AT','📜','Nur Altes Testament','39 Bücher'),c('NT','✝️','Nur Neues Testament','27 Bücher'),c('ALL','📖','AT & NT gemeinsam','Alle 66 Bücher')),renderBookFillHighscores());};fmtDate=iso=>{try{return new Date(iso).toLocaleDateString('de-CH',{day:'2-digit',month:'2-digit',year:'numeric'});}catch{return iso||'';}};renderBookFillHighscores=function(){const scores=bfHighscores(),box=div('bf-highscores',p('bf-high-title','🏅 Deine Top 5'));if(!scores.length){box.appendChild(p('tab-sub','Noch kein Ergebnis gespeichert.'));return box;}scores.forEach((sc,i)=>box.appendChild(div('bf-score-row',span('bf-rank',String(i+1)+'.'),el('div',{},span('',scopeLabel(sc.scope)),p('bf-score-meta',`${fmtDate(sc.date)} · ${sc.correct||0} richtige Lücken`)),span('bf-score-points',String(sc.score||0)))));return box;};renderBookFill=function(){if(!S.bfScope)return renderBookFillScopeSelect();const left=BUECHER[S.bfIdx],right=BUECHER[(S.bfIdx||0)+2],rem=Math.max(0,Math.ceil(((S.bfEndAt||Date.now())-Date.now())/1000));if(rem<=0&&!S.bfDone)setTimeout(finishBookFill,0);const hdr=div('page-header',btn('back-btn','←',()=>{if(S.bfTimerId)clearInterval(S.bfTimerId);set({view:'menu',activeTab:'books'});}),el('h2',{cls:'page-title'},'Lücke füllen')),wrap=el('div',{},hdr,tabTitle('','Lücke füllen',scopeLabel(S.bfScope)));if(S.bfDone){wrap.append(div('bf-done',span('bf-done-emoji','⏱️'),p('bf-done-title','Zeit abgelaufen!'),p('bf-done-sub',`Du hast ${S.bfScore||0} Punkte erreicht und ${S.bfCorrect||0} Lücken korrekt gefüllt.`),btn('prim-btn','Neue Runde',()=>set({bfScope:null,bfDone:false,bfSaved:false}))),renderBookFillHighscores());return wrap;}const inp=el('input',{cls:'bf-input',id:'bfInput',type:'text',placeholder:'Mittleres Buch eintippen…'});inp.value=S.bfInput||'';inp.oninput=e=>S.bfInput=e.target.value;inp.onkeydown=e=>{if(e.key==='Enter')checkBookFill();};wrap.append(div('bf-panel',p('mode-help','Fülle das fehlende Buch so schnell und richtig wie möglich aus.'),div('bf-top',div('bf-stat',el('div',{cls:'bf-stat-n',id:'bfTimer'},String(rem)),p('bf-stat-l','Sekunden')),div('bf-stat',p('bf-stat-n',String(S.bfScore||0)),p('bf-stat-l','Punkte')),div('bf-stat',p('bf-stat-n',String(S.bfStreak||1)),p('bf-stat-l','Streak-Wert'))),div('bf-timebar',el('div',{cls:'bf-timebar-fill',id:'bfTimeBar',style:`width:${rem/90*100}%`})),div('bf-books',div('bf-book',left),span('bf-arrow','→'),div('bf-book',right)),div('bf-gap','?'),inp,btn('bf-check','Antwort prüfen ✓',checkBookFill)),renderBookFillHighscores());if(S.bfFocus){S.bfFocus=false;setTimeout(()=>document.getElementById('bfInput')?.focus({preventScroll:true}),40);}return wrap;};
 // Bücher der Reihe nach
@@ -1716,6 +1828,12 @@ const style=document.createElement('style'); style.textContent=`
     }
   };
 })();
+</script>
+
+
+<script>
+/* v092 – Adaptive Layout Guard: Mobile nur bei wenig Platz; Desktop/Tablet gross bleiben original. */
+(function(){const root=document.documentElement,editableSelector='input, textarea, select, [contenteditable="true"]';let blurTimer=null,lastBackClick=0;function vp(){return {w:window.innerWidth||root.clientWidth||0,h:window.innerHeight||root.clientHeight||0};}function isCoarse(){return window.matchMedia('(pointer: coarse)').matches;}function isMobileLike(){const v=vp();return v.w<=700||(isCoarse()&&v.w<=820&&v.h>=v.w)||(v.w<=760&&v.h<=900);}function editable(){const el=document.activeElement;return el&&el.closest&&el.closest(editableSelector)?el:null;}function viewportHeight(){return window.visualViewport?window.visualViewport.height:window.innerHeight;}function keyboardOpen(){if(!isMobileLike())return false;const vv=window.visualViewport,el=editable();if(!el)return false;if(!vv)return true;const layoutH=window.innerHeight||root.clientHeight||vv.height,lost=Math.max(0,layoutH-vv.height-Math.max(0,vv.offsetTop||0));return lost>90||vv.height<layoutH*.84;}function clickBack(){const now=Date.now();if(now-lastBackClick<350)return;lastBackClick=now;const el=editable();if(el)el.blur();setTimeout(function(){const b=document.querySelector('.page-header .back-btn, .back-btn');if(b)b.click();},80);}function ensureKeyboardHelper(){if(document.querySelector('.keyboard-nav-helper'))return;const wrap=document.createElement('div');wrap.className='keyboard-nav-helper';wrap.setAttribute('aria-label','Tastatur Navigation');const back=document.createElement('button');back.type='button';back.className='knh-back';back.textContent='← Zurück';back.onclick=clickBack;const close=document.createElement('button');close.type='button';close.className='knh-close';close.textContent='Tastatur ↓';close.onclick=function(){const el=editable();if(el)el.blur();};wrap.append(back,close);document.body.appendChild(wrap);}function ensureSessionBar(){if(document.querySelector('.mobile-session-bar'))return;const wrap=document.createElement('div');wrap.className='mobile-session-bar';wrap.setAttribute('aria-label','Spiel Navigation');const exit=document.createElement('button');exit.type='button';exit.className='msb-exit';exit.textContent='← Menü';exit.onclick=clickBack;const top=document.createElement('button');top.type='button';top.className='msb-top';top.textContent='↑ Oben';top.onclick=function(){window.scrollTo({top:0,behavior:'smooth'});};wrap.append(exit,top);document.body.appendChild(wrap);}function inSession(){return !!document.querySelector('.journey-map,.temple-image-area,.luecke-card,.card-area,.chunk-list,.bo-card,.bf-panel,.quiz-question-card,.bs-books.temple-list');}function adaptJourneyMap(){if(typeof window.renderJourneyMap!=='function'||window.__v092JourneyPatched)return;const orig=window.renderJourneyMap;window.renderJourneyMap=function(){const map=orig();if(document.body&&document.body.classList.contains('is-mobile')){const path=map.querySelector('.route-path');if(path)path.setAttribute('d','M6 56 C24 50 40 60 56 54 S78 50 94 55');const dots=[...map.querySelectorAll('.route-dot')],step=S.journeyStep||0;dots.forEach((d,i)=>{const s=i;const x=6+s*(88/20),y=56-Math.sin(s/20*Math.PI)*9+Math.sin(s*.9)*1.8;d.style.left=x+'%';d.style.top=y+'%';});const tr=map.querySelector('.traveler');if(tr){const s=step,x=6+s*(88/20),y=56-Math.sin(s/20*Math.PI)*9+Math.sin(s*.9)*1.8;tr.style.left=x+'%';tr.style.top=y+'%';}}return map;};window.__v092JourneyPatched=true;}function apply(){root.style.setProperty('--app-vvh',Math.max(320,Math.round(viewportHeight()))+'px');if(!document.body)return;const mobile=isMobileLike();document.body.classList.toggle('is-mobile',mobile);document.body.classList.toggle('keyboard-open',keyboardOpen());document.body.classList.toggle('in-session',mobile&&inSession());ensureKeyboardHelper();ensureSessionBar();adaptJourneyMap();}function revealFocused(delay){const el=editable();if(!el||!isMobileLike())return;setTimeout(function(){try{el.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'});}catch(e){el.scrollIntoView(false);}},delay||120);}function bind(){apply();window.addEventListener('resize',apply,{passive:true});window.addEventListener('orientationchange',function(){setTimeout(apply,250);},{passive:true});document.addEventListener('focusin',function(e){if(e.target&&e.target.closest&&e.target.closest(editableSelector)){if(blurTimer)clearTimeout(blurTimer);apply();revealFocused(160);}},true);document.addEventListener('focusout',function(){if(blurTimer)clearTimeout(blurTimer);blurTimer=setTimeout(apply,220);},true);if(window.visualViewport){window.visualViewport.addEventListener('resize',function(){apply();revealFocused(80);},{passive:true});window.visualViewport.addEventListener('scroll',apply,{passive:true});}new MutationObserver(function(){apply();}).observe(document.getElementById('app')||document.body,{childList:true,subtree:true});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();})();
 </script>
 
 </body>
