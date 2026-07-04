@@ -464,6 +464,20 @@ body.is-mobile .form-panel,body.is-mobile .journey-question,body.is-mobile .bf-p
 body.is-mobile .profile-trophy-row{gap:6px;margin-top:6px;}
 body.is-mobile .profile-trophy-badge{font-size:9.5px;padding:3px 6px;}
 
+
+
+/* v104 – Neue Runde bleibt im aktuellen Versmodus */
+.adaptive-summary{padding:13px 14px;margin:0 0 12px;border-radius:16px;background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(139,92,246,.08));border:1px solid rgba(147,197,253,.22);color:rgba(237,233,254,.88);font-size:13px;line-height:1.45;text-align:center;}
+.adaptive-summary strong{color:#dbeafe;font-weight:700;}
+.adaptive-chip{display:inline-flex;align-items:center;gap:4px;margin-left:6px;padding:2px 7px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(196,181,253,.13);font-size:10px;color:rgba(237,233,254,.72);vertical-align:middle;}
+.adaptive-chip.ready{background:rgba(59,130,246,.14);border-color:rgba(96,165,250,.24);color:#dbeafe;}
+.adaptive-chip.practice{background:rgba(251,191,36,.10);border-color:rgba(251,191,36,.24);color:#fef3c7;}
+.adaptive-chip.stable{background:rgba(34,197,94,.10);border-color:rgba(74,222,128,.22);color:#dcfce7;}
+.menu-adaptive{background:linear-gradient(135deg,#1e3a8a,#4338ca 52%,#7c3aed)!important;border:1px solid rgba(147,197,253,.58)!important;box-shadow:0 0 18px rgba(96,165,250,.24),0 10px 34px rgba(99,102,241,.24)!important;}
+
+
+/* v102 – Ausführliche Punkte-Hilfe unter Verse verwalten */
+.points-help-btn{width:100%;padding:13px 15px;border-radius:15px;margin:0 0 12px;border:1px solid rgba(147,197,253,.28);background:linear-gradient(135deg,rgba(37,99,235,.15),rgba(139,92,246,.10));color:#dbeafe;font-size:13px;font-weight:600;cursor:pointer;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:10px}.points-help-panel{padding:15px;margin:0 0 14px;border-radius:18px;background:linear-gradient(135deg,rgba(255,255,255,.055),rgba(59,130,246,.07));border:1px solid rgba(147,197,253,.18);color:rgba(237,233,254,.86);font-size:12.5px;line-height:1.55}.points-help-panel h3{font-size:14px;color:#ede9fe;margin:0 0 8px}.points-help-panel h4{font-size:12px;color:#bfdbfe;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.45px}.points-help-panel ul{margin:5px 0 8px 18px}.points-help-panel li{margin:3px 0}.points-help-grid{display:grid;grid-template-columns:1fr auto;gap:5px 10px;margin:6px 0 10px}.points-help-grid span:nth-child(even){color:#dbeafe;font-weight:700;text-align:right}.points-help-note{margin-top:10px;padding:9px 10px;border-radius:12px;background:rgba(59,130,246,.10);border:1px solid rgba(147,197,253,.14);color:rgba(219,234,254,.92)}.points-help-subnote{font-size:11.5px;color:rgba(196,226,255,.74);margin-top:-4px;margin-bottom:8px}.points-help-rule{margin:7px 0 9px;padding:9px 10px;border-radius:12px;background:rgba(255,255,255,.045);border:1px solid rgba(196,181,253,.11)}.points-help-rule strong{color:#ede9fe}.points-help-mini{font-size:11.5px;color:rgba(237,233,254,.68)}
 </style>
 </head>
 <body>
@@ -506,7 +520,14 @@ async function loadVerse(tr,bi,ch,vs){
   try{const bk=encodeURIComponent(BUECHER_API[bi]);const r=await fetch(`https://query.getbible.net/v2/${tr}/${bk} ${ch}:${vs}`);const d=await r.json();const k=Object.keys(d)[0];if(!k)return null;const vv=d[k].verses;return vv&&vv.length?vv[0].text.trim():null;}catch{return null;}
 }
 
-function getWeight(v){const d=(Date.now()-v.added)/86400000;const nb=d<2?4:d<7?2:1;const eb=Math.max(0,(v.attempts-v.score*2))*2;const mp=v.score>4?Math.pow(0.5,v.score-4):1;return Math.max(0.1,(nb+eb+1)*mp);}
+function getWeight(v){
+  const d=(Date.now()-(v.added||Date.now()))/86400000;
+  const nb=d<2?4:d<7?2:1;
+  const eb=Math.max(0,((v.attempts||0)-(v.score||0)*2))*2;
+  const mp=(v.score||0)>4?Math.pow(0.5,(v.score||0)-4):1;
+  const due=adaptiveDueScore(v);
+  return Math.max(0.1,(nb+eb+1)*mp + due*1.8);
+}
 function pickTen(verses){if(!verses.length)return[];const w=verses.map(getWeight),tot=w.reduce((a,b)=>a+b,0);const chosen=[],used=new Set(),cnt=Math.min(10,verses.length);let t=0;while(chosen.length<cnt&&t<500){t++;let r=Math.random()*tot;for(let i=0;i<verses.length;i++){r-=w[i];if(r<=0&&!used.has(i)){used.add(i);chosen.push({...verses[i]});break;}}}return chosen.sort(()=>Math.random()-.5);}
 function addHistory(v,ok){const h=[...(v.history||[]),ok];return h.slice(-10);}
 function getPct(v){const h=v.history||[];if(!h.length)return null;return Math.round(h.filter(Boolean).length/h.length*100);}
@@ -514,6 +535,139 @@ function getPctLast5(v){
   const h=(v.history||[]).slice(-5);
   if(!h.length)return null;
   return Math.round(h.filter(Boolean).length/h.length*100);
+}
+
+function clampPoints(n){return Math.max(0,Math.min(100,Math.round(n)));}
+function migratedPoints(v){
+  if(typeof v.points==='number')return clampPoints(v.points);
+  if(typeof v.adaptiveOverall==='number')return clampPoints(v.adaptiveOverall);
+  if((v.attempts||0)>0)return clampPoints((v.score||0)*18);
+  return null;
+}
+function decayedPoints(v,now=Date.now()){
+  const base=migratedPoints(v);
+  if(base===null)return null;
+  const last=v.pointsUpdatedAt||v.adaptiveLastAt||v.added||now;
+  const days=Math.max(0,(now-last)/86400000);
+  let grace=2,stepDays=2;
+  if(base>=80){grace=30;stepDays=7;}
+  else if(base>=60){grace=14;stepDays=5;}
+  else if(base>=30){grace=5;stepDays=3;}
+  const loss=days<=grace?0:Math.floor((days-grace)/stepDays)*2;
+  return clampPoints(base-loss);
+}
+function pointStatus(v){
+  const p=decayedPoints(v);
+  if(p===null)return {key:'new',cls:'practice',txt:'🌱 Neu',points:null};
+  if(p<30)return {key:'practice',cls:'practice',txt:'🔥 Braucht Übung',points:p};
+  if(p<60)return {key:'refresh',cls:'ready',txt:'🔁 Zum Auffrischen',points:p};
+  if(p<80)return {key:'good',cls:'stable',txt:'🌳 Sitzt gut',points:p};
+  return {key:'mastered',cls:'stable',txt:'🏆 Gemeistert',points:p};
+}
+function pointsDelta(mode,result,current){
+  const p=current??0;
+  if(mode==='flash')return result.ok?(p<30?30:p<60?24:p<80?18:10):-22;
+  if(mode==='gap'){const a=result.accuracy||0;if(a>=1)return 14;if(a>=.75)return 10;if(a>=.5)return 5;if(a>=.25)return 0;if(a>0)return -4;return -8;}
+  if(mode==='order'){const a=result.accuracy||0;if(a>=1)return 10;if(a>=.75)return 7;if(a>=.5)return 3;if(a>=.25)return 0;return -5;}
+  if(mode==='reference'){const a=result.accuracy||0;if(a>=1)return 5;if(a>=.75)return 4;if(a>=.5)return 3;if(a>=.25)return 2;return -3;}
+  return result.ok?8:-8;
+}
+function cleanVerseForStorage(v){
+  const p=decayedPoints(v);
+  const base={id:v.id,stelle:v.stelle,text:v.text,added:v.added||Date.now()};
+  if(p===null)return {...base,points:null,pointsUpdatedAt:null};
+  return {...base,points:clampPoints(p),pointsUpdatedAt:v.pointsUpdatedAt||v.adaptiveLastAt||Date.now()};
+}
+function updateLearningPoints(v,mode,result){
+  const current=decayedPoints(v);
+  const next=clampPoints((current??0)+pointsDelta(mode,result,current));
+  return {id:v.id,stelle:v.stelle,text:v.text,added:v.added||Date.now(),points:next,pointsUpdatedAt:Date.now()};
+}
+function versePointCounts(){
+  const c={total:S.verses.length,practice:0,refresh:0,good:0,mastered:0,new:0};
+  S.verses.forEach(v=>{const st=pointStatus(v);c[st.key]=(c[st.key]||0)+1;});
+  return c;
+}
+
+
+const ADAPTIVE_DEFAULTS={
+  text:{strength:15,intervalDays:0,dueAt:0,lastReviewedAt:0,lapses:0},
+  gap:{strength:15,intervalDays:0,dueAt:0,lastReviewedAt:0,lapses:0},
+  order:{strength:15,intervalDays:0,dueAt:0,lastReviewedAt:0,lapses:0},
+  reference:{strength:10,intervalDays:0,dueAt:0,lastReviewedAt:0,lapses:0}
+};
+function clamp(n,min=0,max=100){return Math.max(min,Math.min(max,n));}
+function cloneAdaptiveBase(){return JSON.parse(JSON.stringify(ADAPTIVE_DEFAULTS));}
+function ensureAdaptive(v){return {...cloneAdaptiveBase(),...(v.learning||{})};}
+function adaptiveArea(v,area){const l=ensureAdaptive(v);return {...ADAPTIVE_DEFAULTS[area],...(l[area]||{})};}
+function adaptiveBumpArea(area,result,mode){
+  const now=Date.now();
+  const ok=!!result.ok;
+  const accuracy=typeof result.accuracy==='number'?result.accuracy:(ok?1:0);
+  let strengthDelta=0,intervalMult=1.7,minInterval=1;
+  if(mode==='flash'){
+    strengthDelta=ok?12:-18;intervalMult=2.15;minInterval=ok?1:0;
+  }else if(mode==='gap'){
+    strengthDelta=accuracy>=1?10:accuracy>=.7?5:-8;intervalMult=accuracy>=1?1.95:accuracy>=.7?1.35:.55;minInterval=accuracy>=.7?1:0;
+  }else if(mode==='order'){
+    const lengthFactor=clamp((result.wordCount||12)/18,.45,1.25);
+    strengthDelta=ok?Math.round(7*lengthFactor):-5;intervalMult=ok?1.45:.7;minInterval=ok?1:0;
+  }else{
+    strengthDelta=ok?8:-8;intervalMult=ok?1.6:.7;minInterval=ok?1:0;
+  }
+  const oldInt=Number(area.intervalDays||0);
+  const nextInt=ok?Math.max(minInterval,Math.round(Math.max(1,oldInt||1)*intervalMult)):(minInterval||0);
+  return {
+    ...area,
+    strength:clamp((area.strength??15)+strengthDelta),
+    intervalDays:nextInt,
+    dueAt:now+nextInt*86400000,
+    lastReviewedAt:now,
+    lapses:(area.lapses||0)+(ok?0:1)
+  };
+}
+function updateAdaptiveVerse(v,mode,result){
+  const learning=ensureAdaptive(v);
+  if(mode==='flash'){
+    learning.text=adaptiveBumpArea(learning.text,result,'flash');
+  }else if(mode==='gap'){
+    learning.gap=adaptiveBumpArea(learning.gap,result,'gap');
+    learning.text=adaptiveBumpArea(learning.text,{...result,ok:result.accuracy>=.85,accuracy:result.accuracy},'gap');
+  }else if(mode==='order'){
+    learning.order=adaptiveBumpArea(learning.order,result,'order');
+    learning.text=adaptiveBumpArea(learning.text,{...result,ok:!!result.ok,accuracy:result.ok?.45:.15},'order');
+  }
+  const textS=learning.text.strength||0,refS=learning.reference.strength||0,gapS=learning.gap.strength||0,orderS=learning.order.strength||0;
+  const overall=Math.round(textS*.55+refS*.15+gapS*.2+orderS*.1);
+  return {...v,learning,adaptiveOverall:overall,adaptiveLastMode:mode,adaptiveLastAt:Date.now()};
+}
+function adaptiveDueScore(v){
+  const p=decayedPoints(v);
+  if(p===null)return 4.3;
+  if(p>=80)return -1; // Gemeisterte Verse sind nicht für empfohlenes Training vorgesehen.
+  if(p<30)return 4.0+(30-p)/20;
+  if(p<60)return 2.4+(60-p)/30;
+  return 1.0+(80-p)/40;
+}
+function adaptiveRecommendedVerses(limit=10){
+  if(!S.verses.length)return [];
+  const candidates=S.verses.filter(v=>{const p=decayedPoints(v);return p===null||p<80;});
+  return candidates
+    .map(v=>({v,score:adaptiveDueScore(v)+Math.random()*.25}))
+    .sort((a,b)=>b.score-a.score)
+    .slice(0,Math.min(limit,candidates.length))
+    .map(x=>x.v);
+}
+function adaptiveDueCount(){return S.verses.filter(v=>{const p=decayedPoints(v);return p===null||p<80;}).length;}
+function adaptiveStatusLabel(v){
+  return pointStatus(v);
+}
+function adaptiveChip(v){const st=adaptiveStatusLabel(v);return span('adaptive-chip '+st.cls,st.txt);}
+function startRecommendedMode(mode='flash'){
+  if(!S.verses.length){showToast('Füge zuerst Verse hinzu.','verse','Noch keine Verse',1800);return;}
+  const rec=adaptiveRecommendedVerses(10);
+  showToast(`${rec.length} Verse zum Auffrischen ausgewählt.`,'verse','Empfohlenes Training',1500);
+  startMode(mode,rec,{skipPick:true});
 }
 
 
@@ -582,6 +736,7 @@ countsLoading:false
 function set(patch){Object.assign(S,patch);render();}
 async function saveUsers(list){S.users=list;await fbSet("app","users",{list});}
 async function saveVerses(list){
+  list=list.map(cleanVerseForStorage);
   S.verses=list;
   const count=list.length;
   if(S.user){
@@ -608,11 +763,13 @@ async function saveLastVerseSelection(ids){
   await saveProfileCloudPatch(upd.id,{lastVerseSelectionIds:ids});
 }
 
-function startMode(mode,verses){
-  set({modal:null});
-  if(mode==="flash")set({view:"flash",session:pickTen(verses),idx:0,flipped:false,results:[]});
-  else if(mode==="luecke"){const ses=pickTen(verses);set({view:"luecke",session:ses,idx:0,results:[],luecken:buildLuecken(ses[0])});}
-  else if(mode==="order"){const ses=pickTen(verses);set({view:"order",session:ses,idx:0,results:[],order:buildChunks(ses[0]),orderChecked:false});}
+function startMode(mode,verses,opts={}){
+  S.lastVerseMode=mode;
+  set({modal:null,lastVerseMode:mode});
+  const ses=opts.skipPick?[...verses]:pickTen(verses);
+  if(mode==="flash")set({view:"flash",session:ses,idx:0,flipped:false,results:[]});
+  else if(mode==="luecke"){set({view:"luecke",session:ses,idx:0,results:[],luecken:ses[0]?buildLuecken(ses[0]):null});}
+  else if(mode==="order"){set({view:"order",session:ses,idx:0,results:[],order:ses[0]?buildChunks(ses[0]):null,orderChecked:false});}
 }
 
 function render(){
@@ -721,7 +878,17 @@ function renderVerseSelect(){
 
   const mustLearn=S.verses.filter(v=>(v.history||[]).slice(-5).includes(false));
 
+  const recommended=adaptiveRecommendedVerses(10);
   const options=[
+    {
+      icon:"🧭",
+      title:"Empfohlenes Training",
+      sub:`${recommended.length} Verse zum Auffrischen`,
+      verses:recommended,
+      color:"rgba(96,165,250,.16)",
+      border:"rgba(147,197,253,.36)",
+      action:()=>startMode(S.vsMode,recommended,{skipPick:true})
+    },
     {
       icon:"📖",
       title:"Alle gespeicherten Verse",
@@ -739,15 +906,6 @@ function renderVerseSelect(){
       color:"rgba(56,189,248,.12)",
       border:"rgba(56,189,248,.3)",
       action:()=>set({vsCustomOpen:true})
-    },
-    {
-      icon:"🎯",
-      title:"Nochmal üben",
-      sub:"Verse mit Fehlern in den letzten 5 Karteikarten-Runden",
-      verses:mustLearn,
-      color:"rgba(139,92,246,.16)",
-      border:"rgba(196,181,253,.34)",
-      action:()=>startMode(S.vsMode,mustLearn)
     }
   ];
 
@@ -808,8 +966,9 @@ function renderSelect(){
 }
 function renderMenu(){
   const u=S.user;
-  const mastered=S.verses.filter(v=>v.score>=5).length;
-  const learning=S.verses.filter(v=>v.attempts>0&&v.score<5).length;
+  const pc=versePointCounts();
+  const mastered=pc.mastered;
+  const learning=pc.practice+pc.refresh;
   const hdr=div("page-header",
     el("div",{style:`width:42px;height:42px;border-radius:50%;background:${u.color}28;border:1.5px solid ${u.color}55;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0`},u.emoji),
     el("div",{},el("p",{style:"font-size:15px;font-weight:500;color:rgba(237,233,254,.9);margin-bottom:1px"},`Hallo, ${u.name}!`),el("p",{style:"font-size:11px;color:rgba(196,181,253,.4)"},"Dein Trainingsbereich")),
@@ -820,6 +979,8 @@ function renderMenu(){
   return el("div",{},hdr,
     mkBtn("menu-edit","📖","Verse verwalten","Hinzufügen, bearbeiten, löschen",()=>set({view:"edit",editId:null,editStelle:"",editText:""})),
     secDiv("📖","Bibelverse"),
+    div("adaptive-summary",el("strong",{},String(adaptiveDueCount()||adaptiveRecommendedVerses(10).length))," Verse zum Auffrischen bereit – freiwillig, ohne Tagespflicht."),
+    mkBtn("menu-adaptive","🧭","Empfohlenes Training",`${adaptiveDueCount()||adaptiveRecommendedVerses(10).length} Verse passend zu deinem Lernstand`,()=>startRecommendedMode("flash")),
 mkBtn("menu-flash","🎯","Karteikarten","Klassischer Flashcard-Modus",()=>set({modal:"verseselect",vsMode:"flash",vsCustomOpen:false})),
 mkBtn("menu-luecke","✏️","Lückentext","Fehlende Wörter ergänzen",()=>set({modal:"verseselect",vsMode:"luecke",vsCustomOpen:false})),
 mkBtn("menu-order","🔀","Vers-Reihenfolge","Versabschnitte sortieren",()=>set({modal:"verseselect",vsMode:"order",vsCustomOpen:false})),    secDiv("📚","Bibelbücher"),
@@ -830,13 +991,35 @@ mkBtn("menu-order","🔀","Vers-Reihenfolge","Versabschnitte sortieren",()=>set(
     mkBtn("menu-stats","📊","Meine Statistik","Lernfortschritt im Überblick",()=>set({view:"stats"})),
     mkBtn("menu-profile","⚙️","Profil bearbeiten","Name, Symbol, Farbe & Passwort",()=>set({view:"profile",pEmoji:u.emoji,pColor:u.color,pName:u.name,pOld:"",pNew:"",pNew2:"",pErr:"",pOk:false,delU:false})),
     div("stats",
-      div("stat",p("stat-n",String(S.verses.length)),p("stat-l","Verse gesamt")),
-      div("stat",p("stat-n",String(learning)),p("stat-l","In Übung")),
-      div("stat",p("stat-n",String(mastered)),p("stat-l","Gemeistert"))
+      div("stat",p("stat-n",String(S.verses.length)),p("stat-l","Total")),
+      div("stat",p("stat-n",String(pc.practice)),p("stat-l","Braucht Übung")),
+      div("stat",p("stat-n",String(pc.refresh)),p("stat-l","Auffrischen")),
+      div("stat",p("stat-n",String(pc.good)),p("stat-l","Sitzt gut")),
+      div("stat",p("stat-n",String(pc.mastered)),p("stat-l","Gemeistert"))
     )
   );
 }
 
+function renderPointsHelpToggle(){
+  const toggle=el('button',{cls:'points-help-btn',type:'button',onclick:()=>set({pointsHelp:!S.pointsHelp})},span('',S.pointsHelp?'▾ Punktesystem Erklärung ausblenden':'▸ Punktesystem Erklärung anzeigen'));
+  if(!S.pointsHelp)return toggle;
+  const panel=div('points-help-panel',
+    el('h3',{},'Wie funktioniert das Punktesystem?'),
+    p('', 'Jeder Vers hat 0–100 Punkte. Die Punkte bestimmen den Status und ob ein Vers im empfohlenen Training erscheint.'),
+    el('h4',{},'Status'),
+    div('points-help-grid',span('', '🌱 Neu'),span('', 'noch nicht geübt'),span('', '🔥 Braucht Übung'),span('', '0–29'),span('', '🔁 Zum Auffrischen'),span('', '30–59'),span('', '🌳 Sitzt gut'),span('', '60–79'),span('', '🏆 Gemeistert'),span('', '80–100')),
+    el('h4',{},'Punkte pro Übung – genau'),
+    p('points-help-subnote','Die Punkte werden nach jeder Übung zum aktuellen Punktestand addiert oder davon abgezogen. Der Wert bleibt immer zwischen 0 und 100.'),
+    div('points-help-rule',el('strong',{},'Karteikarten'),el('ul',{},el('li',{},'Gewusst bei 0–29 Punkten: +30 Punkte'),el('li',{},'Gewusst bei 30–59 Punkten: +24 Punkte'),el('li',{},'Gewusst bei 60–79 Punkten: +18 Punkte'),el('li',{},'Gewusst bei 80–100 Punkten: +10 Punkte'),el('li',{},'Nicht gewusst: −22 Punkte'))),
+    div('points-help-rule',el('strong',{},'Lückentext'),el('ul',{},el('li',{},'100 % der Lücken richtig: +14 Punkte'),el('li',{},'75–99 % richtig: +10 Punkte'),el('li',{},'50–74 % richtig: +5 Punkte'),el('li',{},'25–49 % richtig: 0 Punkte'),el('li',{},'1–24 % richtig: −4 Punkte'),el('li',{},'0 % richtig: −8 Punkte'))),
+    div('points-help-rule',el('strong',{},'Reihenfolge'),el('ul',{},el('li',{},'100 % der Abschnitte an der richtigen Position: +10 Punkte'),el('li',{},'75–99 % richtig: +7 Punkte'),el('li',{},'50–74 % richtig: +3 Punkte'),el('li',{},'25–49 % richtig: 0 Punkte'),el('li',{},'Unter 25 % richtig: −5 Punkte'))),
+    div('points-help-rule',el('strong',{},'Bibelstelle nennen'),el('ul',{},el('li',{},'Korrekt: +5 Punkte'),el('li',{},'Falsch: −3 Punkte'))),
+    el('h4',{},'Verfall über Zeit'),
+    el('ul',{},el('li',{},'Gemeistert: nach 30 Tagen, dann −2 Punkte alle 7 Tage.'),el('li',{},'Sitzt gut: nach 14 Tagen, dann −2 Punkte alle 5 Tage.'),el('li',{},'Zum Auffrischen: nach 5 Tagen, dann −2 Punkte alle 3 Tage.'),el('li',{},'Braucht Übung: nach 2 Tagen, dann −2 Punkte alle 2 Tage.')),
+    p('points-help-note','Empfohlenes Training nimmt maximal 10 passende Verse – aber niemals gemeisterte Verse. Wenn nur wenige Verse passend sind, kommen entsprechend weniger dran.')
+  );
+  return el('div',{},toggle,panel);
+}
 function renderEdit(){
   const hdr=div("page-header",btn("back-btn","←",()=>set({view:"menu",editId:null,editStelle:"",editText:""})),el("h2",{cls:"page-title"},"Verse verwalten"));
   const src=S.editSrc||"manual";
@@ -847,7 +1030,7 @@ function renderEdit(){
   const doSave=async()=>{
     if(!S.editStelle.trim()||!S.editText.trim())return;
     const wasEdit=!!S.editId;
-    let upd=S.editId?S.verses.map(v=>v.id===S.editId?{...v,stelle:S.editStelle.trim(),text:S.editText.trim()}:v):[...S.verses,{id:Date.now(),stelle:S.editStelle.trim(),text:S.editText.trim(),added:Date.now(),score:0,attempts:0,history:[]}];
+    let upd=S.editId?S.verses.map(v=>v.id===S.editId?{...v,stelle:S.editStelle.trim(),text:S.editText.trim()}:v):[...S.verses,{id:Date.now(),stelle:S.editStelle.trim(),text:S.editText.trim(),added:Date.now(),points:null,pointsUpdatedAt:null}];
     await saveVerses(upd);S.editId=null;S.editStelle="";S.editText="";S.editSrc="manual";S.apiPreview="";render();showToast(wasEdit?'Vers aktualisiert.':'Vers gespeichert – bereit fürs Training!','verse',wasEdit?'Aktualisiert':'Gespeichert',1500);
   };
   if(src==="manual"){
@@ -891,9 +1074,9 @@ function renderEdit(){
     const eb=btn("ibtn ibtn-e","✏️",()=>set({editId:v.id,editStelle:v.stelle,editText:v.text,editSrc:"manual",apiPreview:""}));
     let db2;if(S.delV===v.id)db2=btn("ibtn ibtn-dc","Löschen?",async()=>{await saveVerses(S.verses.filter(x=>x.id!==v.id));S.delV=null;render();});
     else db2=btn("ibtn ibtn-d","🗑",()=>set({delV:v.id}));
-    list.appendChild(div("vitem",el("div",{style:"flex:1"},p("v-stelle",v.stelle),p("v-text",v.text.length>90?v.text.slice(0,90)+"…":v.text),div("v-meta",scoreDots(Math.min(v.score,5)),span("",`${v.attempts} Versuche`))),el("div",{style:"display:flex;gap:5px;flex-shrink:0"},eb,db2)));
+    list.appendChild(div("vitem",el("div",{style:"flex:1"},p("v-stelle",v.stelle),p("v-text",v.text.length>90?v.text.slice(0,90)+"…":v.text),div("v-meta",adaptiveChip(v),span("",decayedPoints(v)===null?"noch nicht geübt":`${decayedPoints(v)} Punkte`))),el("div",{style:"display:flex;gap:5px;flex-shrink:0"},eb,db2)));
   });
-  return el("div",{},hdr,panel,list);
+  return el("div",{},hdr,renderPointsHelpToggle(),panel,list);
 }
 
 function renderFlash(){
@@ -903,8 +1086,8 @@ function renderFlash(){
   requestAnimationFrame(()=>{const front=area.querySelector('.f-front'),back=area.querySelector('.f-back'),cardH=Math.max(260,front.scrollHeight,back.scrollHeight)+24;area.style.setProperty('--card-h',cardH+'px');});
   area.onclick=()=>{if(!S.flipped)set({flipped:true});};
   const ans=div('ans-row',
-    btn('ans-btn ans-no','✗ Nicht gewusst',async()=>{const upd=S.verses.map(v=>v.id===card.id?{...v,score:Math.max(0,v.score-1),attempts:v.attempts+1,history:addHistory(v,false)}:v);await saveVerses(upd);showToast('Kein Stress – der Vers kommt später wieder.','error','Weiterlernen',1700);const res=[...S.results,{...card,correct:false}];if(S.idx+1>=S.session.length)set({results:res,view:'done'});else set({results:res,idx:S.idx+1,flipped:false});}),
-    btn('ans-btn ans-yes','✓ Gewusst',async()=>{const upd=S.verses.map(v=>v.id===card.id?{...v,score:v.score+1,attempts:v.attempts+1,history:addHistory(v,true)}:v);await saveVerses(upd);showToast('Yes! Diesen Vers hast du im Griff.','success','Starker Treffer',1500);const res=[...S.results,{...card,correct:true}];if(S.idx+1>=S.session.length)set({results:res,view:'done'});else set({results:res,idx:S.idx+1,flipped:false});})
+    btn('ans-btn ans-no','✗ Nicht gewusst',async()=>{const upd=S.verses.map(v=>v.id===card.id?updateLearningPoints(v,'flash',{ok:false}):v);await saveVerses(upd);showToast('Kein Stress – der Vers kommt später wieder.','error','Weiterlernen',1700);const res=[...S.results,{...card,correct:false}];if(S.idx+1>=S.session.length)set({results:res,view:'done'});else set({results:res,idx:S.idx+1,flipped:false});}),
+    btn('ans-btn ans-yes','✓ Gewusst',async()=>{const upd=S.verses.map(v=>v.id===card.id?updateLearningPoints(v,'flash',{ok:true}):v);await saveVerses(upd);showToast('Yes! Diesen Vers hast du im Griff.','success','Starker Treffer',1500);const res=[...S.results,{...card,correct:true}];if(S.idx+1>=S.session.length)set({results:res,view:'done'});else set({results:res,idx:S.idx+1,flipped:false});})
   );
   if(!S.flipped)ans.classList.add('invisible');
   return el('div',{},progRow(S.idx,S.session.length,()=>set({view:'menu'})),p('mode-help','Prüfe dich selbst.'),area,ans);
@@ -1077,7 +1260,7 @@ function renderLuecke(){
   const allDone=S.luecken.filter(t=>t.isGap).every(t=>t.state==="correct"||t.state==="wrong");
   const nextB=btn("next-btn",S.idx+1>=S.session.length?"Auswertung →":"Nächster Vers →",async()=>{
     const allOk=S.luecken.filter(t=>t.isGap).every(t=>t.state==="correct");
-    const upd=S.verses.map(v=>v.id===card.id?{...v,score:allOk?v.score+1:Math.max(0,v.score-1),attempts:v.attempts+1}:v);
+    const gaps=S.luecken.filter(t=>t.isGap);const correctGaps=gaps.filter(t=>t.state==='correct').length;const acc=gaps.length?correctGaps/gaps.length:(allOk?1:0);const upd=S.verses.map(v=>v.id===card.id?updateLearningPoints(v,'gap',{ok:allOk,accuracy:acc}):v);
     await saveVerses(upd);const res=[...S.results,{...card,correct:allOk}];
     if(S.idx+1>=S.session.length)set({results:res,view:"done"});else set({results:res,idx:S.idx+1,luecken:buildLuecken(S.session[S.idx+1])});
   });
@@ -1120,7 +1303,7 @@ function renderOrder(){
   const{orig,cur,sel,dragOver}=S.order;const checked=S.orderChecked||false;const allOk=cur.every((c,i)=>c===orig[i]);
   const list=div('chunk-list verse-order-list',...cur.map((chunk,i)=>{let cls='chunk';if(checked)cls+=cur[i]===orig[i]?' correct-pos':' chunk-wrong';else if(sel===i)cls+=' selected';else if(dragOver===i)cls+=' drag-over';const c=div(cls,span('chunk-num',String(i+1)),span('',chunk),span('drag-handle','↕'));c.setAttribute('data-chunk-pos',String(i));if(!checked){c.onpointerdown=e=>beginVerseOrderDrag(i,e);c.onclick=()=>{if(S.order?.drag!=null)return;if(sel===null||sel===undefined)set({order:{...S.order,sel:i}});else if(sel===i)set({order:{...S.order,sel:null}});else{const nc=[...cur];[nc[sel],nc[i]]=[nc[i],nc[sel]];set({order:{orig,cur:nc,sel:null}});}};}return c;}));
   let bottom;
-  if(checked){const nb=btn('next-btn',S.idx+1>=S.session.length?'Fertig →':'Nächster Vers →',()=>{const res=[...S.results,{...card,correct:allOk}];if(S.idx+1>=S.session.length)set({results:res,view:'menu'});else set({results:res,idx:S.idx+1,order:buildChunks(S.session[S.idx+1]),orderChecked:false});});nb.style.width='100%';bottom=el('div',{},nb);}else{bottom=btn('check-btn verse-order-action','Reihenfolge überprüfen ✓',()=>{const ok=S.order&&S.order.cur.every((c,i)=>c===S.order.orig[i]);showToast(ok?'Die Reihenfolge passt perfekt!':'Fast – schau dir die Reihenfolge noch einmal an.',ok?'success':'verse',ok?'Sauber sortiert':'Nochmal schauen',ok?1500:2400);set({orderChecked:true});});}
+  if(checked){const nb=btn('next-btn',S.idx+1>=S.session.length?'Fertig →':'Nächster Vers →',async()=>{const correctPos=cur.filter((c,i)=>c===orig[i]).length;const acc=orig.length?correctPos/orig.length:(allOk?1:0);const upd=S.verses.map(v=>v.id===card.id?updateLearningPoints(v,'order',{ok:allOk,accuracy:acc}):v);await saveVerses(upd);const res=[...S.results,{...card,correct:allOk}];if(S.idx+1>=S.session.length)set({results:res,view:'done',lastVerseMode:'order'});else set({results:res,idx:S.idx+1,order:buildChunks(S.session[S.idx+1]),orderChecked:false,lastVerseMode:'order'});});nb.style.width='100%';bottom=el('div',{},nb);}else{bottom=btn('check-btn verse-order-action','Reihenfolge überprüfen ✓',()=>{const ok=S.order&&S.order.cur.every((c,i)=>c===S.order.orig[i]);showToast(ok?'Die Reihenfolge passt perfekt!':'Fast – schau dir die Reihenfolge noch einmal an.',ok?'success':'verse',ok?'Sauber sortiert':'Nochmal schauen',ok?1500:2400);set({orderChecked:true});});}
   return el('div',{},progRow(S.idx,S.session.length,()=>set({view:'menu'})),span('order-stelle',card.stelle),p('mode-help','Bringe durch Ziehen und Verschieben in die richtige Reihenfolge.'),list,bottom);
 }
 
@@ -1129,7 +1312,7 @@ function renderDone(){
   const emoji=ok>=8?"🌟":ok>=5?"👏":"💪";const title=ok>=8?"Hervorragend!":ok>=5?"Gut gemacht!":"Weiter üben!";
   const dots=div("rdots",...S.results.map(r=>div("rdot "+(r.correct?"rdot-ok":"rdot-no"),r.correct?"✓":"✗")));
   const list=div("rlist",...S.results.map(r=>div("ritem",el("div",{cls:"ri-marker",style:`background:${r.correct?"#86efac":"#fca5a5"}`}),el("div",{},p("ri-stelle",r.stelle),p("ri-text",r.text.length>80?r.text.slice(0,80)+"…":r.text)))));
-  return el("div",{},div("done-top",span("done-emoji",emoji),el("h2",{cls:"done-title"},title),p("done-sub",`${ok} von ${tot} Versen gewusst`),dots),list,div("btn-row",btn("ghost-btn","Menü",()=>set({view:"menu"})),btn("prim-btn","Neue Runde",()=>set({view:"flash",session:pickTen(S.verses),idx:0,flipped:false,results:[]}))));
+  return el("div",{},div("done-top",span("done-emoji",emoji),el("h2",{cls:"done-title"},title),p("done-sub",`${ok} von ${tot} Versen gewusst`),dots),list,div("btn-row",btn("ghost-btn","Menü",()=>set({view:"menu"})),btn("prim-btn","Neue Runde",()=>{const m=S.lastVerseMode||"flash";startMode(m,S.verses);})));
 }
 
 function renderBibelOrder(){
@@ -1389,7 +1572,7 @@ function scopeLabel(s){return s==='AT'?'AT':s==='NT'?'NT':'AT & NT';}
 render=function(){ensure();const root=document.getElementById('app');root.innerHTML='';if(S.modal==='login')root.appendChild(renderLogin());if(S.modal==='new')root.appendChild(renderNewUser());if(S.modal==='verseselect')root.appendChild(renderVerseSelect());if(S.view==='select')root.appendChild(renderSelect());else if(S.view==='menu')root.appendChild(renderMenu());else if(S.view==='edit')root.appendChild(renderEdit());else if(S.view==='flash')root.appendChild(renderFlash());else if(S.view==='done')root.appendChild(renderDone());else if(S.view==='luecke')root.appendChild(renderLuecke());else if(S.view==='order')root.appendChild(renderOrder());else if(S.view==='bibelorder')root.appendChild(renderBibelOrder());else if(S.view==='bibelsort')root.appendChild(renderBibelSort());else if(S.view==='bookfill')root.appendChild(renderBookFill());else if(S.view==='allbooks')root.appendChild(renderAllBooks());else if(S.view==='stats')root.appendChild(renderStats());else if(S.view==='profile')root.appendChild(renderProfile());};
 tabTitle=(k,t,s)=>div('tab-title-block',el('h2',{cls:'tab-title'},t),s?p('tab-sub',s||''):div(''));
 renderTabNav=function(){const tabs=[{id:'books',icon:'📚',label:'Bücher'},{id:'verse',icon:'📖',label:'Verse'},{id:'stats',icon:'📊',label:'Statistik'},{id:'profile',icon:'⚙️',label:'Profil'}];return el('div',{cls:'tab-nav'},...tabs.map(t=>{const b=el('button',{cls:'tab-btn'+((S.activeTab||'books')===t.id?' active':''),type:'button'},span('tab-icon',t.icon),span('tab-label',t.label));b.onclick=()=>set({activeTab:t.id});return b;}));};
-renderVerseTab=function(){const mastered=S.verses.filter(v=>v.score>=5).length,learning=S.verses.filter(v=>v.attempts>0&&v.score<5).length;const mk=(c,i,t,s,a)=>el('button',{cls:`menu-btn ${c}`,onclick:a,type:'button'},div('mc-icon',i),el('div',{},p('mc-title',t),p('mc-sub',s)));return el('div',{},tabTitle('','Verse','Trainiere und überprüfe deine Bibelverse.'),div('quick-stats',div('quick-stat',p('quick-stat-n',String(S.verses.length)),p('quick-stat-l','Gesamt')),div('quick-stat',p('quick-stat-n',String(learning)),p('quick-stat-l','In Übung')),div('quick-stat',p('quick-stat-n',String(mastered)),p('quick-stat-l','Gemeistert'))),mk('menu-edit verse-manage','📖','Verse verwalten','Verse hinzufügen, bearbeiten oder löschen',()=>set({view:'edit',editId:null,editStelle:'',editText:''})),mk('verse-gap','✏️','Übung: Lückentext','Fülle die Lücken korrekt aus.',()=>set({modal:'verseselect',vsMode:'luecke',vsCustomOpen:false})),mk('verse-order','🔀','Übung: Reihenfolge','Bringe durch Ziehen und Verschieben in die richtige Reihenfolge.',()=>set({modal:'verseselect',vsMode:'order',vsCustomOpen:false})),mk('menu-flash verse-test','🎯','Test: Karteikarten','Prüfe dich selbst.',()=>set({modal:'verseselect',vsMode:'flash',vsCustomOpen:false})));};
+renderVerseTab=function(){const c=versePointCounts();const mk=(cl,i,t,s,a)=>el('button',{cls:`menu-btn ${cl}`,onclick:a,type:'button'},div('mc-icon',i),el('div',{},p('mc-title',t),p('mc-sub',s)));return el('div',{},tabTitle('','Verse','Trainiere und überprüfe deine Bibelverse.'),div('quick-stats',div('quick-stat',p('quick-stat-n',String(c.total)),p('quick-stat-l','Total')),div('quick-stat',p('quick-stat-n',String(c.practice)),p('quick-stat-l','Braucht Übung')),div('quick-stat',p('quick-stat-n',String(c.refresh)),p('quick-stat-l','Zum Auffrischen')),div('quick-stat',p('quick-stat-n',String(c.good)),p('quick-stat-l','Sitzt gut')),div('quick-stat',p('quick-stat-n',String(c.mastered)),p('quick-stat-l','Gemeistert'))),mk('menu-edit verse-manage','📖','Verse verwalten','Verse hinzufügen, bearbeiten oder löschen',()=>set({view:'edit',editId:null,editStelle:'',editText:''})),mk('verse-gap','✏️','Übung: Lückentext','Fülle die Lücken korrekt aus.',()=>set({modal:'verseselect',vsMode:'luecke',vsCustomOpen:false})),mk('verse-order','🔀','Übung: Reihenfolge','Bringe durch Ziehen und Verschieben in die richtige Reihenfolge.',()=>set({modal:'verseselect',vsMode:'order',vsCustomOpen:false})),mk('menu-flash verse-test','🎯','Test: Karteikarten','Prüfe dich selbst.',()=>set({modal:'verseselect',vsMode:'flash',vsCustomOpen:false})));};
 renderBooksTab=function(){const mk=(c,i,t,s,a)=>el('button',{cls:`menu-btn ${c}`,onclick:a,type:'button'},div('mc-icon',i),el('div',{},p('mc-title',t),p('mc-sub',s)));const tAT=S.user?S.user.trophiesAT||0:0,tNT=S.user?S.user.trophiesNT||0:0;return el('div',{},tabTitle('','Bücher','Trainiere Reihenfolgen, Lücken und Tests zu den Bibelbüchern.'),div('quick-stats',div('quick-stat',p('quick-stat-n',String(BUECHER.length)),p('quick-stat-l','Bücher')),div('quick-stat',p('quick-stat-n',String(tAT)),p('quick-stat-l','AT-Pokale')),div('quick-stat',p('quick-stat-n',String(tNT)),p('quick-stat-l','NT-Pokale'))),mk('book-journey','🗺️','Übung: Vorgänger & Nachfolger','Reise nach Kanaan und sammle Belohnungen.',()=>set({view:'bibelorder',activeTab:'books',journeyScope:null})),mk('book-temple','🏛️','Übung: Bücher ordnen','Baue mit jeder richtigen Reihenfolge den Tempel aus.',()=>set({view:'bibelsort',activeTab:'books',templeScope:null})),mk('book-fill','🧩','Übung: Lücke füllen','Fülle die fehlenden Bibelbücher im Flow aus.',()=>set({view:'bookfill',activeTab:'books',bfScope:null,bfDone:false})),mk('book-test','🏆','Test: Bücher der Reihe nach','Teste dich in AT oder NT bis zum Pokal.',()=>set({view:'allbooks',activeTab:'books',abTestament:null,abIdx:0,abInput:'',abFeedback:'',abFeedbackOk:null,abWon:false,abTrophySaved:false,abLastCorrect:''})));};
 renderStatsTab=function(){const w=renderStats();if(w.firstChild)w.removeChild(w.firstChild);w.insertBefore(tabTitle('Meine Statistik','Meine Statistik','Mein Lernen - meine Erfolge!'),w.firstChild||null);return w;};
 renderProfileTab=function(){if(S.user&&(!S.pName&&!S.pEmoji&&!S.pColor)){S.pEmoji=S.user.emoji;S.pColor=S.user.color;S.pName=S.user.name;}const w=renderProfile();if(w.firstChild)w.removeChild(w.firstChild);w.insertBefore(tabTitle('Einstellungen','Profil','Passe Name, Symbol, Farbe und Passwort an.'),w.firstChild||null);return w;};
@@ -1834,6 +2017,37 @@ const style=document.createElement('style'); style.textContent=`
 <script>
 /* v092 – Adaptive Layout Guard: Mobile nur bei wenig Platz; Desktop/Tablet gross bleiben original. */
 (function(){const root=document.documentElement,editableSelector='input, textarea, select, [contenteditable="true"]';let blurTimer=null,lastBackClick=0;function vp(){return {w:window.innerWidth||root.clientWidth||0,h:window.innerHeight||root.clientHeight||0};}function isCoarse(){return window.matchMedia('(pointer: coarse)').matches;}function isMobileLike(){const v=vp();return v.w<=700||(isCoarse()&&v.w<=820&&v.h>=v.w)||(v.w<=760&&v.h<=900);}function editable(){const el=document.activeElement;return el&&el.closest&&el.closest(editableSelector)?el:null;}function viewportHeight(){return window.visualViewport?window.visualViewport.height:window.innerHeight;}function keyboardOpen(){if(!isMobileLike())return false;const vv=window.visualViewport,el=editable();if(!el)return false;if(!vv)return true;const layoutH=window.innerHeight||root.clientHeight||vv.height,lost=Math.max(0,layoutH-vv.height-Math.max(0,vv.offsetTop||0));return lost>90||vv.height<layoutH*.84;}function clickBack(){const now=Date.now();if(now-lastBackClick<350)return;lastBackClick=now;const el=editable();if(el)el.blur();setTimeout(function(){const b=document.querySelector('.page-header .back-btn, .back-btn');if(b)b.click();},80);}function ensureKeyboardHelper(){if(document.querySelector('.keyboard-nav-helper'))return;const wrap=document.createElement('div');wrap.className='keyboard-nav-helper';wrap.setAttribute('aria-label','Tastatur Navigation');const back=document.createElement('button');back.type='button';back.className='knh-back';back.textContent='← Zurück';back.onclick=clickBack;const close=document.createElement('button');close.type='button';close.className='knh-close';close.textContent='Tastatur ↓';close.onclick=function(){const el=editable();if(el)el.blur();};wrap.append(back,close);document.body.appendChild(wrap);}function ensureSessionBar(){if(document.querySelector('.mobile-session-bar'))return;const wrap=document.createElement('div');wrap.className='mobile-session-bar';wrap.setAttribute('aria-label','Spiel Navigation');const exit=document.createElement('button');exit.type='button';exit.className='msb-exit';exit.textContent='← Menü';exit.onclick=clickBack;const top=document.createElement('button');top.type='button';top.className='msb-top';top.textContent='↑ Oben';top.onclick=function(){window.scrollTo({top:0,behavior:'smooth'});};wrap.append(exit,top);document.body.appendChild(wrap);}function inSession(){return !!document.querySelector('.journey-map,.temple-image-area,.luecke-card,.card-area,.chunk-list,.bo-card,.bf-panel,.quiz-question-card,.bs-books.temple-list');}function adaptJourneyMap(){if(typeof window.renderJourneyMap!=='function'||window.__v092JourneyPatched)return;const orig=window.renderJourneyMap;window.renderJourneyMap=function(){const map=orig();if(document.body&&document.body.classList.contains('is-mobile')){const path=map.querySelector('.route-path');if(path)path.setAttribute('d','M6 56 C24 50 40 60 56 54 S78 50 94 55');const dots=[...map.querySelectorAll('.route-dot')],step=S.journeyStep||0;dots.forEach((d,i)=>{const s=i;const x=6+s*(88/20),y=56-Math.sin(s/20*Math.PI)*9+Math.sin(s*.9)*1.8;d.style.left=x+'%';d.style.top=y+'%';});const tr=map.querySelector('.traveler');if(tr){const s=step,x=6+s*(88/20),y=56-Math.sin(s/20*Math.PI)*9+Math.sin(s*.9)*1.8;tr.style.left=x+'%';tr.style.top=y+'%';}}return map;};window.__v092JourneyPatched=true;}function apply(){root.style.setProperty('--app-vvh',Math.max(320,Math.round(viewportHeight()))+'px');if(!document.body)return;const mobile=isMobileLike();document.body.classList.toggle('is-mobile',mobile);document.body.classList.toggle('keyboard-open',keyboardOpen());document.body.classList.toggle('in-session',mobile&&inSession());ensureKeyboardHelper();ensureSessionBar();adaptJourneyMap();}function revealFocused(delay){const el=editable();if(!el||!isMobileLike())return;setTimeout(function(){try{el.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'});}catch(e){el.scrollIntoView(false);}},delay||120);}function bind(){apply();window.addEventListener('resize',apply,{passive:true});window.addEventListener('orientationchange',function(){setTimeout(apply,250);},{passive:true});document.addEventListener('focusin',function(e){if(e.target&&e.target.closest&&e.target.closest(editableSelector)){if(blurTimer)clearTimeout(blurTimer);apply();revealFocused(160);}},true);document.addEventListener('focusout',function(){if(blurTimer)clearTimeout(blurTimer);blurTimer=setTimeout(apply,220);},true);if(window.visualViewport){window.visualViewport.addEventListener('resize',function(){apply();revealFocused(80);},{passive:true});window.visualViewport.addEventListener('scroll',apply,{passive:true});}new MutationObserver(function(){apply();}).observe(document.getElementById('app')||document.body,{childList:true,subtree:true});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();})();
+</script>
+
+
+<script>
+/* v109 – Statistik vollständig behalten, nur Vers-Lernstand modernisieren */
+(function(){
+  const COMMON_BOOK_ABBR = {"1. Mose": ["1. Mo", "1 Mo", "1Mo", "1. Mos", "1 Mos", "1Mos", "Gen", "Gn", "Genesis"], "2. Mose": ["2. Mo", "2 Mo", "2Mo", "2. Mos", "2 Mos", "2Mos", "Ex", "Exod", "Exodus"], "3. Mose": ["3. Mo", "3 Mo", "3Mo", "3. Mos", "3 Mos", "3Mos", "Lev", "Levitikus", "Leviticus"], "4. Mose": ["4. Mo", "4 Mo", "4Mo", "4. Mos", "4 Mos", "4Mos", "Num", "Nu", "Numeri"], "5. Mose": ["5. Mo", "5 Mo", "5Mo", "5. Mos", "5 Mos", "5Mos", "Dtn", "Deut", "Dt", "Deuteronomium"], "Josua": ["Jos", "Jos.", "Joshua"], "Richter": ["Ri", "Richt", "Judg", "Judges"], "Rut": ["Rut", "Ruth", "Rt"], "1. Samuel": ["1. Sam", "1 Sam", "1Sam", "1. Sa", "1 Sa", "1Sa"], "2. Samuel": ["2. Sam", "2 Sam", "2Sam", "2. Sa", "2 Sa", "2Sa"], "1. Könige": ["1. Kön", "1 Kön", "1Kön", "1. Koen", "1 Koen", "1Koen"], "2. Könige": ["2. Kön", "2 Kön", "2Kön", "2. Koen", "2 Koen", "2Koen"], "1. Chronik": ["1. Chr", "1 Chr", "1Chr"], "2. Chronik": ["2. Chr", "2 Chr", "2Chr"], "Esra": ["Esr", "Ezra"], "Nehemia": ["Neh", "Nehem"], "Ester": ["Est", "Esther"], "Hiob": ["Hi", "Ijob", "Job"], "Psalmen": ["Ps", "Ps.", "Psalm", "Psalmen", "Pslm", "Psa", "Psalms"], "Sprüche": ["Spr", "Spr.", "Sprue", "Sprueche", "Prov", "Proverbs"], "Prediger": ["Pred", "Pred.", "Koh", "Kohelet", "Eccl"], "Hoheslied": ["Hld", "Hld.", "HL", "Hohelied", "Cant"], "Jesaja": ["Jes", "Jes.", "Isa"], "Jeremia": ["Jer", "Jer."], "Klagelieder": ["Klgl", "Klg", "Lam"], "Hesekiel": ["Hes", "Hes.", "Ez", "Ezek"], "Daniel": ["Dan", "Dan.", "Dn"], "Hosea": ["Hos", "Hos."], "Joel": ["Joel", "Joe"], "Amos": ["Am", "Am."], "Obadja": ["Ob", "Ob.", "Obd", "Obad"], "Jona": ["Jon", "Jon.", "Jonah"], "Micha": ["Mi", "Mi.", "Mich", "Mic"], "Nahum": ["Nah"], "Habakuk": ["Hab"], "Zefanja": ["Zef", "Zeph"], "Haggai": ["Hag"], "Sacharja": ["Sach", "Sach.", "Zech"], "Maleachi": ["Mal", "Mal."], "Matthäus": ["Mt", "Mt.", "Matt", "Matt.", "Matth", "Matth.", "Matthaus", "Matthew"], "Markus": ["Mk", "Mk.", "Mrk", "Mrk.", "Mark"], "Lukas": ["Lk", "Lk.", "Luk", "Luk.", "Luke"], "Johannes": ["Joh", "Joh.", "Jh", "Jn", "John"], "Apostelgeschichte": ["Apg", "Apg.", "Apostelg", "Acts", "Act"], "Römer": ["Röm", "Röm.", "Roem", "Rom", "Romans"], "1. Korinther": ["1. Kor", "1 Kor", "1Kor", "1. Kor.", "1 Cor", "1Cor"], "2. Korinther": ["2. Kor", "2 Kor", "2Kor", "2. Kor.", "2 Cor", "2Cor"], "Galater": ["Gal", "Gal."], "Epheser": ["Eph", "Eph."], "Philipper": ["Phil", "Phil.", "Php"], "Kolosser": ["Kol", "Kol.", "Col"], "1. Thessalonicher": ["1. Thess", "1 Thess", "1Thess", "1. Thes", "1 Thes", "1Thes"], "2. Thessalonicher": ["2. Thess", "2 Thess", "2Thess", "2. Thes", "2 Thes", "2Thes"], "1. Timotheus": ["1. Tim", "1 Tim", "1Tim", "1. Tim.", "1 Timothy"], "2. Timotheus": ["2. Tim", "2 Tim", "2Tim", "2. Tim.", "2 Timothy"], "Titus": ["Tit", "Tit."], "Philemon": ["Phlm", "Phm", "Philem"], "Hebräer": ["Hebr", "Hebr.", "Heb", "Hebraer"], "Jakobus": ["Jak", "Jak.", "James", "Jas"], "1. Petrus": ["1. Petr", "1 Petr", "1Petr", "1. Pet", "1 Pet", "1Pet", "1 Peter"], "2. Petrus": ["2. Petr", "2 Petr", "2Petr", "2. Pet", "2 Pet", "2Pet", "2 Peter"], "1. Johannes": ["1. Joh", "1 Joh", "1Joh", "1. Jh", "1 Jh", "1Jh", "1 John"], "2. Johannes": ["2. Joh", "2 Joh", "2Joh", "2. Jh", "2 Jh", "2Jh", "2 John"], "3. Johannes": ["3. Joh", "3 Joh", "3Joh", "3. Jh", "3 Jh", "3Jh", "3 John"], "Judas": ["Jud", "Jud.", "Jude"], "Offenbarung": ["Offb", "Offb.", "Off", "Off.", "Apk", "Apk.", "Rev", "Revelation"]};
+  const st=document.createElement('style');
+  st.textContent=`
+  .verse-reference{background:linear-gradient(135deg,#0f1f4a,#1d4ed8 52%,#1e40af)!important;border:1px solid rgba(96,165,250,.48)!important;box-shadow:0 10px 30px rgba(30,64,175,.28)!important;}
+  .verse-gap,.menu-luecke,.check-btn.verse-gap-action{background:linear-gradient(135deg,#143f68,#2358df 54%,#2d6bf0)!important;border-color:rgba(125,185,255,.46)!important;box-shadow:0 10px 31px rgba(59,130,246,.25)!important;}
+  .reference-card{padding:1.25rem;border-radius:18px;background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(29,78,216,.10));border:1px solid rgba(96,165,250,.24);margin-bottom:1rem;}.reference-label{font-size:11px;letter-spacing:2px;color:rgba(147,197,253,.72);text-transform:uppercase;font-weight:700;margin-bottom:12px;display:block;font-family:'Inter',sans-serif;text-align:center;}.reference-verse{font-family:'Lora',serif;font-size:17px;line-height:1.85;color:rgba(237,233,254,.92);font-style:italic;text-align:center;}.reference-fields{display:grid;grid-template-columns:1.4fr .85fr .85fr;gap:8px;margin-bottom:12px;}.reference-field label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.55px;color:rgba(196,181,253,.50);margin:0 0 5px 2px;font-weight:700;}.reference-input{width:100%;padding:11px 12px;border-radius:12px;outline:none;background:#111c3a;border:1px solid rgba(96,165,250,.34);color:#ede9fe;font-size:15px;font-family:'Inter',sans-serif;}.reference-input:focus{border-color:rgba(147,197,253,.85);background:#13224a;}.reference-input.correct{border-color:#86efac!important;background:rgba(34,197,94,.10)!important;color:#bbf7d0!important;}.reference-input.wrong{border-color:#fca5a5!important;background:rgba(239,68,68,.09)!important;color:#fecaca!important;}.reference-feedback{min-height:20px;margin:0 0 12px;text-align:center;font-size:13px;line-height:1.35;}.reference-feedback.ok{color:#86efac;}.reference-feedback.no{color:#fca5a5;}.reference-check{width:100%;padding:13px;border:none;border-radius:13px;background:linear-gradient(135deg,#0f1f4a,#1d4ed8 60%,#1e40af);color:white;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:10px;box-shadow:0 10px 28px rgba(30,64,175,.24);}.reference-check:disabled{opacity:.45;cursor:not-allowed;}
+  @media (max-width:420px){.reference-fields{grid-template-columns:1fr;gap:10px}.reference-verse{font-size:16px}}
+  `;document.head.appendChild(st);
+  function normBook(s){return String(s||'').trim().toLowerCase().replace(/["'`´„“]/g,'').replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss').replace(/\./g,'').replace(/\s+/g,' ').trim();}
+  function leadingNo(s){const raw=String(s||'').trim().toLowerCase();let m=raw.match(/^(\d+)\s*\.?\s*/);if(m)return m[1];m=raw.match(/^(i{1,3})\s*\.?\s*/);if(m)return String(m[1].length);return null;}
+  function compact(a){return normBook(a).replace(/\s+/g,'');}
+  function aliases(target){return [target,...((typeof BOOK_ALIASES!=='undefined'&&BOOK_ALIASES[target])||[]),...(COMMON_BOOK_ABBR[target]||[])];}
+  function bookMatches(input,target){if(!target)return false;const ni=normBook(input);if(!ni)return false;const tn=leadingNo(target),inNo=leadingNo(input);if(tn!==null&&inNo!==tn)return false;if(tn===null&&inNo!==null)return false;const arr=aliases(target);const normal=new Set(arr.map(normBook));const comp=new Set(arr.map(compact));if(normal.has(ni)||comp.has(ni.replace(/\s+/g,'')))return true;if(tn===null&&typeof abMatch==='function')return abMatch(input,target);return false;}
+  function refNum(s){const m=String(s||'').replace(/[,.:;]+$/,'').match(/\d+/);return m?Number(m[0]):null;}
+  function parseRef(stelle){const raw=String(stelle||'').trim();const books=[...BUECHER].sort((a,b)=>b.length-a.length);for(const book of books){for(const alias of aliases(book).sort((a,b)=>b.length-a.length)){const esc=alias.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/\s+/g,'\\s*');const re=new RegExp('^\\s*'+esc+'\\s+(\\d+)\\s*[,.:;]?\\s*(\\d+)','i');const m=raw.match(re);if(m)return {book,chapter:Number(m[1]),verse:Number(m[2]),raw};}}const m=raw.match(/^(.*?)[\s]+(\d+)\s*[,.:;]?\s*(\d+)\s*$/);return m?{book:m[1].trim(),chapter:Number(m[2]),verse:Number(m[3]),raw}:null;}
+  window.parseStoredReference=parseRef;
+  const _startMode=window.startMode||startMode;window.startMode=startMode=function(mode,verses,opts={}){S.lastVerseMode=mode;set({modal:null,lastVerseMode:mode});const ses=opts.skipPick?[...verses]:pickTen(verses);if(mode==='reference'){set({view:'reference',session:ses,idx:0,results:[],refBook:'',refChap:'',refVerse:'',refChecked:false,refStates:null,refSaved:false});return;}return _startMode(mode,verses,opts);};
+  window.doCheckReference=doCheckReference=async function(){const card=S.session[S.idx];if(!card||S.refSaved)return;const ref=parseRef(card.stelle);const states={book:!!(ref&&bookMatches(S.refBook,ref.book)),chap:!!(ref&&refNum(S.refChap)===ref.chapter),verse:!!(ref&&refNum(S.refVerse)===ref.verse)};const ok=states.book&&states.chap&&states.verse;set({refChecked:true,refStates:states,refSaved:true});const upd=S.verses.map(v=>v.id===card.id?updateLearningPoints(v,'reference',{ok,accuracy:(Number(states.book)+Number(states.chap)+Number(states.verse))/3}):v);await saveVerses(upd);showToast(ok?'Bibelstelle korrekt genannt!':'Teilweise richtig – grün zeigt, was stimmt.',ok?'success':'verse',ok?'Treffer':'Bibelstelle prüfen',ok?1500:2300);set({refChecked:true,refStates:states,refSaved:true});};
+  window.renderReference=renderReference=function(){const card=S.session[S.idx];if(!card)return renderDone();const states=S.refStates||{},checked=!!S.refChecked;const inp=(key,val)=>{const stateKey={refBook:'book',refChap:'chap',refVerse:'verse'}[key]||key;const i=el('input',{cls:'reference-input '+(checked?(states[stateKey]?'correct':'wrong'):''),type:'text'});i.value=val||'';i.oninput=e=>{S[key]=e.target.value;};i.onkeydown=e=>{if(e.key==='Enter'&&!checked)doCheckReference();};return i;};const fields=div('reference-fields',div('reference-field',el('label',{},'Buch'),inp('refBook',S.refBook)),div('reference-field',el('label',{},'Kapitel'),inp('refChap',S.refChap)),div('reference-field',el('label',{},'Vers'),inp('refVerse',S.refVerse)));let feedback=p('reference-feedback','');if(checked){const ok=states.book&&states.chap&&states.verse;feedback=p('reference-feedback '+(ok?'ok':'no'),ok?'✓ Richtig – Buch, Kapitel und Vers stimmen.':`✗ Richtig wäre: ${card.stelle}`);}const check=btn('reference-check','Überprüfen ✓',doCheckReference);if(checked){check.disabled=true;check.textContent='Überprüft';}const next=btn('next-btn',S.idx+1>=S.session.length?'Auswertung →':'Nächster Vers →',()=>{const res=[...S.results,{...card,correct:!!(states.book&&states.chap&&states.verse)}];if(S.idx+1>=S.session.length)set({results:res,view:'done'});else set({results:res,idx:S.idx+1,refBook:'',refChap:'',refVerse:'',refChecked:false,refStates:null,refSaved:false});});return el('div',{},progRow(S.idx,S.session.length,()=>set({view:'menu'})),p('mode-help','Lies den Vers und nenne die Bibelstelle.'),div('reference-card',span('reference-label','Welcher Vers ist das?'),p('reference-verse',`„${card.text}"`)),fields,feedback,checked?next:check);};
+  if(typeof renderVerseSelect==='function') window.renderVerseSelect=renderVerseSelect=function(){const overlay=el('div',{cls:'vs-overlay'});overlay.onclick=()=>set({modal:null,vsCustomOpen:false});const box=el('div',{cls:'vs-box'});box.onclick=e=>e.stopPropagation();const titles={flash:'Karteikarten',luecke:'Lückentext',order:'Vers-Reihenfolge',reference:'Bibelstelle nennen'};box.appendChild(el('p',{cls:'vs-title'},titles[S.vsMode]||'Üben'));if(S.vsCustomOpen){box.appendChild(el('p',{cls:'vs-sub'},'Wähle gezielt die Verse aus, die du jetzt trainieren willst.'));const selectedIds=new Set((S.vsCustomIds||[]).filter(id=>S.verses.some(v=>v.id===id)));const list=el('div',{style:'max-height:340px;overflow:auto;margin-bottom:14px;padding-right:4px;'});if(!S.verses.length)list.appendChild(div('empty','Noch keine Verse vorhanden.'));S.verses.forEach(v=>{const checked=selectedIds.has(v.id);const row=el('button',{type:'button',style:`width:100%;padding:11px 12px;border-radius:12px;margin-bottom:7px;text-align:left;cursor:pointer;display:flex;gap:10px;align-items:flex-start;background:${checked?'rgba(139,92,246,.18)':'rgba(255,255,255,.05)'};border:1px solid ${checked?'rgba(167,139,250,.55)':'rgba(196,181,253,.12)'};color:#ede9fe;`});row.onclick=()=>{const ids=new Set(S.vsCustomIds||[]);ids.has(v.id)?ids.delete(v.id):ids.add(v.id);set({vsCustomIds:[...ids]});};row.appendChild(el('span',{style:'font-size:16px;color:#c4b5fd;line-height:1.2;'},checked?'☑':'☐'));row.appendChild(el('div',{},el('div',{style:'font-size:13px;font-weight:500;color:#c4b5fd;margin-bottom:3px;'},v.stelle),el('div',{style:'font-size:12px;color:rgba(196,181,253,.55);line-height:1.4;'},v.text.length>80?v.text.slice(0,80)+'…':v.text)));list.appendChild(row);});const selectedVerses=S.verses.filter(v=>(S.vsCustomIds||[]).includes(v.id));const start=btn('vs-go',`Auswahl starten (${selectedVerses.length})`,async()=>{if(!selectedVerses.length)return;await saveLastVerseSelection(S.vsCustomIds||[]);showToast(`Auswahl mit ${selectedVerses.length} Versen gespeichert.`,'verse','Bereit',1400);startMode(S.vsMode,selectedVerses);});if(!selectedVerses.length){start.style.opacity='.4';start.style.cursor='not-allowed';}box.append(list,start,btn('vs-cancel','Zurück',()=>set({vsCustomOpen:false})));overlay.appendChild(box);return overlay;}box.appendChild(el('p',{cls:'vs-sub'},'Wähle, mit welchen Versen du jetzt trainierst.'));const recommended=adaptiveRecommendedVerses(10);const options=[{icon:'🧭',title:'Empfohlenes Training',sub:`${recommended.length} Verse passend zu deinem Lernstand`,verses:recommended,color:'rgba(96,165,250,.16)',border:'rgba(147,197,253,.36)',action:()=>startMode(S.vsMode,recommended,{skipPick:true})},{icon:'📖',title:'Alle gespeicherten Verse',sub:`${S.verses.length} Verse`,verses:S.verses,color:'rgba(99,184,255,.18)',border:'rgba(99,184,255,.38)',action:()=>startMode(S.vsMode,S.verses)},{icon:'☑️',title:'Eigene Auswahl',sub:`${(S.vsCustomIds||[]).filter(id=>S.verses.some(v=>v.id===id)).length} zuletzt ausgewählt`,verses:S.verses,color:'rgba(56,189,248,.12)',border:'rgba(56,189,248,.3)',action:()=>set({vsCustomOpen:true})}];options.forEach(o=>{const cnt=o.verses.length,isCustom=o.title==='Eigene Auswahl';const b=el('button',{cls:'vs-option',type:'button',style:`background:linear-gradient(135deg,${o.color},transparent);border:1px solid ${o.border};${cnt===0&&!isCustom?'opacity:.4;cursor:not-allowed;':''}`});b.append(span('vs-opt-icon',o.icon),el('div',{},el('div',{cls:'vs-opt-title'},o.title),el('div',{cls:'vs-opt-sub'},isCustom?o.sub:`${cnt} Vers${cnt===1?'':'e'} · ${o.sub}`)));if(cnt>0||isCustom)b.onclick=o.action;box.appendChild(b);});box.appendChild(btn('vs-cancel','Abbrechen',()=>set({modal:null,vsCustomOpen:false})));overlay.appendChild(box);return overlay;};
+  if(typeof renderVerseTab==='function') window.renderVerseTab=renderVerseTab=function(){const c=versePointCounts();const mk=(cl,i,t,s,a)=>el('button',{cls:`menu-btn ${cl}`,onclick:a,type:'button'},div('mc-icon',i),el('div',{},p('mc-title',t),p('mc-sub',s)));return el('div',{},tabTitle('','Verse','Trainiere und überprüfe deine Bibelverse.'),div('quick-stats',div('quick-stat',p('quick-stat-n',String(c.total)),p('quick-stat-l','Total')),div('quick-stat',p('quick-stat-n',String(c.practice)),p('quick-stat-l','Braucht Übung')),div('quick-stat',p('quick-stat-n',String(c.refresh)),p('quick-stat-l','Zum Auffrischen')),div('quick-stat',p('quick-stat-n',String(c.good)),p('quick-stat-l','Sitzt gut')),div('quick-stat',p('quick-stat-n',String(c.mastered)),p('quick-stat-l','Gemeistert'))),mk('menu-edit verse-manage','📖','Verse verwalten','Verse hinzufügen, bearbeiten oder löschen',()=>set({view:'edit',editId:null,editStelle:'',editText:''})),mk('verse-gap','✏️','Übung: Lückentext','Fülle die Lücken korrekt aus.',()=>set({modal:'verseselect',vsMode:'luecke',vsCustomOpen:false})),mk('verse-order','🔀','Übung: Reihenfolge','Bringe durch Ziehen und Verschieben in die richtige Reihenfolge.',()=>set({modal:'verseselect',vsMode:'order',vsCustomOpen:false})),mk('verse-reference','🔎','Übung: Bibelstelle nennen','Nenne Buch, Kapitel und Vers zum angezeigten Bibeltext.',()=>set({modal:'verseselect',vsMode:'reference',vsCustomOpen:false})),mk('menu-flash verse-test','🎯','Test: Karteikarten','Prüfe dich selbst.',()=>set({modal:'verseselect',vsMode:'flash',vsCustomOpen:false})));};
+  function statusDefs(){return [{key:'mastered',label:'Gemeistert',emoji:'🏆',color:'#86efac'},{key:'good',label:'Sitzt gut',emoji:'🌳',color:'#60a5fa'},{key:'refresh',label:'Zum Auffrischen',emoji:'🔁',color:'#fcd34d'},{key:'practice',label:'Braucht Übung',emoji:'🔥',color:'#fca5a5'},{key:'new',label:'Neu',emoji:'🌱',color:'#c4b5fd'}];}
+  window.renderStatsPie=renderStatsPie=function(){const counts=versePointCounts();const total=counts.total||0;const defs=statusDefs();const panel=div('stats-pie-panel');panel.appendChild(p('stats-pie-title','Vers-Lernstand'));if(!total){panel.appendChild(div('empty','Noch keine Verse vorhanden.'));return panel;}let start=0;const parts=defs.map(d=>{const end=start+(counts[d.key]||0)/total*100;const part=`${d.color} ${start}% ${end}%`;start=end;return part;}).join(',');const pie=div('pie-chart');pie.style.background=`conic-gradient(${parts})`;pie.appendChild(div('pie-center-text',span('pie-center-number',String(total)),span('pie-center-label','Verse')));const legend=div('pie-legend');defs.forEach(d=>{const cnt=counts[d.key]||0,pct=total?Math.round(cnt/total*100):0;const dot=span('pie-legend-dot','');dot.style.background=d.color;legend.appendChild(div('pie-legend-row',dot,span('',`${d.emoji} ${d.label}`),span('pie-legend-value',`${cnt} · ${pct}%`)));});panel.appendChild(div('pie-wrap',pie,legend));return panel;};
+  const _render=window.render||render;window.render=render=function(){const root=document.getElementById('app');if(S.view==='reference'){root.innerHTML='';if(S.modal==='verseselect')root.appendChild(renderVerseSelect());root.appendChild(renderReference());return;}return _render();};
+})();
 </script>
 
 </body>
