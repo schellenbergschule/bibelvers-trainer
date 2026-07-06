@@ -1611,7 +1611,7 @@ initBibelSort=function(s){if(!s)return set({view:'bibelsort',activeTab:'books',t
 renderTempleScopeSelect=function(){const hdr=div('page-header',btn('back-btn','←',()=>set({view:'menu',activeTab:'books'})),el('h2',{cls:'page-title'},'Tempelbau')),c=(s,i,t)=>el('button',{cls:'scope-btn',type:'button',onclick:()=>{S.templeStones=0;S.templeDone=false;S.templeStatsSaved=false;initBibelSort(s);}},span('scope-icon',i),el('div',{},p('scope-title',t),p('scope-sub','5 Phasen · 3 Schritte pro Phase')));return el('div',{},hdr,tabTitle('','Bücher ordnen','Wähle, welche Bücher im Tempelbau vorkommen sollen.'),div('scope-grid',c('AT','📜','Nur Altes Testament'),c('NT','✝️','Nur Neues Testament'),c('ALL','📖','AT & NT gemeinsam')));};
 renderTempleProgress=function(n){const phase=templeCurrentPhase(),pct=Math.min(100,(n/TEMPLE_TOTAL_STEPS)*100),wrap=div('temple-phase-progress');const track=el('div',{cls:'temple-phase-track'},el('div',{cls:'temple-phase-fill',style:`width:${pct}%`}));const marks=div('temple-phase-marks');TEMPLE_PHASES.forEach((p,i)=>{const reached=phase>=i+1,step=(i+1)*TEMPLE_PHASE_SIZE,pos=(step/TEMPLE_TOTAL_STEPS)*100;marks.appendChild(el('div',{cls:'temple-phase-mark '+(reached?'done':''),style:`left:${pos}%`},span('temple-phase-emoji',p.emoji),span('temple-phase-name',p.label)));});track.appendChild(marks);wrap.appendChild(track);return wrap;};
 renderTemple=function(){const n=S.templeStones||0,phase=templeCurrentPhase();const area=div('temple-image-area');area.appendChild(div('temple-sky',`🏗️ Tempelbau · ${n} / ${TEMPLE_TOTAL_STEPS} Schritte`));const img=el('img',{cls:'temple-phase-img',src:TEMPLE_PHASE_IMAGES[phase],alt:`Tempelbau Phase ${phase} von 5`});area.appendChild(img);area.appendChild(p('temple-phase',templePhaseLabel(n)));area.appendChild(renderTempleProgress(n));return area;};
-checkTempleOrder=function(){const ok=S.bsCurrent.every((v,i)=>v===S.bsCorrect[i]);const before=S.templeStones||0;const floor=templePhaseFloor(before);const ns=ok?Math.min(TEMPLE_TOTAL_STEPS,before+1):Math.max(floor,before-1);const beforePhase=Math.floor(before/TEMPLE_PHASE_SIZE),afterPhase=Math.floor(ns/TEMPLE_PHASE_SIZE);let msg;if(ok&&ns>=TEMPLE_TOTAL_STEPS)msg='Der Tempel wurde vollendet.';else if(ok&&afterPhase>beforePhase)msg=`Phase ${afterPhase} erreicht: ${TEMPLE_PHASES[afterPhase-1].label}.`;else if(ok)msg='Ein Schritt wurde geschafft.';else{const sol=S.bsCorrect.map(idx=>BUECHER[idx]).join(' → ');msg=`Nicht ganz. Die richtige Reihenfolge ist: ${sol}`;}const p={bsChecked:true,templeStones:ns,templeDone:ns>=TEMPLE_TOTAL_STEPS,templeMsg:msg,templeMsgOk:ok};if(ok&&afterPhase>beforePhase)p.templePhasePopup=afterPhase;if(ns>=TEMPLE_TOTAL_STEPS&&!S.templeStatsSaved){p.templeStatsSaved=true;incUser(scopeKey('templeWins',S.templeScope));}showToast(msg,ok?'success':'error',ok?'Tempelbau':'Richtige Lösung',ok?1500:9500);set(p);};
+checkTempleOrder=function(){const ok=S.bsCurrent.every((v,i)=>v===S.bsCorrect[i]);const before=S.templeStones||0;const floor=templePhaseFloor(before);const ns=ok?Math.min(TEMPLE_TOTAL_STEPS,before+1):Math.max(floor,before-1);const beforePhase=Math.floor(before/TEMPLE_PHASE_SIZE),afterPhase=Math.floor(ns/TEMPLE_PHASE_SIZE);let msg;if(ok&&ns>=TEMPLE_TOTAL_STEPS)msg='Der Tempel wurde vollendet.';else if(ok&&afterPhase>beforePhase)msg=`Phase ${afterPhase} erreicht: ${TEMPLE_PHASES[afterPhase-1].label}.`;else if(ok)msg='Ein Schritt wurde geschafft.';else if(ns<before)msg='Eine falsche Antwort wirft dich einen Schritt zurück.';else msg='Die Phase bleibt erhalten.';const p={bsChecked:true,templeStones:ns,templeDone:ns>=TEMPLE_TOTAL_STEPS,templeMsg:msg,templeMsgOk:ok};if(ok&&afterPhase>beforePhase)p.templePhasePopup=afterPhase;if(ns>=TEMPLE_TOTAL_STEPS&&!S.templeStatsSaved){p.templeStatsSaved=true;incUser(scopeKey('templeWins',S.templeScope));}showToast(msg,ok?'success':'error',ok?'Tempelbau':'Nicht ganz',ok?1500:2600);set(p);};
 moveBook=function(f,t){if(f===t||f==null||t==null)return;const a=[...S.bsCurrent],[it]=a.splice(f,1);a.splice(t,0,it);S.bsCurrent=a;S.bsDrag=t;S.bsDragOver=t;render();};
 beginTempleDrag=function(pos,e){if(S.bsChecked)return;e.preventDefault();S.bsDrag=pos;S.bsDragOver=pos;const move=ev=>{ev.preventDefault();const row=document.elementFromPoint(ev.clientX,ev.clientY)?.closest?.('[data-bs-pos]');if(row){const to=Number(row.getAttribute('data-bs-pos'));if(to!==S.bsDrag)moveBook(S.bsDrag,to);}},up=()=>{document.removeEventListener('pointermove',move);document.removeEventListener('pointerup',up);document.removeEventListener('pointercancel',up);S.bsDrag=null;S.bsDragOver=null;render();};document.addEventListener('pointermove',move,{passive:false});document.addEventListener('pointerup',up,{once:true});document.addEventListener('pointercancel',up,{once:true});};
 renderTemplePhasePopup=function(){const ph=S.templePhasePopup;if(!ph)return null;const idx=Math.max(0,Math.min(5,ph));const title=idx>=5?'Tempel vollendet!':`Phase ${idx} erreicht`;const sub=idx>=5?'Das fertige Tempelbild ist erreicht.':`${TEMPLE_PHASES[idx-1].emoji} ${TEMPLE_PHASES[idx-1].label} wurde fertiggestellt.`;return div('temple-phase-pop',div('temple-phase-card',el('img',{cls:'temple-popup-img',src:TEMPLE_PHASE_IMAGES[idx],alt:title}),p('temple-popup-title',title),p('temple-popup-sub',sub),btn('prim-btn','Weiter',()=>set({templePhasePopup:null}))));};
@@ -1707,6 +1707,81 @@ const style=document.createElement('style'); style.textContent=`
 .tab-shell .ghost-btn.active{border-color:${QUIZ_ACCENT.border};color:${QUIZ_ACCENT.text};background:rgba(190,24,93,.08)}
 @media (max-width:520px){.quiz-tab-nav .tab-label{font-size:10px}.quiz-tab-nav{width:min(96vw,560px)!important}}
 `; document.head.appendChild(style);
+
+
+/* v113 – Wissen-Quiz: frei wählbare Zeit + Highscore nach Punkte pro Minute */
+const QUIZ_TIME_OPTIONS=[60,90,120,150,180,210,240];
+function quizSeconds(s){ const n=Number(s||S.quizSelectedSeconds||QUIZ_TOTAL||60); return QUIZ_TIME_OPTIONS.includes(n)?n:60; }
+function quizMinutes(s){ return quizSeconds(s)/60; }
+function quizRate(s){ return (Number(s?.score||0)/(quizMinutes(s?.seconds||s?.selectedSeconds||QUIZ_TOTAL||60)||1)); }
+function fmtQuizTime(seconds){ const sec=quizSeconds(seconds); const m=Math.floor(sec/60), r=sec%60; if(r===0) return `${m} Minute${m===1?'':'n'}`; return `${m}:${String(r).padStart(2,'0')} Min.`; }
+function fmtQuizClock(seconds){ const sec=Math.max(0,Number(seconds||0)); const m=Math.floor(sec/60), r=sec%60; return `${m}:${String(r).padStart(2,'0')}`; }
+function fmtQuizRateValue(v){ const n=Number(v||0); return (Math.round(n*10)/10).toLocaleString('de-CH',{minimumFractionDigits:n%1?1:0,maximumFractionDigits:1}); }
+function normalizeQuizScoreEntry(it){ const seconds=quizSeconds(it?.seconds||it?.selectedSeconds||QUIZ_TOTAL||60); return {...it,score:Number(it?.score||0),seconds,rate:quizRate({...it,seconds})}; }
+mergeScoreLists=function(a,b){
+  return [...(Array.isArray(a)?a:[]), ...(Array.isArray(b)?b:[])]
+    .filter(Boolean)
+    .map(normalizeQuizScoreEntry)
+    .sort((x,y)=>quizRate(y)-quizRate(x) || (y.score||0)-(x.score||0) || String(y.date||'').localeCompare(String(x.date||'')))
+    .reduce((acc,it)=>{
+      const key=`${it.score||0}|${it.date||''}|${it.seconds||0}`;
+      if(!acc.some(z=>`${z.score||0}|${z.date||''}|${z.seconds||0}`===key)) acc.push(it);
+      return acc;
+    },[])
+    .slice(0,5);
+};
+mergeQuizScores=function(base,extra){ return mergeScoreLists(base,extra); };
+quizProjectedScores=function(){ const base=quizHighscores(); if(S.quizPhase==='ended' && (S.quizScore||0)>0 && !S.quizSaved){ const seconds=quizSeconds(S.quizGameSeconds||S.quizSelectedSeconds||QUIZ_TOTAL); const probe={date:new Date().toISOString(),score:S.quizScore||0,totalQuestions:(S.quizQueue||[]).length||0,seconds}; return mergeQuizScores(base,[probe]); } return base; };
+quizBestScore=function(){ return quizProjectedScores()[0]?.score || 0; };
+function quizBestRate(){ return quizProjectedScores()[0] ? quizRate(quizProjectedScores()[0]) : 0; }
+quizHighscores=function(){ ensure(); const cur=Array.isArray(S.quizHighscoresLocal)?S.quizHighscoresLocal:hydrateQuizHighscores(); const sorted=mergeScoreLists(cur,[]); S.quizHighscoresLocal=sorted; return sorted; };
+
+const prevQuizEnsureV113=ensure;
+ensure=function(){ prevQuizEnsureV113(); S.quizSelectedSeconds=quizSeconds(S.quizSelectedSeconds||QUIZ_TOTAL); S.quizGameSeconds=quizSeconds(S.quizGameSeconds||S.quizSelectedSeconds); };
+
+function renderQuizTimeSelect(){
+  ensure();
+  const overlay=div('vs-overlay');
+  overlay.onclick=()=>set({modal:null});
+  const box=div('vs-box');
+  box.onclick=e=>e.stopPropagation();
+  const current=quizSeconds(S.quizSelectedSeconds);
+  box.appendChild(p('vs-title','Quizzeit wählen'));
+  box.appendChild(p('vs-sub','Wähle vor dem Start, wie lange das Wissen-Quiz laufen soll. Die Rangliste wird nach Punkten pro Minute sortiert.'));
+  QUIZ_TIME_OPTIONS.forEach(sec=>{
+    const selected=sec===current;
+    const b=el('button',{type:'button',cls:'vs-option',style:`background:linear-gradient(135deg,${selected?'rgba(236,72,153,.24)':'rgba(190,24,93,.12)'},transparent);border:1px solid ${selected?'rgba(244,114,182,.68)':'rgba(244,114,182,.28)'};`},
+      span('vs-opt-icon',selected?'✅':'⏱️'),
+      el('div',{},el('div',{cls:'vs-opt-title'},fmtQuizTime(sec)),el('div',{cls:'vs-opt-sub'},`${sec} Sekunden Quizzeit`))
+    );
+    b.onclick=()=>set({quizSelectedSeconds:sec});
+    box.appendChild(b);
+  });
+  box.appendChild(btn('vs-go',`Quiz starten · ${fmtQuizTime(current)}`,()=>{ set({modal:null,quizSelectedSeconds:current}); startQuizGame(current); }));
+  box.appendChild(btn('vs-cancel','Abbrechen',()=>set({modal:null})));
+  overlay.appendChild(box);
+  return overlay;
+}
+
+startQuizGame=function(seconds){ const all=quizAllQuestions(); if(!all.length){ showToast('Noch keine Wissensfragen vorhanden.','error','Wissen leer',2200); return; } const total=quizSeconds(seconds||S.quizSelectedSeconds||QUIZ_TOTAL); clearQuizTimer(); S.quizQueue=quizShuffle(all); S.quizIdx=0; S.quizScore=0; S.quizTimeLeft=total; S.quizGameSeconds=total; S.quizSelectedSeconds=total; S.quizShowAnswer=false; S.quizPhase='playing'; S.quizSaved=false; S.view='quiz'; S.activeTab='quiz'; S.modal=null; S.quizTimerId=setInterval(()=>{ if(S.view!=='quiz' || S.quizPhase!=='playing'){ clearQuizTimer(); return; } S.quizTimeLeft=Math.max(0,(S.quizTimeLeft||0)-1); if(S.quizTimeLeft<=0){ finishQuiz(); return; } render(); },1000); render(); };
+
+saveQuizScore=async function(){ ensure(); if(!S.user || S.quizSaved) return; S.quizSaved=true; const seconds=quizSeconds(S.quizGameSeconds||S.quizSelectedSeconds||QUIZ_TOTAL); const entry={date:new Date().toISOString(),score:S.quizScore||0,totalQuestions:(S.quizQueue||[]).length||0,seconds}; const merged=mergeQuizScores(quizHighscores(),[entry]); S.quizHighscoresLocal=[...merged]; quizWriteLocal('highscores',merged); saveUserPatch({quizHighscores:merged}); await saveProfileCloudPatch(S.user.id,{quizHighscores:merged}); const fresh=await loadProfileCloud(S.user.id); if(Array.isArray(fresh.quizHighscores)){ const normalized=mergeScoreLists(fresh.quizHighscores,[]); S.quizHighscoresLocal=[...normalized]; S.user={...S.user,quizHighscores:[...normalized]}; quizWriteLocal('highscores',normalized); } };
+
+renderQuizHighscorePanel=function(){ ensureQuizCloudHydrated(); const scores=quizProjectedScores(); const panel=div('quiz-stat-panel'); panel.appendChild(p('quiz-stat-title','Deine besten 5 Resultate · sortiert nach Punkte/Minute')); if(!scores.length){ panel.appendChild(div('empty',S.quizCloudLoading?'Lade Wissen-Resultate aus Firebase…':'Noch kein Wissenstest gespielt.')); return panel; } scores.forEach((raw,i)=>{ const s=normalizeQuizScoreEntry(raw), rate=quizRate(s); panel.appendChild(div('quiz-score-row',span('quiz-score-rank','#'+(i+1)),el('div',{style:'flex:1'},el('div',{style:'font-size:13px;font-weight:600;color:#fdf2f8'},`${fmtQuizRateValue(rate)} Punkte/Min.`),el('div',{style:'font-size:11px;color:rgba(251,207,232,.68);margin-top:2px;'},`${s.score} Punkt${s.score===1?'':'e'} · ${fmtQuizTime(s.seconds)} · ${typeof fmtDate==='function'?fmtDate(s.date):String(s.date||'')}`)),span('quiz-score-value',fmtQuizRateValue(rate)))); }); return panel; };
+
+renderQuizPlayView=function(){ ensure(); const current=quizCurrent(); if(!current) return renderQuizTab(); const total=quizSeconds(S.quizGameSeconds||S.quizSelectedSeconds||QUIZ_TOTAL); const hdr=div('page-header',btn('back-btn','←',()=>exitQuizToTab()),el('h2',{cls:'page-title'},'Bibel-Wissen')); const wrap=el('div',{},hdr,tabTitle('','Bibel-Wissen',`Teste dich selbst. Wie viele Fragen kannst du in ${fmtQuizTime(total)} korrekt beantworten?`)); if(S.quizPhase==='ended'){ const score=S.quizScore||0, rate=score/(total/60), emoji=score>=20?'🏆':score>=10?'🌟':'📖', title=score>=20?'Starke Runde!':score>=10?'Gut gemacht!':'Zeit abgelaufen!'; const replay=btn('prim-btn quiz-start-btn','Nochmal spielen',()=>set({modal:'quiztime'})); wrap.appendChild(el('div',{cls:'quiz-result-panel'},el('div',{cls:'quiz-result-emoji'},emoji),el('h2',{cls:'quiz-result-title'},title),p('quiz-result-sub',`Du hast ${score} Frage${score!==1?'n':''} in ${fmtQuizTime(total)} richtig beantwortet.`),el('div',{cls:'quiz-final-score'},p('quiz-final-label','Dein Ergebnis'),p('quiz-final-number',String(score)),p('quiz-final-note',`${fmtQuizRateValue(rate)} Punkte pro Minute · ${score>=20?'Exzellent — du bist ein Bibelexperte! 🎉':score>=10?'Richtig stark — weiter so! 💪':'Sauber gespielt!'}`)),renderQuizHighscorePanel(),div('btn-row',btn('ghost-btn','Zurück',()=>exitQuizToTab()),replay))); return wrap; } const pct=((S.quizTimeLeft||0)/total)*100, timerColor=(S.quizTimeLeft||0)>Math.max(20,total*.33)?'#22c55e':(S.quizTimeLeft||0)>Math.max(10,total*.16)?'#f59e0b':'#ef4444'; const progress=el('div',{style:'display:flex;align-items:center;gap:16px;margin-bottom:18px;'},el('div',{style:'flex:1;background:#1e1630;border-radius:99px;height:12px;overflow:hidden;border:1px solid rgba(244,114,182,.14);'},el('div',{style:`width:${pct}%;height:100%;background:${timerColor};transition:width 1s linear, background .3s;border-radius:99px;`})),el('div',{style:`color:${timerColor};font-weight:800;font-size:1.3rem;min-width:62px;text-align:right;transition:color .3s;`},fmtQuizClock(S.quizTimeLeft||0)),el('div',{cls:'quiz-score-badge'},`⭐ ${S.quizScore||0}`)); const card=el('div',{cls:'quiz-question-card'},el('p',{cls:'quiz-question-meta'},`Frage ${(S.quizIdx||0)+1} von ${(S.quizQueue||[]).length} · ${fmtQuizTime(total)}`),el('p',{cls:'quiz-question-title'},current.q)); if(S.quizShowAnswer) card.appendChild(el('div',{cls:'quiz-answer-card'},el('p',{cls:'quiz-answer-kicker'},'Antwort'),el('p',{cls:'quiz-answer-text'},current.a))); wrap.append(progress,card); if(!S.quizShowAnswer) wrap.appendChild(btn('ghost-btn quiz-reveal-btn','👁️ Antwort anzeigen',()=>set({quizShowAnswer:true}))); else wrap.appendChild(div('btn-row',btn('quiz-correct-btn','✅ Korrekt',()=>quizNext(true)),btn('quiz-wrong-btn','❌ Falsch',()=>quizNext(false)))); return wrap; };
+
+renderQuizTab=function(){ ensure(); const all=quizAllQuestions(), bestRate=quizBestRate(), selected=quizSeconds(S.quizSelectedSeconds); const mk=(c,i,t,s,a)=>el('button',{cls:`menu-btn ${c}`,onclick:a,type:'button'},div('mc-icon',i),el('div',{},p('mc-title',t),p('mc-sub',s))); return el('div',{},tabTitle('','Wissen',`Teste dich selbst. Aktuell voreingestellt: ${fmtQuizTime(selected)}.`),div('quick-stats',div('quick-stat',p('quick-stat-n',String(all.length)),p('quick-stat-l','Fragen gesamt')),div('quick-stat',p('quick-stat-n',bestRate?fmtQuizRateValue(bestRate):'0'),p('quick-stat-l','Best/min')),div('quick-stat',p('quick-stat-n',String(quizProjectedScores().length)),p('quick-stat-l','Top-Resultate'))),mk('quiz-manage','✏️','Wissensfragen verwalten','Fragen bearbeiten, löschen oder ergänzen',()=>set({view:'quizmanage',activeTab:'quiz'})),mk('quiz-start','💡','Quiz starten',`Zeit auswählen: ${fmtQuizTime(selected)}`,()=>set({modal:'quiztime'})),renderQuizHighscorePanel()); };
+
+const prevRenderQuizV113=render;
+render=function(){ ensure(); const root=document.getElementById('app'); root.innerHTML=''; if(S.modal==='login') root.appendChild(renderLogin()); if(S.modal==='new') root.appendChild(renderNewUser()); if(S.modal==='verseselect') root.appendChild(renderVerseSelect()); if(S.modal==='quiztime') root.appendChild(renderQuizTimeSelect()); if(S.view==='select') root.appendChild(renderSelect()); else if(S.view==='menu') root.appendChild(renderMenu()); else if(S.view==='edit') root.appendChild(renderEdit()); else if(S.view==='flash') root.appendChild(renderFlash()); else if(S.view==='done') root.appendChild(renderDone()); else if(S.view==='luecke') root.appendChild(renderLuecke()); else if(S.view==='order') root.appendChild(renderOrder()); else if(S.view==='bibelorder') root.appendChild(renderBibelOrder()); else if(S.view==='bibelsort') root.appendChild(renderBibelSort()); else if(S.view==='bookfill') root.appendChild(renderBookFill()); else if(S.view==='allbooks') root.appendChild(renderAllBooks()); else if(S.view==='quiz') root.appendChild(renderQuizPlayView()); else if(S.view==='quizmanage') root.appendChild(renderQuizManageView()); else if(S.view==='stats') root.appendChild(renderStats()); else if(S.view==='profile') root.appendChild(renderProfile()); };
+
+const quizTimeStyle=document.createElement('style');
+quizTimeStyle.textContent=`
+.quiz-score-row .quiz-score-value{min-width:54px;text-align:right}
+.vs-box .vs-go{background:${QUIZ_ACCENT.grad}!important;border:1px solid ${QUIZ_ACCENT.borderStrong}!important;box-shadow:${QUIZ_ACCENT.glow}!important;color:white!important}
+`;
+document.head.appendChild(quizTimeStyle);
 })();
 </script>
 
@@ -2021,15 +2096,18 @@ const style=document.createElement('style'); style.textContent=`
 
 
 <script>
-/* v111 – Reparatur Reise nach Kanaan + stabile Zusatzfunktionen */
+/* v110 – Bücher-Feinschliff: Tempel-Lösung + Kanaan 15 Stationen */
 (function(){
   const COMMON_BOOK_ABBR={"Psalmen": ["Ps", "Ps.", "Psalm", "Psalmen", "Pslm", "Psa", "Psalms"], "Johannes": ["Joh", "Joh.", "Jh", "Jn", "John"], "2. Timotheus": ["2. Tim", "2 Tim", "2Tim", "2. Tim.", "2 Timothy"], "1. Timotheus": ["1. Tim", "1 Tim", "1Tim", "1. Tim.", "1 Timothy"], "1. Petrus": ["1. Petr", "1 Petr", "1Petr", "1. Pet", "1 Pet", "1Pet", "1 Peter"], "2. Petrus": ["2. Petr", "2 Petr", "2Petr", "2. Pet", "2 Pet", "2Pet", "2 Peter"], "Matthäus": ["Mt", "Mt.", "Matt", "Matt.", "Matth", "Matth.", "Matthaus", "Matthew"], "Markus": ["Mk", "Mk.", "Mrk", "Mrk.", "Mark"], "Lukas": ["Lk", "Lk.", "Luk", "Luk.", "Luke"], "Apostelgeschichte": ["Apg", "Apg.", "Acts"], "Römer": ["Röm", "Röm.", "Roem", "Rom", "Romans"], "1. Korinther": ["1. Kor", "1 Kor", "1Kor", "1 Cor", "1Cor"], "2. Korinther": ["2. Kor", "2 Kor", "2Kor", "2 Cor", "2Cor"], "Galater": ["Gal", "Gal."], "Epheser": ["Eph", "Eph."], "Philipper": ["Phil", "Phil.", "Php"], "Kolosser": ["Kol", "Kol.", "Col"], "1. Johannes": ["1. Joh", "1 Joh", "1Joh", "1. Jh", "1 Jh", "1Jh", "1 John"], "2. Johannes": ["2. Joh", "2 Joh", "2Joh", "2. Jh", "2 Jh", "2Jh", "2 John"], "3. Johannes": ["3. Joh", "3 Joh", "3Joh", "3. Jh", "3 Jh", "3Jh", "3 John"], "1. Mose": ["1. Mo", "1 Mo", "1Mo", "1. Mos", "1 Mos", "1Mos", "Gen", "Gn", "Genesis"], "2. Mose": ["2. Mo", "2 Mo", "2Mo", "Ex", "Exodus"], "3. Mose": ["3. Mo", "3 Mo", "3Mo", "Lev"], "4. Mose": ["4. Mo", "4 Mo", "4Mo", "Num"], "5. Mose": ["5. Mo", "5 Mo", "5Mo", "Dtn", "Deut"], "Josua": ["Jos", "Jos."], "Richter": ["Ri", "Richt"], "Rut": ["Ruth", "Rt"], "1. Samuel": ["1. Sam", "1 Sam", "1Sam"], "2. Samuel": ["2. Sam", "2 Sam", "2Sam"], "1. Könige": ["1. Kön", "1 Kön", "1Kön", "1 Koen"], "2. Könige": ["2. Kön", "2 Kön", "2Kön", "2 Koen"], "1. Chronik": ["1. Chr", "1 Chr", "1Chr"], "2. Chronik": ["2. Chr", "2 Chr", "2Chr"], "Esra": ["Esr"], "Nehemia": ["Neh"], "Ester": ["Est", "Esther"], "Hiob": ["Hi", "Job"], "Sprüche": ["Spr", "Spr.", "Prov"], "Prediger": ["Pred", "Pred.", "Koh"], "Hoheslied": ["Hld", "Hld.", "HL"], "Jesaja": ["Jes", "Jes.", "Isa"], "Jeremia": ["Jer", "Jer."], "Klagelieder": ["Klgl", "Klg", "Lam"], "Hesekiel": ["Hes", "Hes.", "Ez"], "Daniel": ["Dan", "Dan.", "Dn"], "Hosea": ["Hos", "Hos."], "Amos": ["Am", "Am."], "Obadja": ["Ob", "Obd"], "Jona": ["Jon"], "Micha": ["Mi", "Mich"], "Sacharja": ["Sach", "Zech"], "Maleachi": ["Mal", "Mal."], "Offenbarung": ["Offb", "Offb.", "Off", "Apk", "Rev"], "Judas": ["Jud"], "Titus": ["Tit"], "Philemon": ["Phlm", "Phm"], "Hebräer": ["Hebr", "Heb"], "Jakobus": ["Jak", "Jas"]};
+  const JOURNEY_TOTAL=15;
+  const JOURNEY_LOOT={4:{icon:'🎁',name:'Wüstenrast'},8:{icon:'🎁',name:'Manna-Station'},12:{icon:'🎁',name:'Jordanblick'}};
   const css=document.createElement('style');
   css.textContent=`
     .verse-reference{background:linear-gradient(135deg,#0f1f4a,#1d4ed8 52%,#1e40af)!important;border:1px solid rgba(96,165,250,.48)!important;box-shadow:0 10px 30px rgba(30,64,175,.28)!important;}
     .verse-gap,.menu-luecke,.check-btn.verse-gap-action{background:linear-gradient(135deg,#143f68,#2358df 54%,#2d6bf0)!important;border-color:rgba(125,185,255,.46)!important;box-shadow:0 10px 31px rgba(59,130,246,.25)!important;}
     .reference-card{padding:1.25rem;border-radius:18px;background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(29,78,216,.10));border:1px solid rgba(96,165,250,.24);margin-bottom:1rem;}.reference-label{font-size:11px;letter-spacing:2px;color:rgba(147,197,253,.72);text-transform:uppercase;font-weight:700;margin-bottom:12px;display:block;font-family:'Inter',sans-serif;text-align:center;}.reference-verse{font-family:'Lora',serif;font-size:17px;line-height:1.85;color:rgba(237,233,254,.92);font-style:italic;text-align:center;}.reference-fields{display:grid;grid-template-columns:1.4fr .85fr .85fr;gap:8px;margin-bottom:12px;}.reference-field label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.55px;color:rgba(196,181,253,.50);margin:0 0 5px 2px;font-weight:700;}.reference-input{width:100%;padding:11px 12px;border-radius:12px;outline:none;background:#111c3a;border:1px solid rgba(96,165,250,.34);color:#ede9fe;font-size:15px;font-family:'Inter',sans-serif;}.reference-input.correct{border-color:#86efac!important;background:rgba(34,197,94,.10)!important;color:#bbf7d0!important;}.reference-input.wrong{border-color:#fca5a5!important;background:rgba(239,68,68,.09)!important;color:#fecaca!important;}.reference-feedback{min-height:20px;margin:0 0 12px;text-align:center;font-size:13px;}.reference-feedback.ok{color:#86efac}.reference-feedback.no{color:#fca5a5}.reference-check{width:100%;padding:13px;border:none;border-radius:13px;background:linear-gradient(135deg,#0f1f4a,#1d4ed8 60%,#1e40af);color:white;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:10px;}
   `;document.head.appendChild(css);
+
   function normBook(s){return String(s||'').trim().toLowerCase().replace(/["'`´„“]/g,'').replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss').replace(/\./g,'').replace(/\s+/g,' ').trim();}
   function leadingNo(s){const raw=String(s||'').trim().toLowerCase();let m=raw.match(/^(\d+)\s*\.?\s*/);if(m)return m[1];m=raw.match(/^(i{1,3})\s*\.?\s*/);if(m)return String(m[1].length);return null;}
   function aliases(target){return [target,...((typeof BOOK_ALIASES!=='undefined'&&BOOK_ALIASES[target])||[]),...(COMMON_BOOK_ABBR[target]||[])];}
@@ -2037,13 +2115,131 @@ const style=document.createElement('style'); style.textContent=`
   function refNum(s){const m=String(s||'').replace(/[,.:;]+$/,'').match(/\d+/);return m?Number(m[0]):null;}
   function parseRef(stelle){const raw=String(stelle||'').trim();const books=[...BUECHER].sort((a,b)=>b.length-a.length);for(const book of books){for(const a of aliases(book).sort((a,b)=>b.length-a.length)){const esc=a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/\s+/g,'\\s*');const m=raw.match(new RegExp('^\\s*'+esc+'\\s+(\\d+)\\s*[,.:;]?\\s*(\\d+)','i'));if(m)return{book,chapter:Number(m[1]),verse:Number(m[2]),raw};}}const m=raw.match(/^(.*?)[\s]+(\d+)\s*[,.:;]?\s*(\d+)\s*$/);return m?{book:m[1].trim(),chapter:Number(m[2]),verse:Number(m[3]),raw}:null;}
   window.parseStoredReference=parseRef;
+
   const _startMode=window.startMode||startMode;
   window.startMode=startMode=function(mode,verses,opts={}){S.lastVerseMode=mode;set({modal:null,lastVerseMode:mode});const ses=opts.skipPick?[...verses]:pickTen(verses);if(mode==='reference'){set({view:'reference',session:ses,idx:0,results:[],refBook:'',refChap:'',refVerse:'',refChecked:false,refStates:null,refSaved:false});return;}return _startMode(mode,verses,opts);};
   window.doCheckReference=doCheckReference=async function(){const card=S.session[S.idx];if(!card||S.refSaved)return;const ref=parseRef(card.stelle);const states={book:!!(ref&&bookMatches(S.refBook,ref.book)),chap:!!(ref&&refNum(S.refChap)===ref.chapter),verse:!!(ref&&refNum(S.refVerse)===ref.verse)};const ok=states.book&&states.chap&&states.verse;set({refChecked:true,refStates:states,refSaved:true});const upd=S.verses.map(v=>v.id===card.id?updateLearningPoints(v,'reference',{ok,accuracy:(Number(states.book)+Number(states.chap)+Number(states.verse))/3}):v);await saveVerses(upd);showToast(ok?'Bibelstelle korrekt genannt!':'Teilweise richtig – grün zeigt, was stimmt.',ok?'success':'verse',ok?'Treffer':'Bibelstelle prüfen',ok?1500:2300);set({refChecked:true,refStates:states,refSaved:true});};
   window.renderReference=renderReference=function(){const card=S.session[S.idx];if(!card)return renderDone();const states=S.refStates||{},checked=!!S.refChecked;const inp=(key,val)=>{const sk={refBook:'book',refChap:'chap',refVerse:'verse'}[key];const i=el('input',{cls:'reference-input '+(checked?(states[sk]?'correct':'wrong'):''),type:'text'});i.value=val||'';i.oninput=e=>{S[key]=e.target.value};i.onkeydown=e=>{if(e.key==='Enter'&&!checked)doCheckReference()};return i;};const fields=div('reference-fields',div('reference-field',el('label',{},'Buch'),inp('refBook',S.refBook)),div('reference-field',el('label',{},'Kapitel'),inp('refChap',S.refChap)),div('reference-field',el('label',{},'Vers'),inp('refVerse',S.refVerse)));let fb=p('reference-feedback','');if(checked){const ok=states.book&&states.chap&&states.verse;fb=p('reference-feedback '+(ok?'ok':'no'),ok?'✓ Richtig – Buch, Kapitel und Vers stimmen.':`✗ Richtig wäre: ${card.stelle}`);}const check=btn('reference-check','Überprüfen ✓',doCheckReference);if(checked){check.disabled=true;check.textContent='Überprüft';}const next=btn('next-btn',S.idx+1>=S.session.length?'Auswertung →':'Nächster Vers →',()=>{const res=[...S.results,{...card,correct:!!(states.book&&states.chap&&states.verse)}];if(S.idx+1>=S.session.length)set({results:res,view:'done'});else set({results:res,idx:S.idx+1,refBook:'',refChap:'',refVerse:'',refChecked:false,refStates:null,refSaved:false});});return el('div',{},progRow(S.idx,S.session.length,()=>set({view:'menu'})),p('mode-help','Lies den Vers und nenne die Bibelstelle.'),div('reference-card',span('reference-label','Welcher Vers ist das?'),p('reference-verse',`„${card.text}"`)),fields,fb,checked?next:check);};
+
+  window.renderVerseSelect=renderVerseSelect=function(){const overlay=el('div',{cls:'vs-overlay'});overlay.onclick=()=>set({modal:null,vsCustomOpen:false});const box=el('div',{cls:'vs-box'});box.onclick=e=>e.stopPropagation();const titles={flash:'Karteikarten',luecke:'Lückentext',order:'Vers-Reihenfolge',reference:'Bibelstelle nennen'};box.appendChild(el('p',{cls:'vs-title'},titles[S.vsMode]||'Üben'));if(S.vsCustomOpen){box.appendChild(el('p',{cls:'vs-sub'},'Wähle gezielt die Verse aus, die du jetzt trainieren willst.'));const selected=new Set((S.vsCustomIds||[]).filter(id=>S.verses.some(v=>v.id===id)));const list=el('div',{style:'max-height:340px;overflow:auto;margin-bottom:14px;padding-right:4px;'});S.verses.forEach(v=>{const checked=selected.has(v.id);const row=el('button',{type:'button',style:`width:100%;padding:11px 12px;border-radius:12px;margin-bottom:7px;text-align:left;cursor:pointer;display:flex;gap:10px;align-items:flex-start;background:${checked?'rgba(139,92,246,.18)':'rgba(255,255,255,.05)'};border:1px solid ${checked?'rgba(167,139,250,.55)':'rgba(196,181,253,.12)'};color:#ede9fe;`});row.onclick=()=>{const ids=new Set(S.vsCustomIds||[]);ids.has(v.id)?ids.delete(v.id):ids.add(v.id);set({vsCustomIds:[...ids]});};row.appendChild(el('span',{style:'font-size:16px;color:#c4b5fd;'},checked?'☑':'☐'));row.appendChild(el('div',{},el('div',{style:'font-size:13px;font-weight:500;color:#c4b5fd;margin-bottom:3px;'},v.stelle),el('div',{style:'font-size:12px;color:rgba(196,181,253,.55);line-height:1.4;'},v.text.length>80?v.text.slice(0,80)+'…':v.text)));list.appendChild(row);});const selectedVerses=S.verses.filter(v=>(S.vsCustomIds||[]).includes(v.id));const start=btn('vs-go',`Auswahl starten (${selectedVerses.length})`,async()=>{if(!selectedVerses.length)return;await saveLastVerseSelection(S.vsCustomIds||[]);startMode(S.vsMode,selectedVerses);});if(!selectedVerses.length){start.style.opacity='.4';start.style.cursor='not-allowed';}box.append(list,start,btn('vs-cancel','Zurück',()=>set({vsCustomOpen:false})));overlay.appendChild(box);return overlay;}box.appendChild(el('p',{cls:'vs-sub'},'Wähle, mit welchen Versen du jetzt trainierst.'));const rec=adaptiveRecommendedVerses(10);[{icon:'🧭',title:'Empfohlenes Training',sub:`${rec.length} Verse passend zu deinem Lernstand`,verses:rec,action:()=>startMode(S.vsMode,rec,{skipPick:true})},{icon:'📖',title:'Alle gespeicherten Verse',sub:`${S.verses.length} Verse`,verses:S.verses,action:()=>startMode(S.vsMode,S.verses)},{icon:'☑️',title:'Eigene Auswahl',sub:`${(S.vsCustomIds||[]).filter(id=>S.verses.some(v=>v.id===id)).length} zuletzt ausgewählt`,verses:S.verses,action:()=>set({vsCustomOpen:true})}].forEach(o=>{const cnt=o.verses.length,isCustom=o.title==='Eigene Auswahl';const b=el('button',{cls:'vs-option',type:'button',style:`background:linear-gradient(135deg,rgba(96,165,250,.16),transparent);border:1px solid rgba(147,197,253,.36);${cnt===0&&!isCustom?'opacity:.4;cursor:not-allowed;':''}`});b.append(span('vs-opt-icon',o.icon),el('div',{},el('div',{cls:'vs-opt-title'},o.title),el('div',{cls:'vs-opt-sub'},isCustom?o.sub:`${cnt} Vers${cnt===1?'':'e'} · ${o.sub}`)));if(cnt>0||isCustom)b.onclick=o.action;box.appendChild(b);});box.appendChild(btn('vs-cancel','Abbrechen',()=>set({modal:null,vsCustomOpen:false})));overlay.appendChild(box);return overlay;};
+
+  window.renderVerseTab=renderVerseTab=function(){const c=versePointCounts();const mk=(cl,i,t,s,a)=>el('button',{cls:`menu-btn ${cl}`,onclick:a,type:'button'},div('mc-icon',i),el('div',{},p('mc-title',t),p('mc-sub',s)));return el('div',{},tabTitle('','Verse','Trainiere und überprüfe deine Bibelverse.'),div('quick-stats',div('quick-stat',p('quick-stat-n',String(c.total)),p('quick-stat-l','Total')),div('quick-stat',p('quick-stat-n',String(c.practice)),p('quick-stat-l','Braucht Übung')),div('quick-stat',p('quick-stat-n',String(c.refresh)),p('quick-stat-l','Zum Auffrischen')),div('quick-stat',p('quick-stat-n',String(c.good)),p('quick-stat-l','Sitzt gut')),div('quick-stat',p('quick-stat-n',String(c.mastered)),p('quick-stat-l','Gemeistert'))),mk('menu-edit verse-manage','📖','Verse verwalten','Verse hinzufügen, bearbeiten oder löschen',()=>set({view:'edit',editId:null,editStelle:'',editText:''})),mk('verse-gap','✏️','Übung: Lückentext','Fülle die Lücken korrekt aus.',()=>set({modal:'verseselect',vsMode:'luecke',vsCustomOpen:false})),mk('verse-order','🔀','Übung: Reihenfolge','Bringe durch Ziehen und Verschieben in die richtige Reihenfolge.',()=>set({modal:'verseselect',vsMode:'order',vsCustomOpen:false})),mk('verse-reference','🔎','Übung: Bibelstelle nennen','Nenne Buch, Kapitel und Vers zum angezeigten Bibeltext.',()=>set({modal:'verseselect',vsMode:'reference',vsCustomOpen:false})),mk('menu-flash verse-test','🎯','Test: Karteikarten','Prüfe dich selbst.',()=>set({modal:'verseselect',vsMode:'flash',vsCustomOpen:false})));};
+
   function statusDefs(){return[{key:'mastered',label:'Gemeistert',emoji:'🏆',color:'#86efac'},{key:'good',label:'Sitzt gut',emoji:'🌳',color:'#60a5fa'},{key:'refresh',label:'Zum Auffrischen',emoji:'🔁',color:'#fcd34d'},{key:'practice',label:'Braucht Übung',emoji:'🔥',color:'#fca5a5'},{key:'new',label:'Neu',emoji:'🌱',color:'#c4b5fd'}];}
   window.renderStatsPie=renderStatsPie=function(){const counts=versePointCounts();const total=counts.total||0;const defs=statusDefs();const panel=div('stats-pie-panel');panel.appendChild(p('stats-pie-title','Vers-Lernstand'));if(!total){panel.appendChild(div('empty','Noch keine Verse vorhanden.'));return panel;}let start=0;const parts=defs.map(d=>{const end=start+(counts[d.key]||0)/total*100;const part=`${d.color} ${start}% ${end}%`;start=end;return part;}).join(',');const pie=div('pie-chart');pie.style.background=`conic-gradient(${parts})`;pie.appendChild(div('pie-center-text',span('pie-center-number',String(total)),span('pie-center-label','Verse')));const legend=div('pie-legend');defs.forEach(d=>{const cnt=counts[d.key]||0,pct=Math.round(cnt/total*100);const dot=span('pie-legend-dot','');dot.style.background=d.color;legend.appendChild(div('pie-legend-row',dot,span('',`${d.emoji} ${d.label}`),span('pie-legend-value',`${cnt} · ${pct}%`)));});panel.appendChild(div('pie-wrap',pie,legend));return panel;};
+
+  journeyPos=s=>({x:6+s*(88/JOURNEY_TOTAL),y:70-Math.sin(s/JOURNEY_TOTAL*Math.PI)*36+Math.sin(s*.9)*7});
+  checkJourneyLoot=function(o,n,p){keepRewards(p);const c=new Set(S.journeyClaimed||[]);const hit=[4,8,12].find(m=>o<m&&n>=m&&!c.has(m));if(!hit)return;c.add(hit);const r=JR[Math.floor(Math.random()*JR.length)];p.journeyClaimed=[...c];p.journeyRewardOpen=true;p.journeyReward={...r,milestone:hit,milestoneName:JOURNEY_LOOT[hit].name,milestoneIcon:JOURNEY_LOOT[hit].icon};applyJourneyReward(p,r);};
+  nextJourneyPatch=p=>(keepRewards(p),p.boBook=randBook(S.journeyScope||'ALL',S.boBook),p.boVor='',p.boNach='',p.journeyShowHint=false,p);
+  renderJourneyMap=function(){const step=S.journeyStep||0,c=new Set(S.journeyClaimed||[]),map=div('journey-map',div('journey-sky'));map.appendChild(el('svg',{cls:'route-svg',viewBox:'0 0 100 100',preserveAspectRatio:'none'},el('path',{cls:'route-path',d:'M6 70 C22 34 36 78 50 48 S76 24 94 42'})));for(let i=0;i<=JOURNEY_TOTAL;i++){const pp=journeyPos(i);let cl='route-dot'+(i<=step?' done':'');if(JOURNEY_LOOT[i])cl='route-dot loot'+(c.has(i)?' claimed':'');const d=div(cl,JOURNEY_LOOT[i]?'🎁':'');d.style.left=pp.x+'%';d.style.top=pp.y+'%';map.appendChild(d);}map.append(span('map-label start','Ägypten'),span('map-label goal','Kanaan'));const pp=journeyPos(Math.min(step,JOURNEY_TOTAL)),tr=span('traveler','👥');tr.style.left=pp.x+'%';tr.style.top=pp.y+'%';map.appendChild(tr);return map;};
+  doJourneyAnswer=function(){const i=S.boBook,vor=BUECHER[i-1],nach=BUECHER[i+1];if(!(S.boVor||'').trim()||!(S.boNach||'').trim()){showToast('Bitte gib Vorgänger und Nachfolger ein.','error','Noch unvollständig',2200);return set({journeyMsg:'',journeyMsgOk:false});}const vorOk=abMatch(S.boVor,vor),nachOk=abMatch(S.boNach,nach),ok=vorOk&&nachOk;if(ok){const old=S.journeyStep||0,boost=(S.journeyDouble||0)>0||(S.journeyTurbo||0)>0,gain=boost?2:1,ns=Math.min(JOURNEY_TOTAL,old+gain),p={journeyStep:ns,journeyMsg:'',journeyMsgOk:true};keepRewards(p);if((S.journeyDouble||0)>0)p.journeyDouble=Math.max(0,S.journeyDouble-1);if((S.journeyTurbo||0)>0)p.journeyTurbo=Math.max(0,S.journeyTurbo-1);checkJourneyLoot(old,ns,p);showToast(`Richtig! ${gain} Schritt${gain>1?'e':''} vorwärts.`,'books','Richtige Antwort',1500);if(ns>=JOURNEY_TOTAL){p.journeyDone=true;if(!S.journeyStatsSaved){p.journeyStatsSaved=true;incUser(scopeKey('journeyWins',S.journeyScope));}}else nextJourneyPatch(p);return set(p);}const p={journeyMsg:'',journeyMsgOk:false};keepRewards(p);if((S.journeyJoker||0)>0){p.journeyJoker=Math.max(0,S.journeyJoker-1);nextJourneyPatch(p);showToast('Joker eingesetzt: Fehler verziehen, kein Rückfall.','stats','Joker',2200);}else if((S.journeyShield||0)>0){p.journeyShield=Math.max(0,S.journeyShield-1);p.journeyStep=Math.max(0,(S.journeyStep||0)-1);nextJourneyPatch(p);showToast('Schutzschild: nur 1 Schritt zurück.','stats','Schutzschild',2200);}else{p.journeyStep=Math.max(0,(S.journeyStep||0)-3);nextJourneyPatch(p);showToast(`Leider falsch. Richtig wäre: ${vor} / ${nach}. Du gehst 3 Schritte zurück.`,'error','Nicht ganz',5200);}set(p);};
+  renderBibelOrder=function(){if(!S.journeyScope)return renderJourneyScopeSelect();const i=S.boBook||1,book=BUECHER[i],vor=BUECHER[i-1],nach=BUECHER[i+1],range=journeyRange(S.journeyScope),step=S.journeyStep||0;const hdr=div('page-header',btn('back-btn','←',()=>set({view:'menu',activeTab:'books'})),el('h2',{cls:'page-title'},'Exodus-Reise'));const wrap=el('div',{},hdr,tabTitle('','Vorgänger & Nachfolger',range.label),renderJourneyMap(),div('journey-legend',p('mode-help mode-help-left','15 Stationen bis Kanaan. Nenne das Buch davor und danach, um vorwärtszugehen.'),el('ul',{cls:'mode-bullets'},el('li',{},'Bei einer falschen Antwort gehst du 3 Schritte zurück.'),el('li',{},'Nach jeweils 4 Stationen wartet eine Lootbox.')),p('mode-help mode-help-left','🎁 Erreichst du diese Station, gibt es eine zufällige Belohnung.')),div('journey-progress',el('div',{cls:'prog-track'},el('div',{cls:'prog-fill',style:`width:${step/JOURNEY_TOTAL*100}%`})),span('journey-step',`${step} / ${JOURNEY_TOTAL}`)));if(S.journeyDone){wrap.append(renderConfetti(),div('journey-win',span('journey-win-emoji','🏞️'),p('journey-win-title','Bravo! Kanaan erreicht!'),p('journey-win-sub','Du hast die Reise erfolgreich abgeschlossen.'),btn('prim-btn','Neue Reise starten',()=>set({journeyScope:null,journeyDone:false,journeyStep:0}))));return wrap;}const q=div('journey-question',p('journey-book',book),renderRewardChips());const vi=el('input',{cls:'bo-input',type:'text',placeholder:'Vorgänger…'});vi.value=S.boVor||'';vi.oninput=e=>S.boVor=e.target.value;const ni=el('input',{cls:'bo-input',type:'text',placeholder:'Nachfolger…'});ni.value=S.boNach||'';ni.oninput=e=>S.boNach=e.target.value;vi.onkeydown=e=>{if(e.key==='Enter')ni.focus();};ni.onkeydown=e=>{if(e.key==='Enter')doJourneyAnswer();};q.append(el('div',{style:'margin-bottom:8px'},span('f-label','Vorgänger'),vi),el('div',{style:'margin-bottom:8px'},span('f-label','Nachfolger'),ni));if(S.journeyShowHint)q.appendChild(div('hint-box',`Hinweis: Vorgänger beginnt mit „${vor.charAt(0)}“, Nachfolger mit „${nach.charAt(0)}“.`));q.append(btn('bo-check','Antwort prüfen ✓',doJourneyAnswer));wrap.appendChild(q);const pop=renderLootPopup();if(pop)wrap.appendChild(pop);setTimeout(()=>vi.focus(),50);return wrap;};
+  checkTempleOrder=function(){const ok=S.bsCurrent.every((v,i)=>v===S.bsCorrect[i]);const before=S.templeStones||0;const floor=templePhaseFloor(before);const ns=ok?Math.min(TEMPLE_TOTAL_STEPS,before+1):Math.max(floor,before-1);const beforePhase=Math.floor(before/TEMPLE_PHASE_SIZE),afterPhase=Math.floor(ns/TEMPLE_PHASE_SIZE);let msg;if(ok&&ns>=TEMPLE_TOTAL_STEPS)msg='Der Tempel wurde vollendet.';else if(ok&&afterPhase>beforePhase)msg=`Phase ${afterPhase} erreicht: ${TEMPLE_PHASES[afterPhase-1].label}.`;else if(ok)msg='Ein Schritt wurde geschafft.';else{const sol=S.bsCorrect.map(idx=>BUECHER[idx]).join(' → ');msg=`Nicht ganz. Die richtige Reihenfolge ist: ${sol}`;}const p={bsChecked:true,templeStones:ns,templeDone:ns>=TEMPLE_TOTAL_STEPS,templeMsg:msg,templeMsgOk:ok};if(ok&&afterPhase>beforePhase)p.templePhasePopup=afterPhase;if(ns>=TEMPLE_TOTAL_STEPS&&!S.templeStatsSaved){p.templeStatsSaved=true;incUser(scopeKey('templeWins',S.templeScope));}showToast(msg,ok?'success':'error',ok?'Tempelbau':'Richtige Lösung',ok?1500:9500);set(p);};
   const _render=window.render||render;window.render=render=function(){const root=document.getElementById('app');if(S.view==='reference'){root.innerHTML='';if(S.modal==='verseselect')root.appendChild(renderVerseSelect());root.appendChild(renderReference());return;}return _render();};
+})();
+</script>
+
+
+<script>
+/* v112 – Reparatur: Antwort prüfen in Reise nach Kanaan */
+(function(){
+  function journeyNextBook(scope,current){
+    const r = typeof journeyRange==='function' ? journeyRange(scope) : {min:1,max:64};
+    let n, guard=0;
+    do{ n=Math.floor(Math.random()*(r.max-r.min+1))+r.min; guard++; }while(n===current && guard<100);
+    return n;
+  }
+  function keepJourneyRewardsSafe(p){
+    ['journeyDouble','journeyJoker','journeySkip','journeyHint','journeyTurbo','journeyShield'].forEach(k=>{
+      if(!(k in p)) p[k]=Number(S[k]||0);
+    });
+    return p;
+  }
+  function nextJourneyPatchSafe(p){
+    keepJourneyRewardsSafe(p);
+    p.boBook=journeyNextBook(S.journeyScope||'ALL',S.boBook);
+    p.boVor='';
+    p.boNach='';
+    p.journeyShowHint=false;
+    return p;
+  }
+  function checkJourneyLootSafe(oldStep,newStep,p){
+    keepJourneyRewardsSafe(p);
+    const claimed=new Set(S.journeyClaimed||[]);
+    const hit=[4,8,12].find(m=>oldStep<m && newStep>=m && !claimed.has(m));
+    if(!hit) return;
+    claimed.add(hit);
+    const rewards=(typeof JR!=='undefined' && Array.isArray(JR)) ? JR : [];
+    const r=rewards.length ? rewards[Math.floor(Math.random()*rewards.length)] : {key:'joker',symbol:'💡',name:'Joker',effect:'Der nächste Fehler wird verziehen.'};
+    const labels={4:{icon:'🎁',name:'Wüstenrast'},8:{icon:'🎁',name:'Manna-Station'},12:{icon:'🎁',name:'Jordanblick'}};
+    p.journeyClaimed=[...claimed];
+    p.journeyRewardOpen=true;
+    p.journeyReward={...r,milestone:hit,milestoneName:labels[hit].name,milestoneIcon:labels[hit].icon};
+    const key={double:'journeyDouble',joker:'journeyJoker',skip:'journeySkip',hint:'journeyHint',turbo:'journeyTurbo',shield:'journeyShield'}[r.key];
+    if(key) p[key]=Number(p[key]||0)+(r.key==='turbo'?3:1);
+  }
+  function answerJourneyFixed(){
+    const i=Number(S.boBook||1);
+    const vor=BUECHER[i-1];
+    const nach=BUECHER[i+1];
+    if(!(S.boVor||'').trim() || !(S.boNach||'').trim()){
+      showToast('Bitte gib Vorgänger und Nachfolger ein.','error','Noch unvollständig',2200);
+      return set({journeyMsg:'',journeyMsgOk:false});
+    }
+    const vorOk=abMatch(S.boVor,vor);
+    const nachOk=abMatch(S.boNach,nach);
+    const ok=vorOk && nachOk;
+    if(ok){
+      const oldStep=Number(S.journeyStep||0);
+      const boost=(S.journeyDouble||0)>0 || (S.journeyTurbo||0)>0;
+      const gain=boost?2:1;
+      const newStep=Math.min(15,oldStep+gain);
+      const p={journeyStep:newStep,journeyMsg:'',journeyMsgOk:true};
+      keepJourneyRewardsSafe(p);
+      if((S.journeyDouble||0)>0) p.journeyDouble=Math.max(0,S.journeyDouble-1);
+      if((S.journeyTurbo||0)>0) p.journeyTurbo=Math.max(0,S.journeyTurbo-1);
+      checkJourneyLootSafe(oldStep,newStep,p);
+      showToast(`Richtig! ${gain} Schritt${gain>1?'e':''} vorwärts.`,'books','Richtige Antwort',1500);
+      if(newStep>=15){
+        p.journeyDone=true;
+        if(!S.journeyStatsSaved){
+          p.journeyStatsSaved=true;
+          if(typeof incUser==='function' && typeof scopeKey==='function') incUser(scopeKey('journeyWins',S.journeyScope));
+        }
+      }else{
+        nextJourneyPatchSafe(p);
+      }
+      return set(p);
+    }
+    const p={journeyMsg:'',journeyMsgOk:false};
+    keepJourneyRewardsSafe(p);
+    if((S.journeyJoker||0)>0){
+      p.journeyJoker=Math.max(0,S.journeyJoker-1);
+      nextJourneyPatchSafe(p);
+      showToast('Joker eingesetzt: Fehler verziehen, kein Rückfall.','stats','Joker',2200);
+    }else if((S.journeyShield||0)>0){
+      p.journeyShield=Math.max(0,S.journeyShield-1);
+      p.journeyStep=Math.max(0,(S.journeyStep||0)-1);
+      nextJourneyPatchSafe(p);
+      showToast('Schutzschild: nur 1 Schritt zurück.','stats','Schutzschild',2200);
+    }else{
+      p.journeyStep=Math.max(0,(S.journeyStep||0)-3);
+      nextJourneyPatchSafe(p);
+      showToast(`Leider falsch. Richtig wäre: ${vor} / ${nach}. Du gehst 3 Schritte zurück.`,'error','Nicht ganz',5200);
+    }
+    return set(p);
+  }
+  window.doJourneyAnswer=answerJourneyFixed;
+  try{ doJourneyAnswer=answerJourneyFixed; }catch(_){ }
+  document.addEventListener('click',function(e){
+    const b=e.target && e.target.closest && e.target.closest('.bo-check');
+    if(!b) return;
+    if(S && S.view==='bibelorder' && S.journeyScope && !S.journeyDone){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      answerJourneyFixed();
+    }
+  },true);
 })();
 </script>
 
