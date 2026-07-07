@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-<title>Bibel-Trainer</title>
+<title>Bibel-Trainer v117</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#2c3e50">
 
@@ -479,6 +479,8 @@ body.is-mobile .profile-trophy-badge{font-size:9.5px;padding:3px 6px;}
 /* v102 – Ausführliche Punkte-Hilfe unter Verse verwalten */
 .points-help-btn{width:100%;padding:13px 15px;border-radius:15px;margin:0 0 12px;border:1px solid rgba(147,197,253,.28);background:linear-gradient(135deg,rgba(37,99,235,.15),rgba(139,92,246,.10));color:#dbeafe;font-size:13px;font-weight:600;cursor:pointer;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:10px}.points-help-panel{padding:15px;margin:0 0 14px;border-radius:18px;background:linear-gradient(135deg,rgba(255,255,255,.055),rgba(59,130,246,.07));border:1px solid rgba(147,197,253,.18);color:rgba(237,233,254,.86);font-size:12.5px;line-height:1.55}.points-help-panel h3{font-size:14px;color:#ede9fe;margin:0 0 8px}.points-help-panel h4{font-size:12px;color:#bfdbfe;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.45px}.points-help-panel ul{margin:5px 0 8px 18px}.points-help-panel li{margin:3px 0}.points-help-grid{display:grid;grid-template-columns:1fr auto;gap:5px 10px;margin:6px 0 10px}.points-help-grid span:nth-child(even){color:#dbeafe;font-weight:700;text-align:right}.points-help-note{margin-top:10px;padding:9px 10px;border-radius:12px;background:rgba(59,130,246,.10);border:1px solid rgba(147,197,253,.14);color:rgba(219,234,254,.92)}.points-help-subnote{font-size:11.5px;color:rgba(196,226,255,.74);margin-top:-4px;margin-bottom:8px}.points-help-rule{margin:7px 0 9px;padding:9px 10px;border-radius:12px;background:rgba(255,255,255,.045);border:1px solid rgba(196,181,253,.11)}.points-help-rule strong{color:#ede9fe}.points-help-mini{font-size:11.5px;color:rgba(237,233,254,.68)}
 </style>
+
+<!-- v117: Basis v115; Wissen-Tab oben 2 Felder + Bestenliste wieder sichtbar; Profil-Symbole/Farben erweitert. -->
 </head>
 <body>
 <div class="orb1"></div><div class="orb2"></div><div class="orb3"></div>
@@ -501,8 +503,8 @@ async function fbSet(c,d,v){try{await db.collection(c).doc(d).set(v);}catch(e){c
 async function fbMerge(c,d,v){try{await db.collection(c).doc(d).set(v,{merge:true});}catch(e){console.error(e);}}
 async function fbDel(c,d){try{await db.collection(c).doc(d).delete();}catch(e){console.error(e);}}
 
-const PALETTE=["#8b5cf6","#6366f1","#ec4899","#f97316","#14b8a6","#10b981","#3b82f6","#f59e0b"];
-const EMOJIS=["✝","🕊","📖","🌟","🙏","⚓","🌿","💎","🔥","🌙"];
+const PALETTE=["#8b5cf6","#6366f1","#ec4899","#f97316","#14b8a6","#10b981","#3b82f6","#f59e0b","#22c55e","#0ea5e9","#06b6d4","#a855f7","#d946ef","#eab308","#ef4444","#f43f5e","#84cc16","#0f766e","#2563eb","#7c2d12","#be123c","#0891b2","#4ade80","#facc15"];
+const EMOJIS=["✝","🕊","📖","🌟","🙏","⚓","🌿","💎","🔥","🌙","👑","❤️","📚","💡","🏆","🛡️","🦁","🐑","🐟","🪨","⭐","✨","🕯️","☀️","🧭","🗺️","🏛️","⛪","🎺","🪔","🪶","🌊"];
 const BUECHER=["1. Mose","2. Mose","3. Mose","4. Mose","5. Mose","Josua","Richter","Rut","1. Samuel","2. Samuel","1. Könige","2. Könige","1. Chronik","2. Chronik","Esra","Nehemia","Ester","Hiob","Psalmen","Sprüche","Prediger","Hoheslied","Jesaja","Jeremia","Klagelieder","Hesekiel","Daniel","Hosea","Joel","Amos","Obadja","Jona","Micha","Nahum","Habakuk","Zefanja","Haggai","Sacharja","Maleachi","Matthäus","Markus","Lukas","Johannes","Apostelgeschichte","Römer","1. Korinther","2. Korinther","Galater","Epheser","Philipper","Kolosser","1. Thessalonicher","2. Thessalonicher","1. Timotheus","2. Timotheus","Titus","Philemon","Hebräer","Jakobus","1. Petrus","2. Petrus","1. Johannes","2. Johannes","3. Johannes","Judas","Offenbarung"];
 const BUECHER_AT=BUECHER.slice(0,39),BUECHER_NT=BUECHER.slice(39);
 const KAPITEL=[50,40,27,36,34,24,21,4,31,24,22,25,29,36,10,13,10,42,150,31,12,8,66,52,5,48,12,14,3,9,1,4,7,3,3,3,2,14,4,28,16,24,41,28,16,16,13,6,6,4,4,5,3,6,4,3,1,13,5,5,3,5,1,1,1,22];
@@ -1677,7 +1679,7 @@ function quizDelete(id){ S.quizQuestions=(S.quizQuestions||[]).filter(q=>q.id!==
 function renderQuizHighscorePanel(){ ensureQuizCloudHydrated(); const scores=quizProjectedScores(); const panel=div('quiz-stat-panel'); panel.appendChild(p('quiz-stat-title','Deine besten 5 Resultate')); if(!scores.length){ panel.appendChild(div('empty',S.quizCloudLoading?'Lade Wissen-Resultate aus Firebase…':'Noch kein Wissenstest gespielt.')); return panel; } scores.forEach((s,i)=>panel.appendChild(div('quiz-score-row',span('quiz-score-rank','#'+(i+1)),el('div',{style:'flex:1'},el('div',{style:'font-size:13px;font-weight:600;color:#fdf2f8'},`${s.score} Punkt${s.score===1?'':'e'}`),el('div',{style:'font-size:11px;color:rgba(251,207,232,.58);margin-top:2px;'},typeof fmtDate==='function'?fmtDate(s.date):String(s.date||''))),span('quiz-score-value',String(s.score))))); return panel; }
 function renderQuizManageView(){ const hdr=div('page-header',btn('back-btn','←',()=>set({view:'menu',activeTab:'quiz'})),el('h2',{cls:'page-title'},'Wissensfragen verwalten')); const wrap=el('div',{},hdr,tabTitle('','Wissensfragen verwalten','Alle Wissensfragen können bearbeitet oder gelöscht werden. Zusätzliche Fragen kannst du hier ebenfalls erfassen.')); const panel=div('form-panel quiz-manage-panel'); panel.appendChild(el('label',{cls:'f-label'},'Frage')); const qInp=el('textarea',{cls:'f-input f-textarea',placeholder:'Frage eingeben…'}); qInp.value=S.quizDraftQ||''; qInp.oninput=e=>S.quizDraftQ=e.target.value; panel.appendChild(qInp); panel.appendChild(el('label',{cls:'f-label'},'Antwort')); const aInp=el('textarea',{cls:'f-input f-textarea',placeholder:'Antwort eingeben…',style:'min-height:70px;'}); aInp.value=S.quizDraftA||''; aInp.oninput=e=>S.quizDraftA=e.target.value; panel.appendChild(aInp); if(S.quizDraftErr) panel.appendChild(span('err-msg',S.quizDraftErr)); const primary=btn('save-btn quiz-save-btn',S.quizEditId?'Änderungen speichern':'Wissensfrage speichern',()=>{ const q=(S.quizDraftQ||'').trim(), a=(S.quizDraftA||'').trim(); if(!q || !a) return set({quizDraftErr:'Bitte Frage und Antwort eingeben.'}); if(S.quizEditId) S.quizQuestions=(S.quizQuestions||[]).map(item=>item.id===S.quizEditId?{...item,q,a}:item); else S.quizQuestions=[...(S.quizQuestions||[]),{id:'qq_'+Date.now(),q,a}]; saveQuizQuestionBank(); const savedEdit=!!S.quizEditId; S.quizEditId=null; S.quizDraftQ=''; S.quizDraftA=''; S.quizDraftErr=''; showToast(savedEdit?'Wissensfrage aktualisiert.':'Wissensfrage gespeichert.','success',savedEdit?'Aktualisiert':'Gesichert',1400); render(); }); panel.appendChild(primary); if(S.quizEditId) panel.appendChild(btn('cancel-lnk','Abbrechen',()=>set({quizEditId:null,quizDraftQ:'',quizDraftA:'',quizDraftErr:''}))); wrap.appendChild(panel); const list=div('vlist'); const all=quizAllQuestions(); if(!all.length) list.appendChild(div('empty','Keine Fragen vorhanden.')); all.forEach(item=>{ const editBtn=btn('ibtn ibtn-e','✏️',()=>quizLoadEdit(item)); const delBtn=btn('ibtn ibtn-d','🗑',()=>quizDelete(item.id)); list.appendChild(div('vitem',el('div',{style:'flex:1'},p('v-stelle',item.q),p('v-text',item.a),div('v-meta',span('',`ID: ${item.id}`))),el('div',{style:'display:flex;gap:5px;flex-shrink:0'},editBtn,delBtn))); }); wrap.appendChild(list); return wrap; }
 function renderQuizPlayView(){ ensure(); const current=quizCurrent(); if(!current) return renderQuizTab(); const hdr=div('page-header',btn('back-btn','←',()=>exitQuizToTab()),el('h2',{cls:'page-title'},'Bibel-Wissen')); const wrap=el('div',{},hdr,tabTitle('','Bibel-Wissen','Teste dich selbst. Wie viele Fragen kannst du in 60 Sekunden korrekt beantworten?')); if(S.quizPhase==='ended'){ const score=S.quizScore||0, emoji=score>=20?'🏆':score>=10?'🌟':'📖', title=score>=20?'Starke Runde!':score>=10?'Gut gemacht!':'Zeit abgelaufen!'; const replay=btn('prim-btn quiz-start-btn','Nochmal spielen',()=>startQuizGame()); wrap.appendChild(el('div',{cls:'quiz-result-panel'},el('div',{cls:'quiz-result-emoji'},emoji),el('h2',{cls:'quiz-result-title'},title),p('quiz-result-sub',`Du hast ${score} Frage${score!==1?'n':''} richtig beantwortet.`),el('div',{cls:'quiz-final-score'},p('quiz-final-label','Dein Score'),p('quiz-final-number',String(score)),p('quiz-final-note',score>=20?'Exzellent — du bist ein Bibelexperte! 🎉':score>=10?'Richtig stark — weiter so! 💪':'Sauber gespielt!')),renderQuizHighscorePanel(),div('btn-row',btn('ghost-btn','Zurück',()=>exitQuizToTab()),replay))); return wrap; } const pct=((S.quizTimeLeft||0)/QUIZ_TOTAL)*100, timerColor=(S.quizTimeLeft||0)>20?'#22c55e':(S.quizTimeLeft||0)>10?'#f59e0b':'#ef4444'; const progress=el('div',{style:'display:flex;align-items:center;gap:16px;margin-bottom:18px;'},el('div',{style:'flex:1;background:#1e1630;border-radius:99px;height:12px;overflow:hidden;border:1px solid rgba(244,114,182,.14);'},el('div',{style:`width:${pct}%;height:100%;background:${timerColor};transition:width 1s linear, background .3s;border-radius:99px;`})),el('div',{style:`color:${timerColor};font-weight:800;font-size:1.3rem;min-width:42px;text-align:right;transition:color .3s;`},`${S.quizTimeLeft||0}s`),el('div',{cls:'quiz-score-badge'},`⭐ ${S.quizScore||0}`)); const card=el('div',{cls:'quiz-question-card'},el('p',{cls:'quiz-question-meta'},`Frage ${(S.quizIdx||0)+1} von ${(S.quizQueue||[]).length}`),el('p',{cls:'quiz-question-title'},current.q)); if(S.quizShowAnswer) card.appendChild(el('div',{cls:'quiz-answer-card'},el('p',{cls:'quiz-answer-kicker'},'Antwort'),el('p',{cls:'quiz-answer-text'},current.a))); wrap.append(progress,card); if(!S.quizShowAnswer) wrap.appendChild(btn('ghost-btn quiz-reveal-btn','👁️ Antwort anzeigen',()=>set({quizShowAnswer:true}))); else wrap.appendChild(div('btn-row',btn('quiz-correct-btn','✅ Korrekt',()=>quizNext(true)),btn('quiz-wrong-btn','❌ Falsch',()=>quizNext(false)))); return wrap; }
-function renderQuizTab(){ ensure(); const all=quizAllQuestions(), best=quizBestScore(); const mk=(c,i,t,s,a)=>el('button',{cls:`menu-btn ${c}`,onclick:a,type:'button'},div('mc-icon',i),el('div',{},p('mc-title',t),p('mc-sub',s))); return el('div',{},tabTitle('','Wissen','Teste dich selbst. Wie viele Fragen kannst du in 60 Sekunden korrekt beantworten?'),div('quick-stats',div('quick-stat',p('quick-stat-n',String(all.length)),p('quick-stat-l','Fragen gesamt')),div('quick-stat',p('quick-stat-n',String(best)),p('quick-stat-l','Bester Score')),div('quick-stat',p('quick-stat-n',String(quizProjectedScores().length)),p('quick-stat-l','Top-Resultate'))),mk('quiz-manage','✏️','Wissensfragen verwalten','Fragen bearbeiten, löschen oder ergänzen',()=>set({view:'quizmanage',activeTab:'quiz'})),mk('quiz-start','💡','Quiz starten','Teste dich selbst. Wie viele Fragen kannst du in 60 Sekunden korrekt beantworten?',()=>startQuizGame()),renderQuizHighscorePanel()); }
+function renderQuizTab(){ ensure(); const all=quizAllQuestions(), bestRate=(typeof quizBestRate==='function'?quizBestRate():0), bestScore=quizBestScore(); const bestTxt=bestRate?(typeof fmtQuizRateValue==='function'?fmtQuizRateValue(bestRate):String(bestRate)):String(bestScore||0); const mk=(c,i,t,s,a)=>el('button',{cls:`menu-btn ${c}`,onclick:a,type:'button'},div('mc-icon',i),el('div',{},p('mc-title',t),p('mc-sub',s))); return el('div',{},tabTitle('','Wissen','Teste oder erweitere dein Bibelwissen'),el('div',{cls:'quick-stats',style:'grid-template-columns:repeat(2,1fr);'},div('quick-stat',p('quick-stat-n',String(all.length)),p('quick-stat-l','Anzahl Fragen')),div('quick-stat',p('quick-stat-n',bestTxt),p('quick-stat-l','Bestleistung'))),mk('quiz-manage','✏️','Wissensfragen verwalten','Fragen bearbeiten, löschen oder ergänzen',()=>set({view:'quizmanage',activeTab:'quiz'})),mk('quiz-start','💡','Quiz starten','Wähle die Zeit aus und beantworte die Fragen',()=>startQuizGame()),typeof renderQuizHighscorePanel==='function'?renderQuizHighscorePanel():div('')); }
 renderTabNav = function(){ const tabs=[{id:'books',icon:'📚',label:'Bücher'},{id:'verse',icon:'📖',label:'Verse'},{id:'quiz',icon:'💡',label:'Wissen'},{id:'stats',icon:'📊',label:'Statistik'},{id:'profile',icon:'⚙️',label:'Profil'}]; const nav=el('div',{cls:'tab-nav quiz-tab-nav'},...tabs.map(t=>{const b=el('button',{cls:'tab-btn'+((S.activeTab||'books')===t.id?' active':''),type:'button'},span('tab-icon',t.icon),span('tab-label',t.label)); b.onclick=()=>set({activeTab:t.id,view:'menu'}); return b;})); nav.style.gridTemplateColumns='repeat(5,1fr)'; nav.style.width='min(540px,calc(100vw - 20px))'; return nav; };
 renderStats = (function(oldRenderStats){ return function(){ const wrap=oldRenderStats(); ensure(); ensureQuizCloudHydrated(); const sec=div('stat-section',p('stat-section-title','💡 Wissen – beste 5 Resultate')); const scores=quizProjectedScores(); if(!scores.length) sec.appendChild(div('bestbox',S.quizCloudLoading?'Lade Wissen-Resultate aus Firebase…':'Noch kein Wissenstest gespielt.')); else scores.forEach((s,i)=>sec.appendChild(div('quiz-stat-line',span('quiz-stat-rank','#'+(i+1)),el('div',{style:'flex:1'},el('div',{style:'font-size:13px;color:#fde7f3;font-weight:600'},`${s.score} Punkt${s.score===1?'':'e'}`),el('div',{style:'font-size:11px;color:rgba(251,207,232,.56);margin-top:2px;'},typeof fmtDate==='function'?fmtDate(s.date):String(s.date||''))),span('quiz-stat-score',String(s.score))))); const sections=[...wrap.querySelectorAll('.stat-section')]; const verseSec=sections.find(section=>section.textContent && section.textContent.includes('Vers-Lernstand')); if(verseSec) wrap.insertBefore(sec, verseSec); else wrap.appendChild(sec); return wrap; }; })(renderStats);
 renderStatsTab = function(){ const w=renderStats(); if(w.firstChild) w.removeChild(w.firstChild); w.insertBefore(tabTitle('Meine Statistik','Meine Statistik','Mein Lernen - meine Erfolge!'), w.firstChild||null); return w; };
@@ -1771,7 +1773,7 @@ renderQuizHighscorePanel=function(){ ensureQuizCloudHydrated(); const scores=qui
 
 renderQuizPlayView=function(){ ensure(); const current=quizCurrent(); if(!current) return renderQuizTab(); const total=quizSeconds(S.quizGameSeconds||S.quizSelectedSeconds||QUIZ_TOTAL); const hdr=div('page-header',btn('back-btn','←',()=>exitQuizToTab()),el('h2',{cls:'page-title'},'Bibel-Wissen')); const wrap=el('div',{},hdr,tabTitle('','Bibel-Wissen',`Teste dich selbst. Wie viele Fragen kannst du in ${fmtQuizTime(total)} korrekt beantworten?`)); if(S.quizPhase==='ended'){ const score=S.quizScore||0, rate=score/(total/60), emoji=score>=20?'🏆':score>=10?'🌟':'📖', title=score>=20?'Starke Runde!':score>=10?'Gut gemacht!':'Zeit abgelaufen!'; const replay=btn('prim-btn quiz-start-btn','Nochmal spielen',()=>set({modal:'quiztime'})); wrap.appendChild(el('div',{cls:'quiz-result-panel'},el('div',{cls:'quiz-result-emoji'},emoji),el('h2',{cls:'quiz-result-title'},title),p('quiz-result-sub',`Du hast ${score} Frage${score!==1?'n':''} in ${fmtQuizTime(total)} richtig beantwortet.`),el('div',{cls:'quiz-final-score'},p('quiz-final-label','Dein Ergebnis'),p('quiz-final-number',String(score)),p('quiz-final-note',`${fmtQuizRateValue(rate)} Punkte pro Minute · ${score>=20?'Exzellent — du bist ein Bibelexperte! 🎉':score>=10?'Richtig stark — weiter so! 💪':'Sauber gespielt!'}`)),renderQuizHighscorePanel(),div('btn-row',btn('ghost-btn','Zurück',()=>exitQuizToTab()),replay))); return wrap; } const pct=((S.quizTimeLeft||0)/total)*100, timerColor=(S.quizTimeLeft||0)>Math.max(20,total*.33)?'#22c55e':(S.quizTimeLeft||0)>Math.max(10,total*.16)?'#f59e0b':'#ef4444'; const progress=el('div',{style:'display:flex;align-items:center;gap:16px;margin-bottom:18px;'},el('div',{style:'flex:1;background:#1e1630;border-radius:99px;height:12px;overflow:hidden;border:1px solid rgba(244,114,182,.14);'},el('div',{style:`width:${pct}%;height:100%;background:${timerColor};transition:width 1s linear, background .3s;border-radius:99px;`})),el('div',{style:`color:${timerColor};font-weight:800;font-size:1.3rem;min-width:62px;text-align:right;transition:color .3s;`},fmtQuizClock(S.quizTimeLeft||0)),el('div',{cls:'quiz-score-badge'},`⭐ ${S.quizScore||0}`)); const card=el('div',{cls:'quiz-question-card'},el('p',{cls:'quiz-question-meta'},`Frage ${(S.quizIdx||0)+1} von ${(S.quizQueue||[]).length} · ${fmtQuizTime(total)}`),el('p',{cls:'quiz-question-title'},current.q)); if(S.quizShowAnswer) card.appendChild(el('div',{cls:'quiz-answer-card'},el('p',{cls:'quiz-answer-kicker'},'Antwort'),el('p',{cls:'quiz-answer-text'},current.a))); wrap.append(progress,card); if(!S.quizShowAnswer) wrap.appendChild(btn('ghost-btn quiz-reveal-btn','👁️ Antwort anzeigen',()=>set({quizShowAnswer:true}))); else wrap.appendChild(div('btn-row',btn('quiz-correct-btn','✅ Korrekt',()=>quizNext(true)),btn('quiz-wrong-btn','❌ Falsch',()=>quizNext(false)))); return wrap; };
 
-renderQuizTab=function(){ ensure(); const all=quizAllQuestions(), bestRate=quizBestRate(), selected=quizSeconds(S.quizSelectedSeconds); const mk=(c,i,t,s,a)=>el('button',{cls:`menu-btn ${c}`,onclick:a,type:'button'},div('mc-icon',i),el('div',{},p('mc-title',t),p('mc-sub',s))); return el('div',{},tabTitle('','Wissen',`Teste dich selbst. Aktuell voreingestellt: ${fmtQuizTime(selected)}.`),div('quick-stats',div('quick-stat',p('quick-stat-n',String(all.length)),p('quick-stat-l','Fragen gesamt')),div('quick-stat',p('quick-stat-n',bestRate?fmtQuizRateValue(bestRate):'0'),p('quick-stat-l','Best/min')),div('quick-stat',p('quick-stat-n',String(quizProjectedScores().length)),p('quick-stat-l','Top-Resultate'))),mk('quiz-manage','✏️','Wissensfragen verwalten','Fragen bearbeiten, löschen oder ergänzen',()=>set({view:'quizmanage',activeTab:'quiz'})),mk('quiz-start','💡','Quiz starten',`Zeit auswählen: ${fmtQuizTime(selected)}`,()=>set({modal:'quiztime'})),renderQuizHighscorePanel()); };
+renderQuizTab=function(){ ensure(); const all=quizAllQuestions(), bestRate=quizBestRate(), selected=quizSeconds(S.quizSelectedSeconds); const bestTxt=bestRate?fmtQuizRateValue(bestRate):'0'; const mk=(c,i,t,s,a)=>el('button',{cls:`menu-btn ${c}`,onclick:a,type:'button'},div('mc-icon',i),el('div',{},p('mc-title',t),p('mc-sub',s))); return el('div',{},tabTitle('','Wissen','Teste oder erweitere dein Bibelwissen'),el('div',{cls:'quick-stats',style:'grid-template-columns:repeat(2,1fr);'},div('quick-stat',p('quick-stat-n',String(all.length)),p('quick-stat-l','Anzahl Fragen')),div('quick-stat',p('quick-stat-n',bestTxt),p('quick-stat-l','Bestleistung'))),mk('quiz-manage','✏️','Wissensfragen verwalten','Fragen bearbeiten, löschen oder ergänzen',()=>set({view:'quizmanage',activeTab:'quiz'})),mk('quiz-start','💡','Quiz starten','Wähle die Zeit aus und beantworte die Fragen',()=>set({modal:'quiztime'})),typeof renderQuizHighscorePanel==='function'?renderQuizHighscorePanel():div('')); };
 
 const prevRenderQuizV113=render;
 render=function(){ ensure(); const root=document.getElementById('app'); root.innerHTML=''; if(S.modal==='login') root.appendChild(renderLogin()); if(S.modal==='new') root.appendChild(renderNewUser()); if(S.modal==='verseselect') root.appendChild(renderVerseSelect()); if(S.modal==='quiztime') root.appendChild(renderQuizTimeSelect()); if(S.view==='select') root.appendChild(renderSelect()); else if(S.view==='menu') root.appendChild(renderMenu()); else if(S.view==='edit') root.appendChild(renderEdit()); else if(S.view==='flash') root.appendChild(renderFlash()); else if(S.view==='done') root.appendChild(renderDone()); else if(S.view==='luecke') root.appendChild(renderLuecke()); else if(S.view==='order') root.appendChild(renderOrder()); else if(S.view==='bibelorder') root.appendChild(renderBibelOrder()); else if(S.view==='bibelsort') root.appendChild(renderBibelSort()); else if(S.view==='bookfill') root.appendChild(renderBookFill()); else if(S.view==='allbooks') root.appendChild(renderAllBooks()); else if(S.view==='quiz') root.appendChild(renderQuizPlayView()); else if(S.view==='quizmanage') root.appendChild(renderQuizManageView()); else if(S.view==='stats') root.appendChild(renderStats()); else if(S.view==='profile') root.appendChild(renderProfile()); };
@@ -2240,6 +2242,155 @@ document.head.appendChild(quizTimeStyle);
       answerJourneyFixed();
     }
   },true);
+})();
+</script>
+
+
+
+<script>
+/* v115 Patch: v114 Tab-Texte + Statistikbereiche Bücher/Verse/Wissen farblich getrennt */
+(function(){
+  const style=document.createElement('style');
+  style.textContent=`
+    .stat-area{padding:16px;margin:14px 0 18px;border-radius:22px;border:1px solid rgba(255,255,255,.14);box-shadow:0 14px 34px rgba(0,0,0,.20);position:relative;overflow:hidden;}
+    .stat-area::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;opacity:.95;}
+    .stat-area-heading{display:flex;align-items:center;gap:10px;margin:0 0 12px;}
+    .stat-area-icon{width:34px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.10);font-size:18px;flex-shrink:0;}
+    .stat-area-title{font-family:'Lora',serif;font-size:22px;font-weight:700;letter-spacing:.2px;}
+    .stat-area-sub{font-size:12px;line-height:1.45;margin-top:2px;}
+    .stat-area .stat-section{margin:10px 0 0;background:rgba(255,255,255,.045);}
+    .stat-area .stat-section:first-of-type{margin-top:0;}
+    .stat-area-books{background:linear-gradient(135deg,rgba(22,163,74,.14),rgba(6,95,70,.06));border-color:rgba(74,222,128,.28);}
+    .stat-area-books::before{background:linear-gradient(90deg,#22c55e,#15803d,#86efac);}
+    .stat-area-books .stat-area-title{color:#dcfce7;}.stat-area-books .stat-area-sub{color:rgba(220,252,231,.72);}
+    .stat-area-books .stat-section{border-color:rgba(74,222,128,.20)!important;}
+    .stat-area-books .stat-section-title{color:#86efac!important;}
+    .stat-area-verse{background:linear-gradient(135deg,rgba(37,99,235,.15),rgba(30,64,175,.06));border-color:rgba(96,165,250,.30);}
+    .stat-area-verse::before{background:linear-gradient(90deg,#60a5fa,#2563eb,#93c5fd);}
+    .stat-area-verse .stat-area-title{color:#dbeafe;}.stat-area-verse .stat-area-sub{color:rgba(219,234,254,.74);}
+    .stat-area-verse .stat-section{border-color:rgba(96,165,250,.20)!important;}
+    .stat-area-verse .stat-section-title{color:#93c5fd!important;}
+    .stat-area-knowledge{background:linear-gradient(135deg,rgba(236,72,153,.14),rgba(131,24,67,.06));border-color:rgba(244,114,182,.30);}
+    .stat-area-knowledge::before{background:linear-gradient(90deg,#f472b6,#db2777,#f9a8d4);}
+    .stat-area-knowledge .stat-area-title{color:#fce7f3;}.stat-area-knowledge .stat-area-sub{color:rgba(252,231,243,.74);}
+    .stat-area-knowledge .stat-section{border-color:rgba(244,114,182,.20)!important;}
+    .stat-area-knowledge .stat-section-title{color:#f9a8d4!important;}
+    .stat-area-knowledge .quiz-stat-score{color:#f9a8d4!important;}
+    body.is-mobile .stat-area{padding:14px;border-radius:20px;}.stat-area-title{line-height:1.1;}
+  `;
+  document.head.appendChild(style);
+
+  function v115MkMenuBtn(c,i,t,s,a){return el('button',{cls:`menu-btn ${c}`,onclick:a,type:'button'},div('mc-icon',i),el('div',{},p('mc-title',t),p('mc-sub',s)));}
+  function v115Area(cls,icon,title,sub,...children){return div(`stat-area ${cls}`,div('stat-area-heading',span('stat-area-icon',icon),el('div',{},p('stat-area-title',title),p('stat-area-sub',sub))),...children);}
+  function v115BestQuizText(){try{const scores=typeof quizProjectedScores==='function'?quizProjectedScores():[];const best=scores&&scores[0];if(!best)return '–';const sec=best.seconds||S.quizSelectedSeconds||60;return `${Number(best.score||0)}/${typeof fmtQuizTime==='function'?fmtQuizTime(sec):sec+'s'}`;}catch(e){return '–';}}
+
+  // v114: Bücher-Tab vereinfacht
+  window.renderBooksTab=renderBooksTab=function(){
+    const tAT=S.user?S.user.trophiesAT||0:0,tNT=S.user?S.user.trophiesNT||0:0;
+    return el('div',{},
+      tabTitle('','Bücher','Lerne die Reihenfolge der Bibelbücher auswendig'),
+      el('div',{cls:'quick-stats',style:'grid-template-columns:repeat(2,1fr);'},
+        div('quick-stat',p('quick-stat-n',tAT>0?'🏆':'🌱'),p('quick-stat-l','AT')),
+        div('quick-stat',p('quick-stat-n',tNT>0?'🏆':'🌱'),p('quick-stat-l','NT'))
+      ),
+      v115MkMenuBtn('book-journey','🗺️','Übung: Vorgänger & Nachfolger','Reise nach Kanaan und sammle Belohnungen.',()=>set({view:'bibelorder',activeTab:'books',journeyScope:null})),
+      v115MkMenuBtn('book-temple','🏛️','Übung: Bücher ordnen','Baue mit jeder richtigen Reihenfolge den Tempel aus.',()=>set({view:'bibelsort',activeTab:'books',templeScope:null})),
+      v115MkMenuBtn('book-fill','🧩','Übung: Lücke füllen','Fülle die fehlenden Bibelbücher ein',()=>set({view:'bookfill',activeTab:'books',bfScope:null,bfDone:false})),
+      v115MkMenuBtn('book-test','🏆','Test: Bücher der Reihe nach','Teste dich in AT oder NT bis zum Pokal.',()=>set({view:'allbooks',activeTab:'books',abTestament:null,abIdx:0,abInput:'',abFeedback:'',abFeedbackOk:null,abWon:false,abTrophySaved:false,abLastCorrect:''}))
+    );
+  };
+
+  // v114: Verse-Tab zusammengefasst
+  window.renderVerseTab=renderVerseTab=function(){
+    const c=versePointCounts();const inUebung=(c.practice||0)+(c.refresh||0),auswendig=(c.good||0)+(c.mastered||0);
+    return el('div',{},
+      tabTitle('','Verse','Lerne Bibelverse auswendig'),
+      div('quick-stats',
+        div('quick-stat',p('quick-stat-n',String(c.total)),p('quick-stat-l','Verse')),
+        div('quick-stat',p('quick-stat-n',String(inUebung)),p('quick-stat-l','In Übung')),
+        div('quick-stat',p('quick-stat-n',String(auswendig)),p('quick-stat-l','Auswendig'))
+      ),
+      v115MkMenuBtn('menu-edit verse-manage','📖','Verse verwalten','Verse hinzufügen, bearbeiten oder löschen',()=>set({view:'edit',editId:null,editStelle:'',editText:''})),
+      v115MkMenuBtn('verse-gap','✏️','Übung: Lückentext','Fülle die Lücken korrekt aus.',()=>set({modal:'verseselect',vsMode:'luecke',vsCustomOpen:false})),
+      v115MkMenuBtn('verse-order','🔀','Übung: Reihenfolge','Bringe durch Ziehen und Verschieben in die richtige Reihenfolge.',()=>set({modal:'verseselect',vsMode:'order',vsCustomOpen:false})),
+      v115MkMenuBtn('verse-reference','🔎','Übung: Bibelstelle nennen','Nenne Buch, Kapitel und Vers zum angezeigten Bibeltext.',()=>set({modal:'verseselect',vsMode:'reference',vsCustomOpen:false})),
+      v115MkMenuBtn('menu-flash verse-test','🎯','Test: Karteikarten','Prüfe dich selbst.',()=>set({modal:'verseselect',vsMode:'flash',vsCustomOpen:false}))
+    );
+  };
+
+  // v114: Wissen-Tab vereinfacht
+  window.renderQuizTab=renderQuizTab=function(){
+    ensure();
+    const all=typeof quizAllQuestions==='function'?quizAllQuestions():[];
+    const selected=typeof quizSeconds==='function'?quizSeconds(S.quizSelectedSeconds):S.quizSelectedSeconds||60;
+    const bestText=(typeof quizBestRate==='function'&&quizBestRate())?(typeof fmtQuizRateValue==='function'?fmtQuizRateValue(quizBestRate()):String(quizBestRate())):(typeof v115BestQuizText==='function'?v115BestQuizText():'0');
+    return el('div',{},
+      tabTitle('','Wissen','Teste oder erweitere dein Bibelwissen'),
+      el('div',{cls:'quick-stats',style:'grid-template-columns:repeat(2,1fr);'},
+        div('quick-stat',p('quick-stat-n',String(all.length)),p('quick-stat-l','Anzahl Fragen')),
+        div('quick-stat',p('quick-stat-n',bestText),p('quick-stat-l','Bestleistung'))
+      ),
+      v115MkMenuBtn('quiz-manage','✏️','Wissensfragen verwalten','Fragen bearbeiten, löschen oder ergänzen',()=>set({view:'quizmanage',activeTab:'quiz'})),
+      v115MkMenuBtn('quiz-start','💡','Quiz starten','Wähle die Zeit aus und beantworte die Fragen',()=>set({modal:'quiztime'})),
+      typeof renderQuizHighscorePanel==='function'?renderQuizHighscorePanel():div('')
+    );
+  };
+
+  // v114: Zahlen-Tastatur für Kapitel und Vers in „Bibelstelle nennen“
+  if(typeof renderReference==='function'){
+    window.renderReference=renderReference=function(){
+      const card=S.session[S.idx];if(!card)return renderDone();const states=S.refStates||{},checked=!!S.refChecked;
+      const inp=(key,val)=>{const sk={refBook:'book',refChap:'chap',refVerse:'verse'}[key];const numKey=key==='refChap'||key==='refVerse';const attrs={cls:'reference-input '+(checked?(states[sk]?'correct':'wrong'):''),type:numKey?'number':'text'};if(numKey){attrs.inputmode='numeric';attrs.pattern='[0-9]*';attrs.min='1';attrs.step='1';}const i=el('input',attrs);i.value=val||'';i.oninput=e=>{S[key]=e.target.value};i.onkeydown=e=>{if(e.key==='Enter'&&!checked)doCheckReference()};return i;};
+      const fields=div('reference-fields',div('reference-field',el('label',{},'Buch'),inp('refBook',S.refBook)),div('reference-field',el('label',{},'Kapitel'),inp('refChap',S.refChap)),div('reference-field',el('label',{},'Vers'),inp('refVerse',S.refVerse)));
+      let fb=p('reference-feedback','');if(checked){const ok=states.book&&states.chap&&states.verse;fb=p('reference-feedback '+(ok?'ok':'no'),ok?'✓ Richtig – Buch, Kapitel und Vers stimmen.':`✗ Richtig wäre: ${card.stelle}`);}const check=btn('reference-check','Überprüfen ✓',doCheckReference);if(checked){check.disabled=true;check.textContent='Überprüft';}
+      const next=btn('next-btn',S.idx+1>=S.session.length?'Auswertung →':'Nächster Vers →',()=>{const res=[...S.results,{...card,correct:!!(states.book&&states.chap&&states.verse)}];if(S.idx+1>=S.session.length)set({results:res,view:'done'});else set({results:res,idx:S.idx+1,refBook:'',refChap:'',refVerse:'',refChecked:false,refStates:null,refSaved:false});});
+      return el('div',{},progRow(S.idx,S.session.length,()=>set({view:'menu'})),p('mode-help','Lies den Vers und nenne die Bibelstelle.'),div('reference-card',span('reference-label','Welcher Vers ist das?'),p('reference-verse',`„${card.text}"`)),fields,fb,checked?next:check);
+    };
+  }
+
+  // v115: Statistik sauber in Bücher / Verse / Wissen trennen
+  window.renderStats=renderStats=function(){
+    const u=S.user||{},hdr=div('page-header',el('h2',{cls:'page-title'},'Meine Statistik')),wrap=el('div',{},hdr);
+    wrap.appendChild(p('stat-note','Deine Erfolge sind nach Bücher, Verse und Wissen getrennt.'));
+
+    const booksArea=v115Area('stat-area-books','📚','Bücher','Erfolge rund um die Reihenfolge der Bibelbücher.',
+      div('stat-section',p('stat-section-title','🗺️ Reise nach Kanaan abgeschlossen'),div('stat-grid-3',statCard('AT',u.journeyWinsAT||0),statCard('NT',u.journeyWinsNT||0),statCard('AT & NT',u.journeyWinsALL||0))),
+      div('stat-section',p('stat-section-title','🏛️ Tempel erfolgreich gebaut'),div('stat-grid-3',statCard('AT',u.templeWinsAT||0),statCard('NT',u.templeWinsNT||0),statCard('AT & NT',u.templeWinsALL||0))),
+      div('stat-section',p('stat-section-title','🏆 Pokale'),div('stat-grid-2',div('stat-card',p('n',String(u.trophiesAT||0)),p('l','Altes Testament'),trophyVisual(u.trophiesAT||0)),div('stat-card',p('n',String(u.trophiesNT||0)),p('l','Neues Testament'),trophyVisual(u.trophiesNT||0)))),
+      div('stat-section',p('stat-section-title','🧩 Übung: Lücke füllen – Bestleistung'),bestBookFill())
+    );
+    wrap.appendChild(booksArea);
+
+    const verseArea=v115Area('stat-area-verse','📖','Verse','Lernstand deiner gespeicherten Bibelverse.',
+      S.verses&&S.verses.length?div('stat-section',p('stat-section-title','📖 Vers-Lernstand'),renderStatsPie()):div('stat-empty','Noch keine Verse vorhanden – sobald du Verse lernst, erscheint hier das Kuchendiagramm.')
+    );
+    wrap.appendChild(verseArea);
+
+    const quizSec=div('stat-section',p('stat-section-title','💡 Wissen – beste 5 Resultate'));
+    try{
+      if(typeof ensureQuizCloudHydrated==='function')ensureQuizCloudHydrated();
+      const scores=typeof quizProjectedScores==='function'?quizProjectedScores():[];
+      if(!scores.length)quizSec.appendChild(div('bestbox',S.quizCloudLoading?'Lade Wissen-Resultate aus Firebase…':'Noch kein Wissenstest gespielt.'));
+      else scores.forEach((s,i)=>{
+        const seconds=s.seconds||60;
+        const rate=(s.score||0)/(seconds/60);
+        quizSec.appendChild(div('quiz-stat-line',
+          span('quiz-stat-rank','#'+(i+1)),
+          el('div',{style:'flex:1'},
+            el('div',{style:'font-size:13px;color:#fde7f3;font-weight:600'},`${s.score} Punkt${s.score===1?'':'e'}`),
+            el('div',{style:'font-size:11px;color:rgba(251,207,232,.56);margin-top:2px;'},`${typeof fmtQuizTime==='function'?fmtQuizTime(seconds):String(seconds)+'s'} · ${typeof fmtDate==='function'?fmtDate(s.date):String(s.date||'')}`)
+          ),
+          span('quiz-stat-score',typeof fmtQuizRateValue==='function'?fmtQuizRateValue(rate):String(s.score||0))
+        ));
+      });
+    }catch(e){quizSec.appendChild(div('bestbox','Wissen-Statistik konnte nicht geladen werden.'));}
+    wrap.appendChild(v115Area('stat-area-knowledge','💡','Wissen','Erfolge und Bestleistungen im Bibelwissen.',quizSec));
+    return wrap;
+  };
+
+  window.renderStatsTab=renderStatsTab=function(){const w=renderStats();if(w.firstChild)w.removeChild(w.firstChild);w.insertBefore(tabTitle('Meine Statistik','Meine Statistik','Mein Lernen – meine Erfolge!'),w.firstChild||null);return w;};
+
+  if(S.user)render();
 })();
 </script>
 
