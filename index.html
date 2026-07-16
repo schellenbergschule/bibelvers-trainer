@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-<title>Bibel-Trainer v117</title>
+<title>Bibel-Trainer v130</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#2c3e50">
 
@@ -480,11 +480,43 @@ body.is-mobile .profile-trophy-badge{font-size:9.5px;padding:3px 6px;}
 .points-help-btn{width:100%;padding:13px 15px;border-radius:15px;margin:0 0 12px;border:1px solid rgba(147,197,253,.28);background:linear-gradient(135deg,rgba(37,99,235,.15),rgba(139,92,246,.10));color:#dbeafe;font-size:13px;font-weight:600;cursor:pointer;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:10px}.points-help-panel{padding:15px;margin:0 0 14px;border-radius:18px;background:linear-gradient(135deg,rgba(255,255,255,.055),rgba(59,130,246,.07));border:1px solid rgba(147,197,253,.18);color:rgba(237,233,254,.86);font-size:12.5px;line-height:1.55}.points-help-panel h3{font-size:14px;color:#ede9fe;margin:0 0 8px}.points-help-panel h4{font-size:12px;color:#bfdbfe;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.45px}.points-help-panel ul{margin:5px 0 8px 18px}.points-help-panel li{margin:3px 0}.points-help-grid{display:grid;grid-template-columns:1fr auto;gap:5px 10px;margin:6px 0 10px}.points-help-grid span:nth-child(even){color:#dbeafe;font-weight:700;text-align:right}.points-help-note{margin-top:10px;padding:9px 10px;border-radius:12px;background:rgba(59,130,246,.10);border:1px solid rgba(147,197,253,.14);color:rgba(219,234,254,.92)}.points-help-subnote{font-size:11.5px;color:rgba(196,226,255,.74);margin-top:-4px;margin-bottom:8px}.points-help-rule{margin:7px 0 9px;padding:9px 10px;border-radius:12px;background:rgba(255,255,255,.045);border:1px solid rgba(196,181,253,.11)}.points-help-rule strong{color:#ede9fe}.points-help-mini{font-size:11.5px;color:rgba(237,233,254,.68)}
 </style>
 
-<!-- v117: Basis v115; Wissen-Tab oben 2 Felder + Bestenliste wieder sichtbar; Profil-Symbole/Farben erweitert. -->
+<!-- v130: Reparatur nach v129. Stabile v128-Anmeldung mit kompatiblen Passwortmanager-Feldern. -->
 </head>
 <body>
 <div class="orb1"></div><div class="orb2"></div><div class="orb3"></div>
 <div class="stars"></div>
+
+<div id="auth-screen" class="bt128-auth-screen">
+  <div class="bt128-auth-card">
+    <div class="bt128-auth-hero">
+      <div class="bt128-auth-logo"><svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="white" stroke-width="3.4" stroke-linecap="round"><line x1="12" y1="3" x2="12" y2="21"/><line x1="4" y1="9" x2="20" y2="9"/></svg></div>
+      <h1>Bibel-Trainer</h1>
+      <p>Lerne Bibelbücher, Verse und Allgemeinwissen.</p>
+    </div>
+    <div class="bt128-auth-tabs">
+      <button id="auth-tab-login" type="button" class="bt128-auth-tab active" onclick="switchAuthTab('login')">Anmelden</button>
+      <button id="auth-tab-register" type="button" class="bt128-auth-tab" onclick="switchAuthTab('register')">Registrieren</button>
+    </div>
+    <form id="login-form" onsubmit="doLogin(event);return false;" autocomplete="on" method="post" action="#app">
+      <div id="login-alert"></div>
+      <div class="bt128-fg"><label for="login-username">Benutzername</label><input type="text" id="login-username" name="username" placeholder="Benutzername" autocomplete="username" required autocapitalize="none" spellcheck="false"></div>
+      <div class="bt128-fg"><label for="current-password">Passwort</label><input type="password" id="current-password" name="password" placeholder="••••••••" autocomplete="current-password" required></div>
+      <button type="submit" class="bt128-auth-submit">Anmelden</button>
+    </form>
+    <form id="register-form" class="bt128-hidden" onsubmit="doRegister(event);return false;" autocomplete="on" method="post" action="#app">
+      <div id="reg-alert"></div>
+      <div class="bt128-fg"><label for="reg-username">Benutzername</label><input type="text" id="reg-username" name="username" placeholder="Benutzername wählen" maxlength="24" autocomplete="username" required autocapitalize="none" spellcheck="false"></div>
+      <div class="bt128-fg"><label for="new-password">Passwort</label><input type="password" id="new-password" name="new-password" placeholder="Sicheres Passwort" autocomplete="new-password" minlength="4" required></div>
+      <div class="bt128-fg"><label for="confirm-password">Passwort wiederholen</label><input type="password" id="confirm-password" name="new-password2" placeholder="Passwort nochmals eingeben" autocomplete="new-password" minlength="4" required></div>
+      <div class="bt128-profile-preview"><div id="reg-avatar-preview">✝</div><div><strong>Dein Lernprofil</strong><span>Symbol und Farbe kannst du später ändern.</span></div></div>
+      <div class="bt128-fg"><label>Symbol</label><div class="bt128-emoji-grid" id="reg-emoji-grid"></div><input type="hidden" id="reg-emoji" value="✝"></div>
+      <div class="bt128-fg"><label>Farbe</label><div class="bt128-color-grid" id="reg-color-grid"></div><input type="hidden" id="reg-color" value="#8b5cf6"></div>
+      <button type="submit" class="bt128-auth-submit">Registrieren</button>
+    </form>
+    <p class="bt128-footnote">Dein Fortschritt wird geräteübergreifend gespeichert.</p>
+  </div>
+</div>
+
 <div id="app"></div>
 <script>
 
@@ -2391,6 +2423,332 @@ document.head.appendChild(quizTimeStyle);
   window.renderStatsTab=renderStatsTab=function(){const w=renderStats();if(w.firstChild)w.removeChild(w.firstChild);w.insertBefore(tabTitle('Meine Statistik','Meine Statistik','Mein Lernen – meine Erfolge!'),w.firstChild||null);return w;};
 
   if(S.user)render();
+})();
+</script>
+
+
+<script>
+/* v119: Wissen-Bestenliste zentral korrigiert und Statistik-Wissen synchronisiert */
+(function(){
+  function v119QuizSeconds(s){
+    if(typeof quizSeconds==='function') return quizSeconds(s);
+    const n=Number(s||60);
+    return Number.isFinite(n) && n>0 ? n : 60;
+  }
+  function v119QuizRate(entry){
+    if(typeof quizRate==='function') return quizRate(entry);
+    const seconds=v119QuizSeconds(entry?.seconds||entry?.selectedSeconds||60);
+    return Number(entry?.score||0)/(seconds/60||1);
+  }
+  function v119FmtRate(value){
+    if(typeof fmtQuizRateValue==='function') return fmtQuizRateValue(value);
+    const n=Math.round(Number(value||0)*10)/10;
+    return n.toLocaleString('de-CH',{minimumFractionDigits:n%1?1:0,maximumFractionDigits:1});
+  }
+  function v119FmtTime(seconds){
+    if(typeof fmtQuizTime==='function') return fmtQuizTime(seconds);
+    const sec=v119QuizSeconds(seconds), m=Math.floor(sec/60), r=sec%60;
+    return r===0 ? `${m} Minute${m===1?'':'n'}` : `${m}:${String(r).padStart(2,'0')} Min.`;
+  }
+  function v119FmtDate(date){
+    if(typeof fmtDate==='function') return fmtDate(date);
+    if(typeof safeFmtDate==='function') return safeFmtDate(date);
+    return String(date||'');
+  }
+  function v119NormalizeScore(raw){
+    if(typeof normalizeQuizScoreEntry==='function') return normalizeQuizScoreEntry(raw);
+    const seconds=v119QuizSeconds(raw?.seconds||raw?.selectedSeconds||60);
+    return {...raw,score:Number(raw?.score||0),seconds,rate:Number(raw?.score||0)/(seconds/60||1)};
+  }
+  function v119ProjectedQuizScores(){
+    const raw=(typeof quizProjectedScores==='function') ? quizProjectedScores() : ((typeof quizHighscores==='function') ? quizHighscores() : []);
+    return (Array.isArray(raw)?raw:[])
+      .filter(Boolean)
+      .map(v119NormalizeScore)
+      .sort((a,b)=>v119QuizRate(b)-v119QuizRate(a) || (b.score||0)-(a.score||0) || String(b.date||'').localeCompare(String(a.date||'')))
+      .slice(0,5);
+  }
+
+  // Zentrale Tabelle: wird im Reiter Wissen und in Statistik/Wissen verwendet.
+  window.renderQuizHighscorePanel = renderQuizHighscorePanel = function(){
+    if(typeof ensureQuizCloudHydrated==='function') ensureQuizCloudHydrated();
+    const scores=v119ProjectedQuizScores();
+    const panel=div('quiz-stat-panel');
+    panel.appendChild(p('quiz-stat-title','Deine besten 5 Resultate · sortiert nach Punkte/Minute'));
+    if(!scores.length){
+      panel.appendChild(div('empty',S.quizCloudLoading?'Lade Wissen-Resultate aus Firebase…':'Noch kein Wissenstest gespielt.'));
+      return panel;
+    }
+    scores.forEach((score,i)=>{
+      const rate=v119QuizRate(score);
+      panel.appendChild(div('quiz-score-row',
+        span('quiz-score-rank','#'+(i+1)),
+        el('div',{style:'flex:1'},
+          el('div',{style:'font-size:13px;font-weight:600;color:#fdf2f8'},`${v119FmtRate(rate)} Punkte/Min.`),
+          el('div',{style:'font-size:11px;color:rgba(251,207,232,.68);margin-top:2px;'},`${score.score} Punkt${score.score===1?'':'e'} · ${v119FmtTime(score.seconds)} · ${v119FmtDate(score.date)}`)
+        ),
+        span('quiz-score-value',v119FmtRate(rate))
+      ));
+    });
+    return panel;
+  };
+
+  const prevRenderStatsV119 = renderStats;
+  window.renderStats = renderStats = function(){
+    const wrap = prevRenderStatsV119();
+    const knowledgeArea = wrap.querySelector ? wrap.querySelector('.stat-area-knowledge') : null;
+    const quizSec = div('stat-section',p('stat-section-title','💡 Wissen – beste 5 Resultate'),renderQuizHighscorePanel());
+    if(knowledgeArea){
+      const oldSection = knowledgeArea.querySelector('.stat-section');
+      if(oldSection) oldSection.replaceWith(quizSec);
+      else knowledgeArea.appendChild(quizSec);
+    }
+    return wrap;
+  };
+
+  window.renderStatsTab = renderStatsTab = function(){
+    const w=renderStats();
+    if(w.firstChild) w.removeChild(w.firstChild);
+    w.insertBefore(tabTitle('Meine Statistik','Meine Statistik','Mein Lernen – meine Erfolge!'),w.firstChild||null);
+    return w;
+  };
+
+  if(S.user && S.activeTab==='stats') render();
+})();
+</script>
+
+
+<script>
+/* v120: Statistik-Abschnitt „Wer sonst noch so lernt?“ */
+(function(){
+  const style=document.createElement('style');
+  style.textContent=`
+    .stat-area-community{background:linear-gradient(135deg,rgba(139,92,246,.13),rgba(30,41,59,.08));border-color:rgba(196,181,253,.24);}
+    .stat-area-community::before{background:linear-gradient(90deg,#c4b5fd,#8b5cf6,#38bdf8);}
+    .stat-area-community .stat-area-title{color:#ede9fe;}
+    .stat-area-community .stat-area-sub{color:rgba(221,214,254,.72);}
+    .community-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:10px;margin-top:10px;}
+    .community-card{padding:14px 10px;border-radius:18px;background:linear-gradient(135deg,rgba(255,255,255,.055),rgba(139,92,246,.065));border:1px solid rgba(196,181,253,.16);text-align:center;min-height:148px;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+    .community-avatar{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:27px;margin:0 auto 9px;border:2px solid rgba(255,255,255,.18);box-shadow:0 0 24px rgba(139,92,246,.18);}
+    .community-name{font-size:14px;font-weight:700;color:rgba(237,233,254,.94);line-height:1.2;word-break:break-word;}
+    .community-verses{font-size:12px;color:rgba(196,181,253,.56);margin-top:4px;}
+    .community-trophies{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:10px;}
+    .community-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:800;line-height:1;background:rgba(255,255,255,.055);border:1px solid rgba(196,181,253,.14);color:rgba(221,214,254,.78);}
+    .community-badge.won{background:rgba(251,191,36,.11);border-color:rgba(251,191,36,.36);color:#fef3c7;}
+    .community-badge.learning{background:rgba(34,197,94,.08);border-color:rgba(74,222,128,.22);color:rgba(220,252,231,.78);}
+    body.is-mobile .community-grid{grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px;}
+    body.is-mobile .community-card{padding:12px 8px;min-height:138px;border-radius:16px;}
+    body.is-mobile .community-avatar{width:52px;height:52px;font-size:24px;}
+  `;
+  document.head.appendChild(style);
+
+  function v120CommunityBadge(label,count){
+    const won=Number(count||0)>0;
+    return span('community-badge '+(won?'won':'learning'),`${label} ${won?'🏆':'🌱'}`);
+  }
+  function v120CommunityCard(user){
+    const verseCount=(S.counts&&S.counts[user.id]!==undefined)?S.counts[user.id]:(Number(user.verseCount||0));
+    const avatar=el('div',{cls:'community-avatar',style:`background:${user.color||'#8b5cf6'}28;border-color:${user.color||'#8b5cf6'}66;`},user.emoji||'✝');
+    return div('community-card',
+      avatar,
+      p('community-name',user.name||'Unbenannt'),
+      p('community-verses',`${verseCount} Vers${Number(verseCount)===1?'':'e'}`),
+      div('community-trophies',
+        v120CommunityBadge('AT',user.trophiesAT),
+        v120CommunityBadge('NT',user.trophiesNT)
+      )
+    );
+  }
+  function v120CommunityArea(){
+    const others=(Array.isArray(S.users)?S.users:[]).filter(u=>u && (!S.user || u.id!==S.user.id));
+    const content=others.length
+      ? div('community-grid',...others.map(v120CommunityCard))
+      : div('stat-empty','Noch keine anderen Nutzer vorhanden.');
+    if(typeof v115Area==='function'){
+      return v115Area('stat-area-community','👥','Wer sonst noch so lernt?','Andere Profile mit Versanzahl und AT/NT-Status.',content);
+    }
+    return div('stat-section',p('stat-section-title','👥 Wer sonst noch so lernt?'),content);
+  }
+
+  const prevRenderStatsV120=renderStats;
+  window.renderStats=renderStats=function(){
+    const wrap=prevRenderStatsV120();
+    const existing=wrap.querySelector && wrap.querySelector('.stat-area-community');
+    if(!existing) wrap.appendChild(v120CommunityArea());
+    return wrap;
+  };
+
+  window.renderStatsTab=renderStatsTab=function(){
+    const w=renderStats();
+    if(w.firstChild) w.removeChild(w.firstChild);
+    w.insertBefore(tabTitle('Meine Statistik','Meine Statistik','Mein Lernen – meine Erfolge!'),w.firstChild||null);
+    return w;
+  };
+
+  if(S.user && S.activeTab==='stats') render();
+})();
+</script>
+
+
+<script>
+/* v128: Start-Anmeldung komplett wie WM-Datei: statische Formulare + eigener Auth-Screen */
+(function(){
+  const style=document.createElement('style');
+  style.textContent=`
+    .bt128-auth-screen{position:fixed;inset:0;z-index:200;background:radial-gradient(ellipse at 0% 0%,rgba(59,7,100,.95),transparent 44%),radial-gradient(ellipse at 100% 0%,rgba(30,27,75,.92),transparent 45%),linear-gradient(160deg,#0d0618 0%,#0f0c29 55%,#0a0a1a 100%);display:flex;align-items:flex-start;justify-content:center;padding:24px 18px;overflow-y:auto}.bt128-auth-card{width:100%;max-width:420px;margin:0 auto;padding:28px 18px 24px;border-radius:28px;background:linear-gradient(145deg,rgba(30,20,60,.76),rgba(15,12,41,.94));border:1px solid rgba(196,181,253,.20);box-shadow:0 24px 70px rgba(0,0,0,.44),0 0 42px rgba(139,92,246,.13)}.bt128-auth-hero{text-align:center;padding:6px 0 24px}.bt128-auth-logo{width:86px;height:86px;margin:0 auto 18px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(139,92,246,.34),rgba(99,102,241,.24));border:1.5px solid rgba(196,181,253,.40);box-shadow:0 0 38px rgba(139,92,246,.35),inset 0 0 20px rgba(139,92,246,.16)}.bt128-auth-hero h1{font-family:'Lora',serif;font-size:38px;font-weight:700;color:#f5f3ff;line-height:1.1;margin:0 0 8px}.bt128-auth-hero p{font-size:15px;line-height:1.45;color:rgba(221,214,254,.76);max-width:330px;margin:0 auto}.bt128-auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:0;padding:5px;border-radius:18px;background:rgba(255,255,255,.065);border:1px solid rgba(196,181,253,.12);margin:0 0 18px}.bt128-auth-tab{border:0;border-radius:14px;padding:12px 10px;background:transparent;color:rgba(237,233,254,.76);font-size:15px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif}.bt128-auth-tab.active{background:linear-gradient(135deg,#8b5cf6,#6366f1 58%,#7c3aed);color:white;box-shadow:0 8px 24px rgba(99,102,241,.32)}#login-form,#register-form{display:flex;flex-direction:column;gap:15px}.bt128-hidden{display:none!important}.bt128-fg{display:flex;flex-direction:column;gap:8px}.bt128-fg label{font-size:13px;color:rgba(221,214,254,.78);font-weight:600;margin-left:2px}.bt128-fg input[type=text],.bt128-fg input[type=password]{width:100%;padding:14px 15px;border-radius:15px;background:rgba(255,255,255,.07);border:1px solid rgba(196,181,253,.20);color:#ede9fe;font-size:16px;font-family:'Inter',sans-serif;outline:none}.bt128-fg input::placeholder{color:rgba(196,181,253,.34)}.bt128-fg input:focus{border-color:rgba(167,139,250,.68);background:rgba(139,92,246,.11);box-shadow:0 0 0 3px rgba(139,92,246,.10)}.bt128-auth-submit{width:100%;margin-top:2px;padding:14px;border:0;border-radius:16px;background:linear-gradient(135deg,#a78bfa,#6366f1 52%,#7c3aed);color:#fff;font-size:16px;font-weight:900;cursor:pointer;box-shadow:0 12px 32px rgba(99,102,241,.34);font-family:'Inter',sans-serif}.bt128-error{font-size:12px;color:#fecaca;padding:10px 12px;border-radius:12px;background:rgba(239,68,68,.10);border:1px solid rgba(239,68,68,.18);line-height:1.4}.bt128-profile-preview{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center;padding:12px;border-radius:18px;background:rgba(255,255,255,.045);border:1px solid rgba(196,181,253,.12);margin:1px 0 4px}#reg-avatar-preview{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;border:2px solid rgba(255,255,255,.16);background:rgba(139,92,246,.18);border-color:rgba(139,92,246,.55)}.bt128-profile-preview strong{display:block;font-size:13px;color:#ede9fe;margin-bottom:2px}.bt128-profile-preview span{display:block;font-size:12px;color:rgba(221,214,254,.60)}.bt128-emoji-grid,.bt128-color-grid{display:flex;gap:7px;flex-wrap:wrap;margin-top:2px;margin-bottom:6px}.bt128-emoji-opt{width:34px;height:34px;border-radius:9px;border:1px solid rgba(196,181,253,.15);background:rgba(255,255,255,.05);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center}.bt128-emoji-opt.sel{border-color:rgba(167,139,250,.6);background:rgba(139,92,246,.2)}.bt128-color-opt{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid transparent}.bt128-color-opt.sel{transform:scale(1.2);box-shadow:0 0 0 2px rgba(255,255,255,.4)}.bt128-footnote{text-align:center;color:rgba(196,181,253,.43);font-size:12px;line-height:1.45;margin-top:14px}body.bt128-auth-active #app{display:none!important}body:not(.bt128-auth-active) #auth-screen{display:none!important}`;
+  document.head.appendChild(style);
+
+  function showAlert(id,msg){const el=document.getElementById(id);if(el)el.innerHTML='<div class="bt128-error">'+msg+'</div>';}
+  function clearAlerts(){['login-alert','reg-alert'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='';});}
+  window.switchAuthTab=function(tab){
+    const login=document.getElementById('login-form'),reg=document.getElementById('register-form');
+    const tl=document.getElementById('auth-tab-login'),tr=document.getElementById('auth-tab-register');
+    if(login)login.classList.toggle('bt128-hidden',tab!=='login');
+    if(reg)reg.classList.toggle('bt128-hidden',tab!=='register');
+    if(tl)tl.classList.toggle('active',tab==='login');
+    if(tr)tr.classList.toggle('active',tab==='register');
+    clearAlerts();
+  };
+  function refreshPreview(){const e=document.getElementById('reg-emoji')?.value||'✝',c=document.getElementById('reg-color')?.value||PALETTE[0],av=document.getElementById('reg-avatar-preview');if(av){av.textContent=e;av.style.background=c+'28';av.style.borderColor=c+'66';av.style.boxShadow='0 0 22px '+c+'26';}}
+  function buildPickers(){
+    const eg=document.getElementById('reg-emoji-grid'),cg=document.getElementById('reg-color-grid');
+    if(eg&&!eg.childElementCount){EMOJIS.forEach(em=>{const b=document.createElement('button');b.type='button';b.className='bt128-emoji-opt'+(em==='✝'?' sel':'');b.textContent=em;b.onclick=()=>{eg.querySelectorAll('.bt128-emoji-opt').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');document.getElementById('reg-emoji').value=em;refreshPreview();};eg.appendChild(b);});}
+    if(cg&&!cg.childElementCount){PALETTE.forEach((c,i)=>{const d=document.createElement('div');d.className='bt128-color-opt'+(i===0?' sel':'');d.style.background=c;d.onclick=()=>{cg.querySelectorAll('.bt128-color-opt').forEach(x=>x.classList.remove('sel'));d.classList.add('sel');document.getElementById('reg-color').value=c;refreshPreview();};cg.appendChild(d);});}
+    refreshPreview();
+  }
+  async function showApp(user){
+    const vd=await fbGet('verses',user.id);
+    const cloud=await loadProfileCloud(user.id);
+    const mergedUser={...user,...cloud};
+    S.verses=vd?(vd.list||[]):[];
+    S.counts={...S.counts,[user.id]:S.verses.length};
+    S.user=mergedUser;
+    S.users=S.users.map(u=>u.id===mergedUser.id?mergedUser:u);
+    S.vsCustomIds=mergedUser.lastVerseSelectionIds||[];
+    S.view='menu';
+    S.activeTab='books';
+    S.modal=null;
+    document.body.classList.remove('bt128-auth-active');
+    render();
+  }
+  window.doLogin=async function(e){
+    if(e)e.preventDefault();
+    const un=document.getElementById('login-username')?.value.trim()||'';
+    const pw=document.getElementById('login-password')?.value||'';
+    if(S.profilesLoading){showAlert('login-alert','Profile werden noch geladen. Bitte kurz warten.');return false;}
+    if(!un||!pw){showAlert('login-alert','Bitte Benutzername und Passwort ausfüllen.');return false;}
+    const user=(S.users||[]).find(u=>(u.name||'').trim().toLowerCase()===un.toLowerCase());
+    if(!user){showAlert('login-alert','Dieses Profil wurde nicht gefunden.');return false;}
+    const h=await hashPw(pw);
+    if(h!==user.pw){showAlert('login-alert','Das Passwort stimmt nicht.');showToast('Das Passwort stimmt noch nicht.','error','Login fehlgeschlagen',2200);return false;}
+    await showApp(user);
+    return false;
+  };
+  window.doRegister=async function(e){
+    if(e)e.preventDefault();
+    const un=document.getElementById('reg-username')?.value.trim()||'';
+    const pw=document.getElementById('reg-password')?.value||'';
+    const pw2=document.getElementById('reg-password2')?.value||'';
+    const emoji=document.getElementById('reg-emoji')?.value||'✝';
+    const color=document.getElementById('reg-color')?.value||PALETTE[0];
+    if(!un||!pw||!pw2){showAlert('reg-alert','Bitte alle Felder ausfüllen.');return false;}
+    if(pw.length<4){showAlert('reg-alert','Passwort muss mindestens 4 Zeichen haben.');return false;}
+    if(pw!==pw2){showAlert('reg-alert','Passwörter stimmen nicht überein.');return false;}
+    if((S.users||[]).some(u=>(u.name||'').trim().toLowerCase()===un.toLowerCase())){showAlert('reg-alert','Diesen Benutzernamen gibt es bereits.');return false;}
+    const id='u_'+Date.now();
+    const h=await hashPw(pw);
+    const user={id,name:un,pw:h,color,emoji,verseCount:0};
+    await saveUsers([...(S.users||[]),user]);
+    await fbSet('verses',id,{list:[]});
+    await fbMerge('user_profiles',id,{quizHighscores:[],quizQuestions:[],lastVerseSelectionIds:[]});
+    S.counts={...S.counts,[id]:0};
+    await showApp(user);
+    showToast(`Profil ${un} ist bereit!`,'stats','Willkommen',1500);
+    return false;
+  };
+
+  window.renderSelect=function(){
+    document.body.classList.add('bt128-auth-active');
+    setTimeout(()=>{buildPickers();switchAuthTab('login');},0);
+    return div('');
+  };
+  const oldRender=render;
+  window.render=function(){
+    if(S.view==='select')document.body.classList.add('bt128-auth-active');
+    else document.body.classList.remove('bt128-auth-active');
+    oldRender();
+  };
+  if(S.view==='select')render();
+})();
+</script>
+
+
+<script>
+/* v130: Reparatur der Anmeldung nach v129, ohne erneutes Umbauen des Auth-Screens */
+(function(){
+  function field(id){return document.getElementById(id);}
+  function val(...ids){for(const id of ids){const el=field(id); if(el) return el.value||'';} return '';}
+  function showAuthError(id,msg){const el=field(id); if(el) el.innerHTML='<div class="bt128-error">'+msg+'</div>';}
+  async function maybeStoreCredential(username,password){
+    try{
+      if('PasswordCredential' in window && navigator.credentials && typeof navigator.credentials.store==='function'){
+        await navigator.credentials.store(new PasswordCredential({id:username,name:username,password}));
+      }
+    }catch(e){console.info('Browser-Passwortspeicherung nicht verfügbar:',e);}
+  }
+  async function openUserFixed(user){
+    const vd=await fbGet('verses',user.id);
+    const cloud=await loadProfileCloud(user.id);
+    const mergedUser={...user,...cloud};
+    S.verses=vd?(vd.list||[]):[];
+    S.counts={...S.counts,[user.id]:S.verses.length};
+    S.user=mergedUser;
+    S.users=S.users.map(u=>u.id===mergedUser.id?mergedUser:u);
+    S.vsCustomIds=mergedUser.lastVerseSelectionIds||[];
+    S.view='menu';
+    S.activeTab='books';
+    S.modal=null;
+    document.body.classList.remove('bt128-auth-active');
+    try{history.replaceState(null,'','#app');}catch(e){}
+    render();
+  }
+  window.doLogin=async function(e){
+    if(e) e.preventDefault();
+    const un=val('login-username').trim();
+    const pw=val('current-password','login-password');
+    if(S.profilesLoading){showAuthError('login-alert','Profile werden noch geladen. Bitte kurz warten.');return false;}
+    if(!un||!pw){showAuthError('login-alert','Bitte Benutzername und Passwort ausfüllen.');return false;}
+    const user=(S.users||[]).find(u=>(u.name||'').trim().toLowerCase()===un.toLowerCase());
+    if(!user){showAuthError('login-alert','Dieses Profil wurde nicht gefunden.');return false;}
+    const h=await hashPw(pw);
+    if(h!==user.pw){showAuthError('login-alert','Das Passwort stimmt nicht.');showToast('Das Passwort stimmt noch nicht.','error','Login fehlgeschlagen',2200);return false;}
+    await maybeStoreCredential(un,pw);
+    await openUserFixed(user);
+    return false;
+  };
+  window.doRegister=async function(e){
+    if(e) e.preventDefault();
+    const un=val('reg-username').trim();
+    const pw=val('new-password','reg-password');
+    const pw2=val('confirm-password','reg-password2');
+    const emoji=val('reg-emoji')||'✝';
+    const color=val('reg-color')||PALETTE[0];
+    if(!un||!pw||!pw2){showAuthError('reg-alert','Bitte alle Felder ausfüllen.');return false;}
+    if(pw.length<4){showAuthError('reg-alert','Passwort muss mindestens 4 Zeichen haben.');return false;}
+    if(pw!==pw2){showAuthError('reg-alert','Passwörter stimmen nicht überein.');return false;}
+    if((S.users||[]).some(u=>(u.name||'').trim().toLowerCase()===un.toLowerCase())){showAuthError('reg-alert','Diesen Benutzernamen gibt es bereits.');return false;}
+    const id='u_'+Date.now();
+    const h=await hashPw(pw);
+    const user={id,name:un,pw:h,color,emoji,verseCount:0};
+    await saveUsers([...(S.users||[]),user]);
+    await fbSet('verses',id,{list:[]});
+    await fbMerge('user_profiles',id,{quizHighscores:[],quizQuestions:[],lastVerseSelectionIds:[]});
+    S.counts={...S.counts,[id]:0};
+    await maybeStoreCredential(un,pw);
+    await openUserFixed(user);
+    showToast(`Profil ${un} ist bereit!`,'stats','Willkommen',1500);
+    return false;
+  };
 })();
 </script>
 
