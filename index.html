@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-<title>Bibel-Trainer v130</title>
+<title>Bibel-Trainer v134</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#2c3e50">
 
@@ -480,7 +480,7 @@ body.is-mobile .profile-trophy-badge{font-size:9.5px;padding:3px 6px;}
 .points-help-btn{width:100%;padding:13px 15px;border-radius:15px;margin:0 0 12px;border:1px solid rgba(147,197,253,.28);background:linear-gradient(135deg,rgba(37,99,235,.15),rgba(139,92,246,.10));color:#dbeafe;font-size:13px;font-weight:600;cursor:pointer;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:10px}.points-help-panel{padding:15px;margin:0 0 14px;border-radius:18px;background:linear-gradient(135deg,rgba(255,255,255,.055),rgba(59,130,246,.07));border:1px solid rgba(147,197,253,.18);color:rgba(237,233,254,.86);font-size:12.5px;line-height:1.55}.points-help-panel h3{font-size:14px;color:#ede9fe;margin:0 0 8px}.points-help-panel h4{font-size:12px;color:#bfdbfe;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.45px}.points-help-panel ul{margin:5px 0 8px 18px}.points-help-panel li{margin:3px 0}.points-help-grid{display:grid;grid-template-columns:1fr auto;gap:5px 10px;margin:6px 0 10px}.points-help-grid span:nth-child(even){color:#dbeafe;font-weight:700;text-align:right}.points-help-note{margin-top:10px;padding:9px 10px;border-radius:12px;background:rgba(59,130,246,.10);border:1px solid rgba(147,197,253,.14);color:rgba(219,234,254,.92)}.points-help-subnote{font-size:11.5px;color:rgba(196,226,255,.74);margin-top:-4px;margin-bottom:8px}.points-help-rule{margin:7px 0 9px;padding:9px 10px;border-radius:12px;background:rgba(255,255,255,.045);border:1px solid rgba(196,181,253,.11)}.points-help-rule strong{color:#ede9fe}.points-help-mini{font-size:11.5px;color:rgba(237,233,254,.68)}
 </style>
 
-<!-- v130: Reparatur nach v129. Stabile v128-Anmeldung mit kompatiblen Passwortmanager-Feldern. -->
+<!-- v134: Wissen-Quiz Persistenz repariert: die lokale Finish-Funktion speichert ohne saveUserPatch direkt in app/users und user_profiles, mit korrekter Quizzeit. -->
 </head>
 <body>
 <div class="orb1"></div><div class="orb2"></div><div class="orb3"></div>
@@ -1799,7 +1799,33 @@ function renderQuizTimeSelect(){
 
 startQuizGame=function(seconds){ const all=quizAllQuestions(); if(!all.length){ showToast('Noch keine Wissensfragen vorhanden.','error','Wissen leer',2200); return; } const total=quizSeconds(seconds||S.quizSelectedSeconds||QUIZ_TOTAL); clearQuizTimer(); S.quizQueue=quizShuffle(all); S.quizIdx=0; S.quizScore=0; S.quizTimeLeft=total; S.quizGameSeconds=total; S.quizSelectedSeconds=total; S.quizShowAnswer=false; S.quizPhase='playing'; S.quizSaved=false; S.view='quiz'; S.activeTab='quiz'; S.modal=null; S.quizTimerId=setInterval(()=>{ if(S.view!=='quiz' || S.quizPhase!=='playing'){ clearQuizTimer(); return; } S.quizTimeLeft=Math.max(0,(S.quizTimeLeft||0)-1); if(S.quizTimeLeft<=0){ finishQuiz(); return; } render(); },1000); render(); };
 
-saveQuizScore=async function(){ ensure(); if(!S.user || S.quizSaved) return; S.quizSaved=true; const seconds=quizSeconds(S.quizGameSeconds||S.quizSelectedSeconds||QUIZ_TOTAL); const entry={date:new Date().toISOString(),score:S.quizScore||0,totalQuestions:(S.quizQueue||[]).length||0,seconds}; const merged=mergeQuizScores(quizHighscores(),[entry]); S.quizHighscoresLocal=[...merged]; quizWriteLocal('highscores',merged); saveUserPatch({quizHighscores:merged}); await saveProfileCloudPatch(S.user.id,{quizHighscores:merged}); const fresh=await loadProfileCloud(S.user.id); if(Array.isArray(fresh.quizHighscores)){ const normalized=mergeScoreLists(fresh.quizHighscores,[]); S.quizHighscoresLocal=[...normalized]; S.user={...S.user,quizHighscores:[...normalized]}; quizWriteLocal('highscores',normalized); } };
+saveQuizScore=async function(){
+  ensure();
+  if(!S.user || S.quizSaved) return;
+  S.quizSaved=true;
+  const seconds=quizSeconds(S.quizGameSeconds||S.quizSelectedSeconds||QUIZ_TOTAL);
+  const entry={date:new Date().toISOString(),score:S.quizScore||0,totalQuestions:(S.quizQueue||[]).length||0,seconds};
+  const merged=mergeQuizScores(quizHighscores(),[entry]);
+  S.quizHighscoresLocal=[...merged];
+  if(S.user){
+    S.user={...S.user,quizHighscores:[...merged]};
+    if(Array.isArray(S.users)) S.users=S.users.map(u=>u.id===S.user.id?{...u,quizHighscores:[...merged]}:u);
+  }
+  quizWriteLocal('highscores',merged);
+  try{ await fbSet('app','users',{list:Array.isArray(S.users)?S.users:[]}); }catch(e){ console.error('Quiz app/users speichern fehlgeschlagen:',e); }
+  try{ await saveProfileCloudPatch(S.user.id,{quizHighscores:[...merged]}); }catch(e){ console.error('Quiz user_profiles speichern fehlgeschlagen:',e); if(typeof showToast==='function') showToast('Wissen-Resultat konnte nicht in Firebase gespeichert werden.','error','Speichern fehlgeschlagen',3200); }
+  try{
+    const fresh=await loadProfileCloud(S.user.id);
+    if(Array.isArray(fresh.quizHighscores)){
+      const normalized=mergeScoreLists(merged,fresh.quizHighscores);
+      S.quizHighscoresLocal=[...normalized];
+      S.user={...S.user,quizHighscores:[...normalized]};
+      if(Array.isArray(S.users)) S.users=S.users.map(u=>u.id===S.user.id?{...u,quizHighscores:[...normalized]}:u);
+      quizWriteLocal('highscores',normalized);
+      if(JSON.stringify(normalized)!==JSON.stringify(fresh.quizHighscores)) await saveProfileCloudPatch(S.user.id,{quizHighscores:[...normalized]});
+    }
+  }catch(e){ console.error('Quiz user_profiles verify fehlgeschlagen:',e); }
+};
 
 renderQuizHighscorePanel=function(){ ensureQuizCloudHydrated(); const scores=quizProjectedScores(); const panel=div('quiz-stat-panel'); panel.appendChild(p('quiz-stat-title','Deine besten 5 Resultate · sortiert nach Punkte/Minute')); if(!scores.length){ panel.appendChild(div('empty',S.quizCloudLoading?'Lade Wissen-Resultate aus Firebase…':'Noch kein Wissenstest gespielt.')); return panel; } scores.forEach((raw,i)=>{ const s=normalizeQuizScoreEntry(raw), rate=quizRate(s); panel.appendChild(div('quiz-score-row',span('quiz-score-rank','#'+(i+1)),el('div',{style:'flex:1'},el('div',{style:'font-size:13px;font-weight:600;color:#fdf2f8'},`${fmtQuizRateValue(rate)} Punkte/Min.`),el('div',{style:'font-size:11px;color:rgba(251,207,232,.68);margin-top:2px;'},`${s.score} Punkt${s.score===1?'':'e'} · ${fmtQuizTime(s.seconds)} · ${typeof fmtDate==='function'?fmtDate(s.date):String(s.date||'')}`)),span('quiz-score-value',fmtQuizRateValue(rate)))); }); return panel; };
 
@@ -1867,7 +1893,15 @@ document.head.appendChild(quizTimeStyle);
       seen.add(key);
       out.push(e);
     });
-    out.sort((a,b)=>(b.score||0)-(a.score||0) || String(b.date||'').localeCompare(String(a.date||'')));
+    const qRateForSort = (e)=>{
+      const seconds = Math.max(1, Number(e.seconds || QUIZ_TOTAL || 60) || 60);
+      return (Number(e.score || 0) || 0) / (seconds / 60);
+    };
+    out.sort((a,b)=>
+      qRateForSort(b)-qRateForSort(a) ||
+      (b.score||0)-(a.score||0) ||
+      String(b.date||'').localeCompare(String(a.date||''))
+    );
     return out.slice(0, QUIZ_SCORE_LIMIT);
   }
 
@@ -1971,7 +2005,10 @@ document.head.appendChild(quizTimeStyle);
     ensure();
     if(!S.user || S.quizSaved) return;
     S.quizSaved = true;
-    const entry = qNorm({date:new Date().toISOString(),score:S.quizScore||0,totalQuestions:(S.quizQueue||[]).length||0,seconds:QUIZ_TOTAL});
+    const seconds = (typeof quizSeconds === 'function')
+      ? quizSeconds(S.quizGameSeconds || S.quizSelectedSeconds || QUIZ_TOTAL)
+      : (S.quizGameSeconds || S.quizSelectedSeconds || QUIZ_TOTAL);
+    const entry = qNorm({date:new Date().toISOString(),score:S.quizScore||0,totalQuestions:(S.quizQueue||[]).length||0,seconds});
     await qPersist(mergeQuizScores(quizHighscores(), [entry]));
     await qLoad(S.user.id, true);
   };
@@ -2750,6 +2787,28 @@ document.head.appendChild(quizTimeStyle);
     return false;
   };
 })();
+</script>
+
+
+<script>
+/* v134 Diagnose-Helfer: In der Browser-Konsole v134QuizDebug() ausführen. */
+window.v134QuizDebug = function(){
+  try{
+    const uid = window.S && S.user && S.user.id;
+    const localKey = uid ? 'bvt_quiz_'+uid+'_highscores' : null;
+    return {
+      uid,
+      quizSaved: window.S && S.quizSaved,
+      quizScore: window.S && S.quizScore,
+      quizGameSeconds: window.S && S.quizGameSeconds,
+      quizSelectedSeconds: window.S && S.quizSelectedSeconds,
+      state: window.S && S.quizHighscoresLocal,
+      user: window.S && S.user && S.user.quizHighscores,
+      localKey,
+      local: localKey ? JSON.parse(localStorage.getItem(localKey)||'[]') : null
+    };
+  }catch(e){ return {error:String(e)}; }
+};
 </script>
 
 </body>
