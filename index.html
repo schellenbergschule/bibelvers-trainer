@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-<title>Bibel-Trainer v135</title>
+<title>Bibel-Trainer</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#2c3e50">
 
@@ -375,7 +375,6 @@ body{font-family:'Inter',sans-serif;min-height:100vh;background:radial-gradient(
 
 
 
-/* v059 */
 .tab-kicker{display:none!important}.profile-meta{display:none!important}.stat-note{display:none!important}
 .scope-btn,.ab-choose-btn.ab-choose-at,.ab-choose-btn.ab-choose-nt{background:linear-gradient(135deg,rgba(22,163,74,.12),rgba(6,95,70,.10))!important;border:1px solid rgba(74,222,128,.30)!important;box-shadow:0 8px 24px rgba(22,163,74,.14)!important}.scope-title,.ab-choose-title{color:#effef4!important}.scope-sub,.ab-choose-sub{color:rgba(220,252,231,.72)!important}.scope-icon,.ab-choose-icon{background:rgba(255,255,255,.10)!important}
 .tab-btn.active,.tab-btn:hover{background:linear-gradient(135deg,rgba(196,181,253,.28),rgba(167,139,250,.18))!important;color:#f8fafc!important}
@@ -399,7 +398,6 @@ body{font-family:'Inter',sans-serif;min-height:100vh;background:radial-gradient(
 .toast-host{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:300;display:flex;flex-direction:column;gap:10px;width:min(92vw,430px);pointer-events:none}.toast{position:relative;overflow:hidden;padding:14px 16px 14px 14px;border-radius:18px;border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(16px);background:linear-gradient(145deg,rgba(15,12,41,.96),rgba(18,24,56,.94));box-shadow:0 18px 40px rgba(0,0,0,.34);color:#f8f7ff;display:flex;gap:12px;align-items:flex-start;pointer-events:auto;animation:toastIn .28s ease both}.toast::after{content:"";position:absolute;inset:0 auto 0 0;width:4px;opacity:.95}.toast.hide{animation:toastOut .22s ease forwards}.toast-icon{width:34px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;background:rgba(255,255,255,.12)}.toast-title{font-size:13px;font-weight:700;color:#fff;margin-bottom:2px}.toast-msg{font-size:12px;line-height:1.45;color:rgba(230,226,255,.86)}.toast.toast-verse::after{background:linear-gradient(180deg,#7dd3fc,#2563eb)}.toast.toast-books::after{background:linear-gradient(180deg,#86efac,#15803d)}.toast.toast-stats::after{background:linear-gradient(180deg,#fde68a,#d97706)}.toast.toast-success::after{background:linear-gradient(180deg,#bbf7d0,#16a34a)}.toast.toast-error::after{background:linear-gradient(180deg,#fecaca,#dc2626)}.toast.toast-verse .toast-icon{background:rgba(37,99,235,.18);color:#bfdbfe}.toast.toast-books .toast-icon{background:rgba(22,163,74,.16);color:#dcfce7}.toast.toast-stats .toast-icon{background:rgba(217,119,6,.18);color:#fef3c7}.toast.toast-success .toast-icon{background:rgba(34,197,94,.16);color:#bbf7d0}.toast.toast-error .toast-icon{background:rgba(239,68,68,.16);color:#fecaca}@keyframes toastIn{from{opacity:0;transform:translateY(-10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes toastOut{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(-6px) scale(.98)}}
 
 
-/* v062 – gezielte Korrekturen auf Basis v059 */
 /* Bücher: Vorgänger & Nachfolger */
 .menu-bibel,.book-journey,.bo-check{background:linear-gradient(135deg,#064e3b,#047857 52%,#059669)!important;border:1px solid rgba(52,211,153,.36)!important;box-shadow:0 8px 30px rgba(5,150,105,.24)!important}
 .bo-card{background:linear-gradient(145deg,rgba(0,139,0,.16),rgba(14,58,14,.88) 58%,rgba(8,34,8,.94))!important;border:1px solid rgba(0,139,0,.36)!important;box-shadow:0 16px 42px rgba(0,139,0,.18)!important}
@@ -421,7 +419,7 @@ body{font-family:'Inter',sans-serif;min-height:100vh;background:radial-gradient(
 .vs-title{color:#e8f6ff!important}.vs-sub{color:rgba(196,226,255,.72)!important}
 
 
-/* v092 – Adaptive Layout: Desktop/Tablet gross wie früher, Mobile optimiert
+/* Adaptives Layout: Desktop/Tablet gross, Mobile optimiert
    Desktop bleibt bei der ursprünglichen, grosszügigen Darstellung. Mobile-Optimierungen greifen nur bei wenig Platz. */
 :root{--app-vvh:100dvh;--mobile-nav-h:76px;}
 html{min-height:100%;min-height:100dvh;width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%;}
@@ -447,14 +445,14 @@ body.is-mobile .form-panel,body.is-mobile .journey-question,body.is-mobile .bf-p
 
 
 
-/* v093 – Fast Profile Loading ohne lokale Speicherung
+/* Fast Profile Loading ohne lokale Speicherung
    Profile erscheinen nach einer Cloud-Abfrage sofort; Verszahlen werden parallel im Hintergrund geprüft. */
 .profile-load-box{padding:18px 14px;margin-bottom:14px;border-radius:18px;text-align:center;background:linear-gradient(135deg,rgba(255,255,255,.05),rgba(139,92,246,.06));border:1px solid rgba(196,181,253,.13);color:rgba(237,233,254,.78);font-size:13px;line-height:1.45;}
 .profile-load-spinner{width:26px;height:26px;border-radius:50%;border:3px solid rgba(196,181,253,.18);border-top-color:#c4b5fd;margin:0 auto 10px;animation:profileSpin .85s linear infinite;}
 @keyframes profileSpin{to{transform:rotate(360deg)}}
 .user-count.syncing::after{content:' · syncing';font-size:10px;color:rgba(134,239,172,.45);}
 
-/* v094 – Profilkarten: AT/NT Pokal-Badges
+/* Profilkarten: AT/NT Pokal-Badges
    Zeigt pro Profil dezent an, ob AT-/NT-Pokale vorhanden sind. 🌱 = noch am Lernen, 🏆 = mindestens ein Pokal. */
 .profile-trophy-row{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:7px;flex-wrap:wrap;}
 .profile-trophy-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:999px;font-size:10px;font-weight:600;letter-spacing:.25px;background:rgba(255,255,255,.045);border:1px solid rgba(196,181,253,.12);color:rgba(196,181,253,.62);line-height:1;}
@@ -466,7 +464,7 @@ body.is-mobile .profile-trophy-badge{font-size:9.5px;padding:3px 6px;}
 
 
 
-/* v104 – Neue Runde bleibt im aktuellen Versmodus */
+/* Neue Runde bleibt im aktuellen Versmodus */
 .adaptive-summary{padding:13px 14px;margin:0 0 12px;border-radius:16px;background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(139,92,246,.08));border:1px solid rgba(147,197,253,.22);color:rgba(237,233,254,.88);font-size:13px;line-height:1.45;text-align:center;}
 .adaptive-summary strong{color:#dbeafe;font-weight:700;}
 .adaptive-chip{display:inline-flex;align-items:center;gap:4px;margin-left:6px;padding:2px 7px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(196,181,253,.13);font-size:10px;color:rgba(237,233,254,.72);vertical-align:middle;}
@@ -476,11 +474,11 @@ body.is-mobile .profile-trophy-badge{font-size:9.5px;padding:3px 6px;}
 .menu-adaptive{background:linear-gradient(135deg,#1e3a8a,#4338ca 52%,#7c3aed)!important;border:1px solid rgba(147,197,253,.58)!important;box-shadow:0 0 18px rgba(96,165,250,.24),0 10px 34px rgba(99,102,241,.24)!important;}
 
 
-/* v102 – Ausführliche Punkte-Hilfe unter Verse verwalten */
+/* Ausführliche Punkte-Hilfe unter Verse verwalten */
 .points-help-btn{width:100%;padding:13px 15px;border-radius:15px;margin:0 0 12px;border:1px solid rgba(147,197,253,.28);background:linear-gradient(135deg,rgba(37,99,235,.15),rgba(139,92,246,.10));color:#dbeafe;font-size:13px;font-weight:600;cursor:pointer;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:10px}.points-help-panel{padding:15px;margin:0 0 14px;border-radius:18px;background:linear-gradient(135deg,rgba(255,255,255,.055),rgba(59,130,246,.07));border:1px solid rgba(147,197,253,.18);color:rgba(237,233,254,.86);font-size:12.5px;line-height:1.55}.points-help-panel h3{font-size:14px;color:#ede9fe;margin:0 0 8px}.points-help-panel h4{font-size:12px;color:#bfdbfe;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.45px}.points-help-panel ul{margin:5px 0 8px 18px}.points-help-panel li{margin:3px 0}.points-help-grid{display:grid;grid-template-columns:1fr auto;gap:5px 10px;margin:6px 0 10px}.points-help-grid span:nth-child(even){color:#dbeafe;font-weight:700;text-align:right}.points-help-note{margin-top:10px;padding:9px 10px;border-radius:12px;background:rgba(59,130,246,.10);border:1px solid rgba(147,197,253,.14);color:rgba(219,234,254,.92)}.points-help-subnote{font-size:11.5px;color:rgba(196,226,255,.74);margin-top:-4px;margin-bottom:8px}.points-help-rule{margin:7px 0 9px;padding:9px 10px;border-radius:12px;background:rgba(255,255,255,.045);border:1px solid rgba(196,181,253,.11)}.points-help-rule strong{color:#ede9fe}.points-help-mini{font-size:11.5px;color:rgba(237,233,254,.68)}
 </style>
 
-<!-- v135: Reiterwechsel scrollt automatisch nach oben, damit keine alte Scrollposition übernommen wird. -->
+<!-- Reiterwechsel scrollt automatisch nach oben, damit keine alte Scrollposition übernommen wird. -->
 </head>
 <body>
 <div class="orb1"></div><div class="orb2"></div><div class="orb3"></div>
@@ -583,10 +581,10 @@ function decayedPoints(v,now=Date.now()){
   if(base===null)return null;
   const last=v.pointsUpdatedAt||v.adaptiveLastAt||v.added||now;
   const days=Math.max(0,(now-last)/86400000);
-  let grace=2,stepDays=2;
-  if(base>=80){grace=30;stepDays=7;}
-  else if(base>=60){grace=14;stepDays=5;}
-  else if(base>=30){grace=5;stepDays=3;}
+  let grace=1,stepDays=1;
+  if(base>=80){grace=30;stepDays=2;}
+  else if(base>=60){grace=14;stepDays=2;}
+  else if(base>=30){grace=3;stepDays=2;}
   const loss=days<=grace?0:Math.floor((days-grace)/stepDays)*2;
   return clampPoints(base-loss);
 }
@@ -598,13 +596,15 @@ function pointStatus(v){
   if(p<80)return {key:'good',cls:'stable',txt:'🌳 Sitzt gut',points:p};
   return {key:'mastered',cls:'stable',txt:'🏆 Gemeistert',points:p};
 }
+
+//Bepunktung
 function pointsDelta(mode,result,current){
   const p=current??0;
-  if(mode==='flash')return result.ok?(p<30?30:p<60?24:p<80?18:10):-22;
-  if(mode==='gap'){const a=result.accuracy||0;if(a>=1)return 14;if(a>=.75)return 10;if(a>=.5)return 5;if(a>=.25)return 0;if(a>0)return -4;return -8;}
-  if(mode==='order'){const a=result.accuracy||0;if(a>=1)return 10;if(a>=.75)return 7;if(a>=.5)return 3;if(a>=.25)return 0;return -5;}
-  if(mode==='reference'){const a=result.accuracy||0;if(a>=1)return 5;if(a>=.75)return 4;if(a>=.5)return 3;if(a>=.25)return 2;return -3;}
-  return result.ok?8:-8;
+  if(mode==='flash')return result.ok?(p<30?15:p<60?12:p<80?9:5):-15;
+  if(mode==='gap'){const a=result.accuracy||0;if(a>=1)return 8;if(a>=.75)return 5;if(a>=.5)return 2;if(a>=.25)return 0;if(a>0)return -2;return -4;}
+  if(mode==='order'){const a=result.accuracy||0;if(a>=1)return 5;if(a>=.75)return 3;if(a>=.5)return 1;if(a>=.25)return 0;return -3;}
+  if(mode==='reference'){const a=result.accuracy||0;if(a>=1)return 5;return -3;}
+  return result.ok?8:-4;
 }
 function cleanVerseForStorage(v){
   const p=decayedPoints(v);
@@ -1034,6 +1034,7 @@ mkBtn("menu-order","🔀","Vers-Reihenfolge","Versabschnitte sortieren",()=>set(
   );
 }
 
+// Erklärung Bepunktung
 function renderPointsHelpToggle(){
   const toggle=el('button',{cls:'points-help-btn',type:'button',onclick:()=>set({pointsHelp:!S.pointsHelp})},span('',S.pointsHelp?'▾ Punktesystem Erklärung ausblenden':'▸ Punktesystem Erklärung anzeigen'));
   if(!S.pointsHelp)return toggle;
@@ -1044,12 +1045,12 @@ function renderPointsHelpToggle(){
     div('points-help-grid',span('', '🌱 Neu'),span('', 'noch nicht geübt'),span('', '🔥 Braucht Übung'),span('', '0–29'),span('', '🔁 Zum Auffrischen'),span('', '30–59'),span('', '🌳 Sitzt gut'),span('', '60–79'),span('', '🏆 Gemeistert'),span('', '80–100')),
     el('h4',{},'Punkte pro Übung – genau'),
     p('points-help-subnote','Die Punkte werden nach jeder Übung zum aktuellen Punktestand addiert oder davon abgezogen. Der Wert bleibt immer zwischen 0 und 100.'),
-    div('points-help-rule',el('strong',{},'Karteikarten'),el('ul',{},el('li',{},'Gewusst bei 0–29 Punkten: +30 Punkte'),el('li',{},'Gewusst bei 30–59 Punkten: +24 Punkte'),el('li',{},'Gewusst bei 60–79 Punkten: +18 Punkte'),el('li',{},'Gewusst bei 80–100 Punkten: +10 Punkte'),el('li',{},'Nicht gewusst: −22 Punkte'))),
-    div('points-help-rule',el('strong',{},'Lückentext'),el('ul',{},el('li',{},'100 % der Lücken richtig: +14 Punkte'),el('li',{},'75–99 % richtig: +10 Punkte'),el('li',{},'50–74 % richtig: +5 Punkte'),el('li',{},'25–49 % richtig: 0 Punkte'),el('li',{},'1–24 % richtig: −4 Punkte'),el('li',{},'0 % richtig: −8 Punkte'))),
-    div('points-help-rule',el('strong',{},'Reihenfolge'),el('ul',{},el('li',{},'100 % der Abschnitte an der richtigen Position: +10 Punkte'),el('li',{},'75–99 % richtig: +7 Punkte'),el('li',{},'50–74 % richtig: +3 Punkte'),el('li',{},'25–49 % richtig: 0 Punkte'),el('li',{},'Unter 25 % richtig: −5 Punkte'))),
+    div('points-help-rule',el('strong',{},'Karteikarten'),el('ul',{},el('li',{},'Gewusst bei 0–29 Punkten: +15 Punkte'),el('li',{},'Gewusst bei 30–59 Punkten: +12 Punkte'),el('li',{},'Gewusst bei 60–79 Punkten: +9 Punkte'),el('li',{},'Gewusst bei 80–100 Punkten: +5 Punkte'),el('li',{},'Nicht gewusst: −15 Punkte'))),
+    div('points-help-rule',el('strong',{},'Lückentext'),el('ul',{},el('li',{},'100 % der Lücken richtig: +8 Punkte'),el('li',{},'75–99 % richtig: +5 Punkte'),el('li',{},'50–74 % richtig: +2 Punkte'),el('li',{},'25–49 % richtig: 0 Punkte'),el('li',{},'1–24 % richtig: −2 Punkte'),el('li',{},'0 % richtig: −4 Punkte'))),
+    div('points-help-rule',el('strong',{},'Reihenfolge'),el('ul',{},el('li',{},'100 % der Abschnitte an der richtigen Position: +5 Punkte'),el('li',{},'75–99 % richtig: +3 Punkte'),el('li',{},'50–74 % richtig: +1 Punkt'),el('li',{},'25–49 % richtig: 0 Punkte'),el('li',{},'Unter 25 % richtig: −3 Punkte'))),
     div('points-help-rule',el('strong',{},'Bibelstelle nennen'),el('ul',{},el('li',{},'Korrekt: +5 Punkte'),el('li',{},'Falsch: −3 Punkte'))),
     el('h4',{},'Verfall über Zeit'),
-    el('ul',{},el('li',{},'Gemeistert: nach 30 Tagen, dann −2 Punkte alle 7 Tage.'),el('li',{},'Sitzt gut: nach 14 Tagen, dann −2 Punkte alle 5 Tage.'),el('li',{},'Zum Auffrischen: nach 5 Tagen, dann −2 Punkte alle 3 Tage.'),el('li',{},'Braucht Übung: nach 2 Tagen, dann −2 Punkte alle 2 Tage.')),
+    el('ul',{},el('li',{},'Gemeistert: nach 30 Tagen, dann −2 Punkte alle 2 Tage.'),el('li',{},'Sitzt gut: nach 14 Tagen, dann −2 Punkte alle 2 Tage.'),el('li',{},'Zum Auffrischen: nach 3 Tagen, dann −2 Punkte alle 2 Tage.'),el('li',{},'Braucht Übung: nach 1 Tag, dann −2 Punkte pro Tag.')),
     p('points-help-note','Empfohlenes Training nimmt maximal 10 passende Verse – aber niemals gemeisterte Verse. Wenn nur wenige Verse passend sind, kommen entsprechend weniger dran.')
   );
   return el('div',{},toggle,panel);
@@ -1582,7 +1583,7 @@ if ("serviceWorker" in navigator) {
 <script>
 
 
-/* v036: v035 sauber + Reise-Feinschliff: ein Fehler = 1 Feld zurück, beide Fehler = 5 Felder zurück */
+/* Reise-Feinschliff: ein Fehler = 1 Feld zurück, beide Fehler = 5 Felder zurück */
 (function(){
 const css=`
 .tab-shell{padding-bottom:96px;color:#ede9fe}.tab-nav{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:120;width:min(456px,calc(100vw - 24px));display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px;border-radius:22px;background:linear-gradient(145deg,rgba(23,18,47,.94),rgba(15,12,41,.96));border:1px solid rgba(196,181,253,.18);box-shadow:0 18px 50px rgba(0,0,0,.5);backdrop-filter:blur(14px)}.tab-btn{appearance:none;-webkit-appearance:none;border:0!important;border-radius:16px;background:transparent;color:rgba(196,181,253,.55);cursor:pointer;padding:9px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font-family:'Inter',sans-serif;box-shadow:none!important}.tab-btn.active,.tab-btn:hover{background:linear-gradient(135deg,rgba(216,180,254,.28),rgba(167,139,250,.20));color:#ede9fe}.tab-icon{font-size:19px}.tab-label{font-size:11px;font-weight:600}.tab-title-block{margin-bottom:14px}.tab-kicker{font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:rgba(196,181,253,.5);margin-bottom:4px}.tab-title{font-family:'Lora',serif;font-size:24px;font-weight:600;color:#ede9fe;margin:0 0 3px}.tab-sub{font-size:13px;color:rgba(196,181,253,.62);line-height:1.45}.quick-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 14px}.quick-stat{padding:11px 8px;border-radius:14px;text-align:center;background:linear-gradient(135deg,rgba(255,255,255,.05),rgba(139,92,246,.06));border:1px solid rgba(196,181,253,.12)}.quick-stat-n{font-size:20px;font-weight:500;color:#c4b5fd;font-family:'Lora',serif}.quick-stat-l{font-size:10px;color:rgba(196,181,253,.45);margin-top:2px}.scope-grid{display:flex;flex-direction:column;gap:10px;margin-top:12px}.scope-btn{width:100%;padding:18px 16px;border-radius:18px;cursor:pointer;display:flex;align-items:center;gap:13px;text-align:left;background:linear-gradient(135deg,rgba(251,191,36,.12),rgba(139,92,246,.08));border:1px solid rgba(251,191,36,.25);color:inherit}.scope-icon{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.1);font-size:22px}.scope-title{font-size:15px;font-weight:600;color:#ede9fe}.scope-sub{font-size:12px;color:rgba(196,181,253,.5);margin-top:2px}
@@ -1743,7 +1744,7 @@ const style=document.createElement('style'); style.textContent=`
 `; document.head.appendChild(style);
 
 
-/* v113 – Wissen-Quiz: frei wählbare Zeit + Highscore nach Punkte pro Minute */
+/* Wissen-Quiz: frei wählbare Zeit + Highscore nach Punkte pro Minute */
 const QUIZ_TIME_OPTIONS=[60,90,120,150,180,210,240];
 function quizSeconds(s){ const n=Number(s||S.quizSelectedSeconds||QUIZ_TOTAL||60); return QUIZ_TIME_OPTIONS.includes(n)?n:60; }
 function quizMinutes(s){ return quizSeconds(s)/60; }
@@ -1847,7 +1848,7 @@ document.head.appendChild(quizTimeStyle);
 
 
 <script>
-/* v086 – Wissen Top 5 + Statistik robust/stilistisch vereinheitlicht */
+/* Wissen Top 5 + Statistik robust/stilistisch vereinheitlicht */
 (function(){
   if(typeof window==='undefined' || typeof S!=='object') return;
 
@@ -2161,13 +2162,13 @@ document.head.appendChild(quizTimeStyle);
 
 
 <script>
-/* v092 – Adaptive Layout Guard: Mobile nur bei wenig Platz; Desktop/Tablet gross bleiben original. */
+/* Adaptive Layout Guard: Mobile nur bei wenig Platz; Desktop/Tablet gross bleiben original. */
 (function(){const root=document.documentElement,editableSelector='input, textarea, select, [contenteditable="true"]';let blurTimer=null,lastBackClick=0;function vp(){return {w:window.innerWidth||root.clientWidth||0,h:window.innerHeight||root.clientHeight||0};}function isCoarse(){return window.matchMedia('(pointer: coarse)').matches;}function isMobileLike(){const v=vp();return v.w<=700||(isCoarse()&&v.w<=820&&v.h>=v.w)||(v.w<=760&&v.h<=900);}function editable(){const el=document.activeElement;return el&&el.closest&&el.closest(editableSelector)?el:null;}function viewportHeight(){return window.visualViewport?window.visualViewport.height:window.innerHeight;}function keyboardOpen(){if(!isMobileLike())return false;const vv=window.visualViewport,el=editable();if(!el)return false;if(!vv)return true;const layoutH=window.innerHeight||root.clientHeight||vv.height,lost=Math.max(0,layoutH-vv.height-Math.max(0,vv.offsetTop||0));return lost>90||vv.height<layoutH*.84;}function clickBack(){const now=Date.now();if(now-lastBackClick<350)return;lastBackClick=now;const el=editable();if(el)el.blur();setTimeout(function(){const b=document.querySelector('.page-header .back-btn, .back-btn');if(b)b.click();},80);}function ensureKeyboardHelper(){if(document.querySelector('.keyboard-nav-helper'))return;const wrap=document.createElement('div');wrap.className='keyboard-nav-helper';wrap.setAttribute('aria-label','Tastatur Navigation');const back=document.createElement('button');back.type='button';back.className='knh-back';back.textContent='← Zurück';back.onclick=clickBack;const close=document.createElement('button');close.type='button';close.className='knh-close';close.textContent='Tastatur ↓';close.onclick=function(){const el=editable();if(el)el.blur();};wrap.append(back,close);document.body.appendChild(wrap);}function ensureSessionBar(){if(document.querySelector('.mobile-session-bar'))return;const wrap=document.createElement('div');wrap.className='mobile-session-bar';wrap.setAttribute('aria-label','Spiel Navigation');const exit=document.createElement('button');exit.type='button';exit.className='msb-exit';exit.textContent='← Menü';exit.onclick=clickBack;const top=document.createElement('button');top.type='button';top.className='msb-top';top.textContent='↑ Oben';top.onclick=function(){window.scrollTo({top:0,behavior:'smooth'});};wrap.append(exit,top);document.body.appendChild(wrap);}function inSession(){return !!document.querySelector('.journey-map,.temple-image-area,.luecke-card,.card-area,.chunk-list,.bo-card,.bf-panel,.quiz-question-card,.bs-books.temple-list');}function adaptJourneyMap(){if(typeof window.renderJourneyMap!=='function'||window.__v092JourneyPatched)return;const orig=window.renderJourneyMap;window.renderJourneyMap=function(){const map=orig();if(document.body&&document.body.classList.contains('is-mobile')){const path=map.querySelector('.route-path');if(path)path.setAttribute('d','M6 56 C24 50 40 60 56 54 S78 50 94 55');const dots=[...map.querySelectorAll('.route-dot')],step=S.journeyStep||0;dots.forEach((d,i)=>{const s=i;const x=6+s*(88/20),y=56-Math.sin(s/20*Math.PI)*9+Math.sin(s*.9)*1.8;d.style.left=x+'%';d.style.top=y+'%';});const tr=map.querySelector('.traveler');if(tr){const s=step,x=6+s*(88/20),y=56-Math.sin(s/20*Math.PI)*9+Math.sin(s*.9)*1.8;tr.style.left=x+'%';tr.style.top=y+'%';}}return map;};window.__v092JourneyPatched=true;}function apply(){root.style.setProperty('--app-vvh',Math.max(320,Math.round(viewportHeight()))+'px');if(!document.body)return;const mobile=isMobileLike();document.body.classList.toggle('is-mobile',mobile);document.body.classList.toggle('keyboard-open',keyboardOpen());document.body.classList.toggle('in-session',mobile&&inSession());ensureKeyboardHelper();ensureSessionBar();adaptJourneyMap();}function revealFocused(delay){const el=editable();if(!el||!isMobileLike())return;setTimeout(function(){try{el.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'});}catch(e){el.scrollIntoView(false);}},delay||120);}function bind(){apply();window.addEventListener('resize',apply,{passive:true});window.addEventListener('orientationchange',function(){setTimeout(apply,250);},{passive:true});document.addEventListener('focusin',function(e){if(e.target&&e.target.closest&&e.target.closest(editableSelector)){if(blurTimer)clearTimeout(blurTimer);apply();revealFocused(160);}},true);document.addEventListener('focusout',function(){if(blurTimer)clearTimeout(blurTimer);blurTimer=setTimeout(apply,220);},true);if(window.visualViewport){window.visualViewport.addEventListener('resize',function(){apply();revealFocused(80);},{passive:true});window.visualViewport.addEventListener('scroll',apply,{passive:true});}new MutationObserver(function(){apply();}).observe(document.getElementById('app')||document.body,{childList:true,subtree:true});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();})();
 </script>
 
 
 <script>
-/* v110 – Bücher-Feinschliff: Tempel-Lösung + Kanaan 15 Stationen */
+/* Bücher-Feinschliff: Tempel-Lösung + Kanaan 15 Stationen */
 (function(){
   const COMMON_BOOK_ABBR={"Psalmen": ["Ps", "Ps.", "Psalm", "Psalmen", "Pslm", "Psa", "Psalms"], "Johannes": ["Joh", "Joh.", "Jh", "Jn", "John"], "2. Timotheus": ["2. Tim", "2 Tim", "2Tim", "2. Tim.", "2 Timothy"], "1. Timotheus": ["1. Tim", "1 Tim", "1Tim", "1. Tim.", "1 Timothy"], "1. Petrus": ["1. Petr", "1 Petr", "1Petr", "1. Pet", "1 Pet", "1Pet", "1 Peter"], "2. Petrus": ["2. Petr", "2 Petr", "2Petr", "2. Pet", "2 Pet", "2Pet", "2 Peter"], "Matthäus": ["Mt", "Mt.", "Matt", "Matt.", "Matth", "Matth.", "Matthaus", "Matthew"], "Markus": ["Mk", "Mk.", "Mrk", "Mrk.", "Mark"], "Lukas": ["Lk", "Lk.", "Luk", "Luk.", "Luke"], "Apostelgeschichte": ["Apg", "Apg.", "Acts"], "Römer": ["Röm", "Röm.", "Roem", "Rom", "Romans"], "1. Korinther": ["1. Kor", "1 Kor", "1Kor", "1 Cor", "1Cor"], "2. Korinther": ["2. Kor", "2 Kor", "2Kor", "2 Cor", "2Cor"], "Galater": ["Gal", "Gal."], "Epheser": ["Eph", "Eph."], "Philipper": ["Phil", "Phil.", "Php"], "Kolosser": ["Kol", "Kol.", "Col"], "1. Johannes": ["1. Joh", "1 Joh", "1Joh", "1. Jh", "1 Jh", "1Jh", "1 John"], "2. Johannes": ["2. Joh", "2 Joh", "2Joh", "2. Jh", "2 Jh", "2Jh", "2 John"], "3. Johannes": ["3. Joh", "3 Joh", "3Joh", "3. Jh", "3 Jh", "3Jh", "3 John"], "1. Mose": ["1. Mo", "1 Mo", "1Mo", "1. Mos", "1 Mos", "1Mos", "Gen", "Gn", "Genesis"], "2. Mose": ["2. Mo", "2 Mo", "2Mo", "Ex", "Exodus"], "3. Mose": ["3. Mo", "3 Mo", "3Mo", "Lev"], "4. Mose": ["4. Mo", "4 Mo", "4Mo", "Num"], "5. Mose": ["5. Mo", "5 Mo", "5Mo", "Dtn", "Deut"], "Josua": ["Jos", "Jos."], "Richter": ["Ri", "Richt"], "Rut": ["Ruth", "Rt"], "1. Samuel": ["1. Sam", "1 Sam", "1Sam"], "2. Samuel": ["2. Sam", "2 Sam", "2Sam"], "1. Könige": ["1. Kön", "1 Kön", "1Kön", "1 Koen"], "2. Könige": ["2. Kön", "2 Kön", "2Kön", "2 Koen"], "1. Chronik": ["1. Chr", "1 Chr", "1Chr"], "2. Chronik": ["2. Chr", "2 Chr", "2Chr"], "Esra": ["Esr"], "Nehemia": ["Neh"], "Ester": ["Est", "Esther"], "Hiob": ["Hi", "Job"], "Sprüche": ["Spr", "Spr.", "Prov"], "Prediger": ["Pred", "Pred.", "Koh"], "Hoheslied": ["Hld", "Hld.", "HL"], "Jesaja": ["Jes", "Jes.", "Isa"], "Jeremia": ["Jer", "Jer."], "Klagelieder": ["Klgl", "Klg", "Lam"], "Hesekiel": ["Hes", "Hes.", "Ez"], "Daniel": ["Dan", "Dan.", "Dn"], "Hosea": ["Hos", "Hos."], "Amos": ["Am", "Am."], "Obadja": ["Ob", "Obd"], "Jona": ["Jon"], "Micha": ["Mi", "Mich"], "Sacharja": ["Sach", "Zech"], "Maleachi": ["Mal", "Mal."], "Offenbarung": ["Offb", "Offb.", "Off", "Apk", "Rev"], "Judas": ["Jud"], "Titus": ["Tit"], "Philemon": ["Phlm", "Phm"], "Hebräer": ["Hebr", "Heb"], "Jakobus": ["Jak", "Jas"]};
   const JOURNEY_TOTAL=15;
@@ -2212,7 +2213,7 @@ document.head.appendChild(quizTimeStyle);
 
 
 <script>
-/* v112 – Reparatur: Antwort prüfen in Reise nach Kanaan */
+/* Antwort prüfen in Reise nach Kanaan */
 (function(){
   function journeyNextBook(scope,current){
     const r = typeof journeyRange==='function' ? journeyRange(scope) : {min:1,max:64};
@@ -2317,7 +2318,7 @@ document.head.appendChild(quizTimeStyle);
 
 
 <script>
-/* v115 Patch: v114 Tab-Texte + Statistikbereiche Bücher/Verse/Wissen farblich getrennt */
+/* Statistikbereiche Bücher/Verse/Wissen farblich getrennt */
 (function(){
   const style=document.createElement('style');
   style.textContent=`
@@ -2353,7 +2354,7 @@ document.head.appendChild(quizTimeStyle);
   function v115Area(cls,icon,title,sub,...children){return div(`stat-area ${cls}`,div('stat-area-heading',span('stat-area-icon',icon),el('div',{},p('stat-area-title',title),p('stat-area-sub',sub))),...children);}
   function v115BestQuizText(){try{const scores=typeof quizProjectedScores==='function'?quizProjectedScores():[];const best=scores&&scores[0];if(!best)return '–';const sec=best.seconds||S.quizSelectedSeconds||60;return `${Number(best.score||0)}/${typeof fmtQuizTime==='function'?fmtQuizTime(sec):sec+'s'}`;}catch(e){return '–';}}
 
-  // v114: Bücher-Tab vereinfacht
+  // Bücher-Tab vereinfacht
   window.renderBooksTab=renderBooksTab=function(){
     const tAT=S.user?S.user.trophiesAT||0:0,tNT=S.user?S.user.trophiesNT||0:0;
     return el('div',{},
@@ -2369,7 +2370,7 @@ document.head.appendChild(quizTimeStyle);
     );
   };
 
-  // v114: Verse-Tab zusammengefasst
+  // Verse-Tab zusammengefasst
   window.renderVerseTab=renderVerseTab=function(){
     const c=versePointCounts();const inUebung=(c.practice||0)+(c.refresh||0),auswendig=(c.good||0)+(c.mastered||0);
     return el('div',{},
@@ -2387,7 +2388,7 @@ document.head.appendChild(quizTimeStyle);
     );
   };
 
-  // v114: Wissen-Tab vereinfacht
+  // Wissen-Tab vereinfacht
   window.renderQuizTab=renderQuizTab=function(){
     ensure();
     const all=typeof quizAllQuestions==='function'?quizAllQuestions():[];
@@ -2405,7 +2406,7 @@ document.head.appendChild(quizTimeStyle);
     );
   };
 
-  // v114: Zahlen-Tastatur für Kapitel und Vers in „Bibelstelle nennen“
+  // Zahlen-Tastatur für Kapitel und Vers in „Bibelstelle nennen“
   if(typeof renderReference==='function'){
     window.renderReference=renderReference=function(){
       const card=S.session[S.idx];if(!card)return renderDone();const states=S.refStates||{},checked=!!S.refChecked;
@@ -2417,7 +2418,7 @@ document.head.appendChild(quizTimeStyle);
     };
   }
 
-  // v115: Statistik sauber in Bücher / Verse / Wissen trennen
+  // Statistik sauber in Bücher / Verse / Wissen trennen
   window.renderStats=renderStats=function(){
     const u=S.user||{},hdr=div('page-header',el('h2',{cls:'page-title'},'Meine Statistik')),wrap=el('div',{},hdr);
     wrap.appendChild(p('stat-note','Deine Erfolge sind nach Bücher, Verse und Wissen getrennt.'));
@@ -2465,7 +2466,7 @@ document.head.appendChild(quizTimeStyle);
 
 
 <script>
-/* v119: Wissen-Bestenliste zentral korrigiert und Statistik-Wissen synchronisiert */
+/* Wissen-Bestenliste zentral korrigiert und Statistik-Wissen synchronisiert */
 (function(){
   function v119QuizSeconds(s){
     if(typeof quizSeconds==='function') return quizSeconds(s);
@@ -2556,7 +2557,7 @@ document.head.appendChild(quizTimeStyle);
 
 
 <script>
-/* v120: Statistik-Abschnitt „Wer sonst noch so lernt?“ */
+/* Statistik-Abschnitt „Wer sonst noch so lernt?“ */
 (function(){
   const style=document.createElement('style');
   style.textContent=`
@@ -2628,7 +2629,7 @@ document.head.appendChild(quizTimeStyle);
 
 
 <script>
-/* v128: Start-Anmeldung komplett wie WM-Datei: statische Formulare + eigener Auth-Screen */
+/* Start-Anmeldung komplett */
 (function(){
   const style=document.createElement('style');
   style.textContent=`
@@ -2721,7 +2722,7 @@ document.head.appendChild(quizTimeStyle);
 
 
 <script>
-/* v130: Reparatur der Anmeldung nach v129, ohne erneutes Umbauen des Auth-Screens */
+/* Reparatur der Anmeldung */
 (function(){
   function field(id){return document.getElementById(id);}
   function val(...ids){for(const id of ids){const el=field(id); if(el) return el.value||'';} return '';}
@@ -2790,30 +2791,10 @@ document.head.appendChild(quizTimeStyle);
 </script>
 
 
-<script>
-/* v134 Diagnose-Helfer: In der Browser-Konsole v134QuizDebug() ausführen. */
-window.v134QuizDebug = function(){
-  try{
-    const uid = window.S && S.user && S.user.id;
-    const localKey = uid ? 'bvt_quiz_'+uid+'_highscores' : null;
-    return {
-      uid,
-      quizSaved: window.S && S.quizSaved,
-      quizScore: window.S && S.quizScore,
-      quizGameSeconds: window.S && S.quizGameSeconds,
-      quizSelectedSeconds: window.S && S.quizSelectedSeconds,
-      state: window.S && S.quizHighscoresLocal,
-      user: window.S && S.user && S.user.quizHighscores,
-      localKey,
-      local: localKey ? JSON.parse(localStorage.getItem(localKey)||'[]') : null
-    };
-  }catch(e){ return {error:String(e)}; }
-};
-</script>
 
 
 <script>
-/* v135: Beim Reiterwechsel immer automatisch nach oben scrollen.
+/* Beim Reiterwechsel immer automatisch nach oben scrollen.
    Fix: Wenn man in einem Tab weit unten war und dann einen anderen Reiter öffnet,
    übernimmt der Browser die alte Scrollposition. Diese kleine Schicht setzt beim
    aktiven Tab-Wechsel die Scrollposition von Fenster, Dokument, #app und Tab-Content zurück. */
@@ -2866,6 +2847,169 @@ window.v134QuizDebug = function(){
         }, {capture:true});
       }catch(_){ }
       return nav;
+    };
+  }
+})();
+</script>
+
+
+<script>
+/* Fix fuer Buecher > Buecher ordnen > Auswerten
+
+(function(){
+  const V137_TEMPLE_TOTAL_STEPS = 15;
+  const V137_TEMPLE_PHASE_SIZE = 3;
+  const V137_TEMPLE_PHASES = [
+    {key:'wall',emoji:'🧱',label:'Mauer'},
+    {key:'stairs',emoji:'🪜',label:'Treppe'},
+    {key:'columns',emoji:'🏛️',label:'Säulen'},
+    {key:'roof',emoji:'🔺',label:'Dach'},
+    {key:'light',emoji:'✨',label:'Licht'}
+  ];
+  function v137PhaseFloor(n){
+    return Math.floor((Number(n)||0)/V137_TEMPLE_PHASE_SIZE)*V137_TEMPLE_PHASE_SIZE;
+  }
+  function v137ScopeKey(prefix,scope){
+    if(typeof scopeKey==='function') return scopeKey(prefix,scope);
+    return prefix+(scope==='AT'?'AT':scope==='NT'?'NT':'ALL');
+  }
+  function v137CheckTempleOrder(){
+    if(!S || !Array.isArray(S.bsCurrent) || !Array.isArray(S.bsCorrect)) return;
+    const ok = S.bsCurrent.length===S.bsCorrect.length && S.bsCurrent.every((v,i)=>v===S.bsCorrect[i]);
+    const before = Number(S.templeStones||0);
+    const phaseFloor = (typeof templePhaseFloor==='function') ? templePhaseFloor(before) : v137PhaseFloor(before);
+    const nextStones = ok ? Math.min(V137_TEMPLE_TOTAL_STEPS,before+1) : Math.max(phaseFloor,before-1);
+    const beforePhase = Math.floor(before/V137_TEMPLE_PHASE_SIZE);
+    const afterPhase = Math.floor(nextStones/V137_TEMPLE_PHASE_SIZE);
+    let msg;
+    if(ok && nextStones>=V137_TEMPLE_TOTAL_STEPS){
+      msg='Der Tempel wurde vollendet.';
+    }else if(ok && afterPhase>beforePhase){
+      const ph=V137_TEMPLE_PHASES[Math.max(0,Math.min(afterPhase-1,V137_TEMPLE_PHASES.length-1))];
+      msg=`Phase ${afterPhase} erreicht: ${ph.label}.`;
+    }else if(ok){
+      msg='Ein Schritt wurde geschafft.';
+    }else{
+      const solution=(S.bsCorrect||[]).map(idx=>BUECHER[idx]).join(' → ');
+      msg=`Nicht ganz. Die richtige Reihenfolge ist: ${solution}`;
+    }
+    const patch={
+      bsChecked:true,
+      templeStones:nextStones,
+      templeDone:nextStones>=V137_TEMPLE_TOTAL_STEPS,
+      templeMsg:msg,
+      templeMsgOk:ok
+    };
+    if(ok && afterPhase>beforePhase) patch.templePhasePopup=afterPhase;
+    if(nextStones>=V137_TEMPLE_TOTAL_STEPS && !S.templeStatsSaved){
+      patch.templeStatsSaved=true;
+      if(typeof incUser==='function') incUser(v137ScopeKey('templeWins',S.templeScope));
+    }
+    if(typeof showToast==='function') showToast(msg,ok?'success':'error',ok?'Tempelbau':'Richtige Lösung',ok?1500:9500);
+    set(patch);
+  }
+  window.checkTempleOrder=v137CheckTempleOrder;
+  try{ checkTempleOrder=v137CheckTempleOrder; }catch(_){ }
+  // Zusaetzliche Absicherung: Falls ein Button noch mit einem alten Handler gerendert wurde,
+  // faengt diese Delegation den Klick ab und nutzt dennoch die reparierte Auswertung.
+  document.addEventListener('click',function(e){
+    const b=e.target && e.target.closest && e.target.closest('.bs-check');
+    if(!b) return;
+    if(S && S.view==='bibelsort' && S.templeScope && !S.bsChecked && !S.templeDone){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      v137CheckTempleOrder();
+    }
+  },true);
+})();
+</script>
+
+
+<script>
+/* Bepunktung wird direkt nach der Ueberpruefung pro Vers gespeichert
+   - Lueckentext: beim Klick auf "Ueberpruefen" / Enter
+   - Reihenfolge: beim Klick auf "Reihenfolge ueberpruefen"
+   - Bibelstelle: war bereits direkt; zusaetzlich gegen Doppelspeichern abgesichert
+*/
+(function(){
+  function v138VerseKey(mode,card){return mode+':' +(card&&card.id!=null?card.id:'')+':' +(S&&S.idx!=null?S.idx:'');}
+  async function v138SaveVersePointsOnce(mode,card,result){
+    if(!card||!Array.isArray(S.verses)||typeof updateLearningPoints!=='function'||typeof saveVerses!=='function')return false;
+    const key=v138VerseKey(mode,card);
+    if(S._v138PointSavedKey===key)return false;
+    S._v138PointSavedKey=key;
+    const upd=S.verses.map(v=>v.id===card.id?updateLearningPoints(v,mode,result):v);
+    await saveVerses(upd);
+    return true;
+  }
+  window.v138SaveVersePointsOnce=v138SaveVersePointsOnce;
+
+  window.checkLuecken=checkLuecken=async function(){
+    const card=S.session&&S.session[S.idx];
+    if(!card||!Array.isArray(S.luecken))return;
+    const clean=s=>String(s||'').trim().toLowerCase().replace(/[.,;:!?„\"»«\"\"]/g,'');
+    S.luecken.forEach(tok=>{
+      if(!tok.isGap||tok.state==='correct'||tok.state==='wrong')return;
+      tok.state=clean(tok.input)===clean(tok.word)?'correct':'wrong';
+    });
+    const gaps=S.luecken.filter(t=>t.isGap);
+    const correctGaps=gaps.filter(t=>t.state==='correct').length;
+    const allOk=gaps.length?correctGaps===gaps.length:true;
+    const acc=gaps.length?correctGaps/gaps.length:(allOk?1:0);
+    set({luecken:[...S.luecken]});
+    try{await v138SaveVersePointsOnce('gap',card,{ok:allOk,accuracy:acc});}
+    catch(e){console.error('v138 Lueckentext-Bepunktung speichern fehlgeschlagen:',e);if(typeof showToast==='function')showToast('Bepunktung konnte nicht gespeichert werden.','error','Speichern fehlgeschlagen',2600);}
+  };
+
+  window.renderLuecke=renderLuecke=function(){
+    const card=S.session[S.idx];if(!card||!S.luecken)return div('');
+    const card2=div('luecke-card',span('stelle-label',card.stelle));
+    S.luecken.forEach((tok,i)=>{
+      if(!tok.isGap){card2.appendChild(document.createTextNode((i>0?' ':'')+tok.word));return;}
+      if(i>0)card2.appendChild(document.createTextNode(' '));
+      if(tok.state==='correct'){card2.appendChild(span('gap-revealed',tok.word));return;}
+      if(tok.state==='wrong'){card2.appendChild(span('gap-wrong',tok.word));return;}
+      const inp=el('input',{cls:'gap-input',type:'text',placeholder:'…',style:`width:${Math.max(60,tok.word.length*13)}px`});
+      inp.value=tok.input;inp.oninput=e=>{S.luecken[i].input=e.target.value;};inp.onkeydown=e=>{if(e.key==='Enter')checkLuecken();};card2.appendChild(inp);
+    });
+    const allDone=S.luecken.filter(t=>t.isGap).every(t=>t.state==='correct'||t.state==='wrong');
+    const nextB=btn('next-btn',S.idx+1>=S.session.length?'Auswertung →':'Nächster Vers →',()=>{
+      const allOk=S.luecken.filter(t=>t.isGap).every(t=>t.state==='correct');
+      const res=[...S.results,{...card,correct:allOk}];
+      S._v138PointSavedKey=null;
+      if(S.idx+1>=S.session.length)set({results:res,view:'done'});
+      else set({results:res,idx:S.idx+1,luecken:buildLuecken(S.session[S.idx+1])});
+    });
+    return el('div',{},progRow(S.idx,S.session.length,()=>set({view:'menu'})),card2,allDone?nextB:btn('check-btn verse-gap-action','Überprüfen ✓',checkLuecken));
+  };
+
+  window.renderOrder=renderOrder=function(){
+    const card=S.session[S.idx];if(!card||!S.order)return div('');
+    const {orig,cur,sel,dragOver}=S.order;const checked=S.orderChecked||false;const allOk=cur.every((c,i)=>c===orig[i]);
+    const list=div('chunk-list verse-order-list',...cur.map((chunk,i)=>{let cls='chunk';if(checked)cls+=cur[i]===orig[i]?' correct-pos':' chunk-wrong';else if(sel===i)cls+=' selected';else if(dragOver===i)cls+=' drag-over';const c=div(cls,span('chunk-num',String(i+1)),span('',chunk),span('drag-handle','↕'));c.setAttribute('data-chunk-pos',String(i));if(!checked){c.onpointerdown=e=>beginVerseOrderDrag(i,e);c.onclick=()=>{if(S.order?.drag!=null)return;if(sel===null||sel===undefined)set({order:{...S.order,sel:i}});else if(sel===i)set({order:{...S.order,sel:null}});else{const nc=[...cur];[nc[sel],nc[i]]=[nc[i],nc[sel]];set({order:{orig,cur:nc,sel:null}});}};}return c;}));
+    let bottom;
+    if(checked){
+      const nb=btn('next-btn',S.idx+1>=S.session.length?'Fertig →':'Nächster Vers →',()=>{const res=[...S.results,{...card,correct:allOk}];S._v138PointSavedKey=null;if(S.idx+1>=S.session.length)set({results:res,view:'done',lastVerseMode:'order'});else set({results:res,idx:S.idx+1,order:buildChunks(S.session[S.idx+1]),orderChecked:false,lastVerseMode:'order'});});
+      nb.style.width='100%';bottom=el('div',{},nb);
+    }else{
+      bottom=btn('check-btn verse-order-action','Reihenfolge überprüfen ✓',async()=>{
+        const correctPos=cur.filter((c,i)=>c===orig[i]).length;
+        const acc=orig.length?correctPos/orig.length:(allOk?1:0);
+        set({orderChecked:true});
+        try{await v138SaveVersePointsOnce('order',card,{ok:allOk,accuracy:acc,wordCount:orig.length});}
+        catch(e){console.error('v138 Reihenfolge-Bepunktung speichern fehlgeschlagen:',e);if(typeof showToast==='function')showToast('Bepunktung konnte nicht gespeichert werden.','error','Speichern fehlgeschlagen',2600);}
+        if(typeof showToast==='function')showToast(allOk?'Die Reihenfolge passt perfekt!':'Fast – schau dir die Reihenfolge noch einmal an.',allOk?'success':'verse',allOk?'Sauber sortiert':'Nochmal schauen',allOk?1500:2400);
+      });
+    }
+    return el('div',{},progRow(S.idx,S.session.length,()=>set({view:'menu'})),span('order-stelle',card.stelle),p('mode-help','Bringe durch Ziehen und Verschieben in die richtige Reihenfolge.'),list,bottom);
+  };
+
+  if(typeof doCheckReference==='function'){
+    const oldRef=doCheckReference;
+    window.doCheckReference=doCheckReference=async function(){
+      const card=S.session&&S.session[S.idx];
+      if(!card||S.refSaved)return;
+      return oldRef.apply(this,arguments);
     };
   }
 })();
