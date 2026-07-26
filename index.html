@@ -2854,8 +2854,13 @@ document.head.appendChild(quizTimeStyle);
 
 
 <script>
-/* Fix fuer Buecher > Buecher ordnen > Auswerten
-
+/* v137: Fix fuer Buecher > Buecher ordnen > Auswerten
+   Ursache in v136: Eine spaete Ueberschreibung von checkTempleOrder() griff auf
+   TEMPLE_TOTAL_STEPS, TEMPLE_PHASE_SIZE und TEMPLE_PHASES zu. Diese Konstanten waren
+   aber nur in einem frueheren IIFE-Scope definiert und deshalb beim Klick nicht sichtbar.
+   Das fuehrte zu einem ReferenceError und der Auswerten-Button machte scheinbar nichts.
+   Diese Version definiert die benoetigten Werte lokal/fallback-sicher und ueberschreibt
+   die Auswertung am Ende nochmals robust. */
 (function(){
   const V137_TEMPLE_TOTAL_STEPS = 15;
   const V137_TEMPLE_PHASE_SIZE = 3;
@@ -2926,7 +2931,7 @@ document.head.appendChild(quizTimeStyle);
 
 
 <script>
-/* Bepunktung wird direkt nach der Ueberpruefung pro Vers gespeichert
+/* v138: Bepunktung wird direkt nach der Ueberpruefung pro Vers gespeichert
    - Lueckentext: beim Klick auf "Ueberpruefen" / Enter
    - Reihenfolge: beim Klick auf "Reihenfolge ueberpruefen"
    - Bibelstelle: war bereits direkt; zusaetzlich gegen Doppelspeichern abgesichert
@@ -3012,6 +3017,83 @@ document.head.appendChild(quizTimeStyle);
       return oldRef.apply(this,arguments);
     };
   }
+})();
+</script>
+
+
+<script>
+/* Fix fuer Buecher ordnen / Tempelbau
+*/
+(function(){
+  const TOTAL=15, PHASE=3;
+  const PHASES=[
+    {label:'Mauer'}, {label:'Treppe'}, {label:'Säulen'}, {label:'Dach'}, {label:'Licht'}
+  ];
+  function phaseFloor(n){return Math.floor((Number(n)||0)/PHASE)*PHASE;}
+  function sk(prefix,scope){
+    if(typeof scopeKey==='function')return scopeKey(prefix,scope);
+    return prefix+(scope==='AT'?'AT':scope==='NT'?'NT':'ALL');
+  }
+  function robustTempleCheck(){
+    if(!window.S||S.view!=='bibelsort'||!S.templeScope||S.bsChecked||S.templeDone)return;
+    if(!Array.isArray(S.bsCurrent)||!Array.isArray(S.bsCorrect))return;
+    const ok=S.bsCurrent.length===S.bsCorrect.length&&S.bsCurrent.every((v,i)=>v===S.bsCorrect[i]);
+    const before=Number(S.templeStones||0);
+    const floor=(typeof templePhaseFloor==='function')?templePhaseFloor(before):phaseFloor(before);
+    const next=ok?Math.min(TOTAL,before+1):Math.max(floor,before-1);
+    const beforePhase=Math.floor(before/PHASE),afterPhase=Math.floor(next/PHASE);
+    let msg;
+    if(ok&&next>=TOTAL)msg='Der Tempel wurde vollendet.';
+    else if(ok&&afterPhase>beforePhase)msg=`Phase ${afterPhase} erreicht: ${PHASES[Math.max(0,Math.min(afterPhase-1,PHASES.length-1))].label}.`;
+    else if(ok)msg='Ein Schritt wurde geschafft.';
+    else msg=`Nicht ganz. Die richtige Reihenfolge ist: ${(S.bsCorrect||[]).map(idx=>BUECHER[idx]).join(' → ')}`;
+    const patch={bsChecked:true,templeStones:next,templeDone:next>=TOTAL,templeMsg:msg,templeMsgOk:ok};
+    if(ok&&afterPhase>beforePhase)patch.templePhasePopup=afterPhase;
+    if(next>=TOTAL&&!S.templeStatsSaved){
+      patch.templeStatsSaved=true;
+      if(typeof incUser==='function')incUser(sk('templeWins',S.templeScope));
+    }
+    if(typeof showToast==='function')showToast(msg,ok?'success':'error',ok?'Tempelbau':'Richtige Lösung',ok?1500:9500);
+    set(patch);
+  }
+  window.checkTempleOrder=robustTempleCheck;
+  try{checkTempleOrder=robustTempleCheck;}catch(_){ }
+
+  let lastRun=0;
+  function handle(e){
+    const btn=e.target&&e.target.closest&&e.target.closest('.bs-check');
+    if(!btn)return;
+    if(!(window.S&&S.view==='bibelsort'&&S.templeScope&&!S.bsChecked&&!S.templeDone))return;
+    const now=Date.now();
+    if(now-lastRun<450){
+      e.preventDefault();
+      e.stopImmediatePropagation&&e.stopImmediatePropagation();
+      return;
+    }
+    lastRun=now;
+    e.preventDefault();
+    e.stopImmediatePropagation&&e.stopImmediatePropagation();
+    robustTempleCheck();
+  }
+  ['pointerup','touchend','click'].forEach(type=>document.addEventListener(type,handle,true));
+
+  const css=document.createElement('style');
+  css.id='v139-buecher-ordnen-handy-fix';
+  css.textContent=`
+    body.is-mobile.in-session .bs-check{
+      position:sticky!important;
+      bottom:82px!important;
+      z-index:260!important;
+      width:100%!important;
+      min-height:52px!important;
+      touch-action:manipulation!important;
+      -webkit-tap-highlight-color:rgba(255,255,255,.18)!important;
+      pointer-events:auto!important;
+    }
+    body.is-mobile.in-session .bs-books.temple-list{margin-bottom:14px!important;}
+    body.is-mobile.in-session #app{padding-bottom:128px!important;}
+  `;
+  document.head.appendChild(css);
 })();
 </script>
 
