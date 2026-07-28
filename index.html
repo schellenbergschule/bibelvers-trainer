@@ -614,7 +614,14 @@ function cleanVerseForStorage(v){
 }
 function updateLearningPoints(v,mode,result){
   const current=decayedPoints(v);
-  const next=clampPoints((current??0)+pointsDelta(mode,result,current));
+const limitedModes=['gap','order','reference'];
+let delta=pointsDelta(mode,result,current);
+
+if(limitedModes.includes(mode) && (current??0)>=59 && delta>0){
+  delta=0;
+}
+
+let next=clampPoints((current??0)+delta);
   return {id:v.id,stelle:v.stelle,text:v.text,added:v.added||Date.now(),points:next,pointsUpdatedAt:Date.now()};
 }
 function versePointCounts(){
@@ -1045,10 +1052,11 @@ function renderPointsHelpToggle(){
     div('points-help-grid',span('', '🌱 Neu'),span('', 'noch nicht geübt'),span('', '🔥 Braucht Übung'),span('', '0–29'),span('', '🔁 Zum Auffrischen'),span('', '30–59'),span('', '🌳 Sitzt gut'),span('', '60–79'),span('', '🏆 Gemeistert'),span('', '80–100')),
     el('h4',{},'Punkte pro Übung – genau'),
     p('points-help-subnote','Die Punkte werden nach jeder Übung zum aktuellen Punktestand addiert oder davon abgezogen. Der Wert bleibt immer zwischen 0 und 100.'),
+    p('points-help-note', 'Hinweis: Die Übungen Lückentext, Reihenfolge und Bibelstelle nennen helfen dir, einen Vers bis 59 Punkte zu festigen. Ab 59 Punkten bleibt der Punktestand bei diesen Übungen unverändert. Um einen Vers weiter Richtung „Sitzt gut“ oder „Gemeistert“ zu bringen, nutze den Karteikarten-Test.'),
     div('points-help-rule',el('strong',{},'Karteikarten'),el('ul',{},el('li',{},'Gewusst bei 0–29 Punkten: +15 Punkte'),el('li',{},'Gewusst bei 30–59 Punkten: +12 Punkte'),el('li',{},'Gewusst bei 60–79 Punkten: +9 Punkte'),el('li',{},'Gewusst bei 80–100 Punkten: +5 Punkte'),el('li',{},'Nicht gewusst: −15 Punkte'))),
-    div('points-help-rule',el('strong',{},'Lückentext'),el('ul',{},el('li',{},'100 % der Lücken richtig: +8 Punkte'),el('li',{},'75–99 % richtig: +5 Punkte'),el('li',{},'50–74 % richtig: +2 Punkte'),el('li',{},'25–49 % richtig: 0 Punkte'),el('li',{},'1–24 % richtig: −2 Punkte'),el('li',{},'0 % richtig: −4 Punkte'))),
-    div('points-help-rule',el('strong',{},'Reihenfolge'),el('ul',{},el('li',{},'100 % der Abschnitte an der richtigen Position: +5 Punkte'),el('li',{},'75–99 % richtig: +3 Punkte'),el('li',{},'50–74 % richtig: +1 Punkt'),el('li',{},'25–49 % richtig: 0 Punkte'),el('li',{},'Unter 25 % richtig: −3 Punkte'))),
-    div('points-help-rule',el('strong',{},'Bibelstelle nennen'),el('ul',{},el('li',{},'Korrekt: +5 Punkte'),el('li',{},'Falsch: −3 Punkte'))),
+    div('points-help-rule',el('strong',{},'Lückentext'),el('ul',{},el('li',{},'100 % der Lücken richtig: +8 Punkte'),el('li',{},'75–99 % richtig: +5 Punkte'),el('li',{},'50–74 % richtig: +2 Punkte'),el('li',{},'25–49 % richtig: 0 Punkte'),el('li',{},'1–24 % richtig: −2 Punkte'),el('li',{},'0 % richtig: −4 Punkte'),el('li',{},'Maximal bis 59 Punkte wirksam'))),
+    div('points-help-rule',el('strong',{},'Reihenfolge'),el('ul',{},el('li',{},'100 % der Abschnitte an der richtigen Position: +5 Punkte'),el('li',{},'75–99 % richtig: +3 Punkte'),el('li',{},'50–74 % richtig: +1 Punkt'),el('li',{},'25–49 % richtig: 0 Punkte'),el('li',{},'Unter 25 % richtig: −3 Punkte'),el('li',{},'Maximal bis 59 Punkte wirksam'))),
+    div('points-help-rule',el('strong',{},'Bibelstelle nennen'),el('ul',{},el('li',{},'Korrekt: +5 Punkte'),el('li',{},'Falsch: −3 Punkte'),el('li',{},'Maximal bis 59 Punkte wirksam'))),
     el('h4',{},'Verfall über Zeit'),
     el('ul',{},el('li',{},'Gemeistert: nach 30 Tagen, dann −2 Punkte alle 2 Tage.'),el('li',{},'Sitzt gut: nach 14 Tagen, dann −2 Punkte alle 2 Tage.'),el('li',{},'Zum Auffrischen: nach 3 Tagen, dann −2 Punkte alle 2 Tage.'),el('li',{},'Braucht Übung: nach 1 Tag, dann −2 Punkte pro Tag.')),
     p('points-help-note','Empfohlenes Training nimmt maximal 10 passende Verse – aber niemals gemeisterte Verse. Wenn nur wenige Verse passend sind, kommen entsprechend weniger dran.')
