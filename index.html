@@ -612,18 +612,35 @@ function cleanVerseForStorage(v){
   if(p===null)return {...base,points:null,pointsUpdatedAt:null};
   return {...base,points:clampPoints(p),pointsUpdatedAt:v.pointsUpdatedAt||v.adaptiveLastAt||Date.now()};
 }
+
 function updateLearningPoints(v,mode,result){
   const current=decayedPoints(v);
-const limitedModes=['gap','order','reference'];
-let delta=pointsDelta(mode,result,current);
+  const p=current??0;
 
-if(limitedModes.includes(mode) && (current??0)>=59 && delta>0){
-  delta=0;
+  const limitedModes=['gap','order','reference'];
+  let delta=pointsDelta(mode,result,current);
+
+  if(limitedModes.includes(mode) && delta>0){
+    if(p>=59){
+      delta=0;
+    }else if(p+delta>59){
+      delta=59-p;
+    }
+  }
+
+  let next=clampPoints(p+delta);
+
+  return {
+    id:v.id,
+    stelle:v.stelle,
+    text:v.text,
+    added:v.added||Date.now(),
+    points:next,
+    pointsUpdatedAt:Date.now()
+  };
 }
 
-let next=clampPoints((current??0)+delta);
-  return {id:v.id,stelle:v.stelle,text:v.text,added:v.added||Date.now(),points:next,pointsUpdatedAt:Date.now()};
-}
+
 function versePointCounts(){
   const c={total:S.verses.length,practice:0,refresh:0,good:0,mastered:0,new:0};
   S.verses.forEach(v=>{const st=pointStatus(v);c[st.key]=(c[st.key]||0)+1;});
