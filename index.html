@@ -3122,5 +3122,354 @@ document.head.appendChild(quizTimeStyle);
 })();
 </script>
 
+
+<!-- v147: Lernen - Bibelvers abdecken mit zweiseitigem Regler -->
+<style>
+.cover-select-list{display:flex;flex-direction:column;gap:9px;margin-bottom:14px}
+.cover-select-item{width:100%;padding:13px 14px;border-radius:15px;text-align:left;cursor:pointer;background:linear-gradient(135deg,rgba(255,255,255,.055),rgba(37,99,235,.08));border:1px solid rgba(147,197,253,.18);color:#ede9fe;font-family:'Inter',sans-serif;transition:transform .16s,border-color .16s,background .16s}
+.cover-select-item:hover{transform:translateY(-1px);border-color:rgba(147,197,253,.42);background:linear-gradient(135deg,rgba(255,255,255,.075),rgba(37,99,235,.12))}
+.cover-select-ref{display:block;font-size:13px;font-weight:650;color:#bfdbfe;margin-bottom:4px}
+.cover-select-preview{display:block;font-family:'Lora',serif;font-size:13px;line-height:1.5;color:rgba(237,233,254,.68)}
+.cover-control{padding:16px 16px 14px;margin-bottom:14px;border-radius:18px;background:linear-gradient(135deg,rgba(30,58,138,.24),rgba(67,56,202,.18));border:1px solid rgba(147,197,253,.28);box-shadow:0 10px 30px rgba(37,99,235,.13)}
+.cover-control-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:11px}
+.cover-control-label{font-size:12px;font-weight:650;color:#dbeafe}
+.cover-control-count{font-size:11px;color:rgba(219,234,254,.7);text-align:right}
+.cover-range{display:block;width:100%;height:28px;margin:0;cursor:pointer;accent-color:#60a5fa}
+.cover-direction{display:flex;justify-content:space-between;gap:10px;margin-top:3px;font-size:10px;color:rgba(191,219,254,.58)}
+.cover-dual-labels{display:flex;justify-content:space-between;gap:12px;margin-bottom:7px;font-size:11px;font-weight:650;color:#cffafe}
+.cover-dual-labels span:last-child{text-align:right}
+.cover-dual-wrap{position:relative;height:34px;display:flex;align-items:center}
+.cover-dual-base,.cover-dual-visible,.cover-dual-hidden{position:absolute;left:0;right:0;height:8px;border-radius:999px;pointer-events:none}
+.cover-dual-base{background:rgba(255,255,255,.10);border:1px solid rgba(103,232,249,.24);box-shadow:inset 0 1px 3px rgba(0,0,0,.35)}
+.cover-dual-visible{background:linear-gradient(90deg,#0891b2,#22d3ee);box-shadow:0 0 14px rgba(34,211,238,.28)}
+.cover-dual-hidden{background:rgba(15,23,42,.72);border:1px solid rgba(165,243,252,.20)}
+.cover-dual-input{position:absolute;left:0;width:100%;height:34px;margin:0;background:transparent;pointer-events:none;-webkit-appearance:none;appearance:none;outline:none}
+.cover-dual-input::-webkit-slider-runnable-track{height:8px;background:transparent;border:0}
+.cover-dual-input::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:23px;height:23px;margin-top:-8px;border-radius:50%;background:#ecfeff;border:3px solid #06b6d4;box-shadow:0 0 0 3px rgba(6,182,212,.18),0 4px 12px rgba(0,0,0,.38);pointer-events:auto;cursor:grab}
+.cover-dual-input::-moz-range-track{height:8px;background:transparent;border:0}
+.cover-dual-input::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#ecfeff;border:3px solid #06b6d4;box-shadow:0 0 0 3px rgba(6,182,212,.18),0 4px 12px rgba(0,0,0,.38);pointer-events:auto;cursor:grab}
+.cover-dual-input:active::-webkit-slider-thumb{cursor:grabbing;transform:scale(1.06)}
+.cover-dual-input:active::-moz-range-thumb{cursor:grabbing}
+.cover-dual-scale{display:flex;justify-content:space-between;gap:10px;margin-top:1px;font-size:10px;color:rgba(207,250,254,.62)}
+.cover-card{padding:1.5rem 1.25rem;border-radius:22px;background:linear-gradient(145deg,#1e3a8a,#3730a3 48%,#1e1b4b);border:1px solid rgba(147,197,253,.34);box-shadow:0 16px 44px rgba(37,99,235,.2);min-height:250px;display:flex;flex-direction:column;justify-content:center}
+.cover-verse{font-family:'Lora',serif;font-size:18px;line-height:2.05;color:#f8fafc;text-align:left;overflow-wrap:anywhere}
+.cover-word{display:inline-block;position:relative;margin-right:.28em;border-radius:5px;padding:0 .08em;transition:color .12s ease,background .12s ease,text-shadow .12s ease}
+.cover-word.cover-hidden{color:transparent!important;text-shadow:none;background:rgba(191,219,254,.2);box-shadow:inset 0 -1px 0 rgba(191,219,254,.16);user-select:none}
+.cover-reference{align-self:flex-end;margin-top:22px;padding-top:10px;border-top:1px solid rgba(191,219,254,.22);font-family:'Lora',serif;font-size:14px;font-style:italic;color:#bfdbfe;transition:color .12s ease,background .12s ease}
+.cover-reference.cover-hidden{color:transparent;background:rgba(191,219,254,.2);border-radius:6px;border-top-color:transparent;user-select:none}
+.cover-note{text-align:center;font-size:12px;line-height:1.5;color:rgba(219,234,254,.7);margin:0 0 13px}
+.cover-choice-btn{background:linear-gradient(135deg,#075985,#0891b2 52%,#0e7490)!important;border:1px solid rgba(103,232,249,.58)!important;box-shadow:0 0 18px rgba(34,211,238,.20),0 9px 30px rgba(8,145,178,.28)!important}
+@media(max-width:430px){.cover-card{padding:1.2rem 1rem;min-height:220px}.cover-verse{font-size:16px;line-height:1.95}.cover-control{padding:13px 14px}.cover-control-top{align-items:flex-start;flex-direction:column;gap:3px}.cover-control-count{text-align:left}}
+</style>
+<script>
+(function(){
+  const previousRender=render;
+  const previousVerseTab=renderVerseTab;
+
+  function coverSelectedVerse(){
+    return S.verses.find(v=>String(v.id)===String(S.coverVerseId))||null;
+  }
+
+  window.renderCoverSelect=function(){
+    const hdr=div('page-header',btn('back-btn','←',()=>set({view:'menu',activeTab:'verse'})),el('h2',{cls:'page-title'},'Bibelvers abdecken'));
+    const wrap=el('div',{},hdr,tabTitle('','Vers auswählen','Wähle einen gespeicherten Vers zum schrittweisen Aufdecken.'));
+    if(!S.verses.length){
+      wrap.appendChild(div('empty','Noch keine Verse vorhanden. Füge zuerst unter „Verse verwalten“ einen Vers hinzu.'));
+      return wrap;
+    }
+    const list=div('cover-select-list');
+    S.verses.forEach(v=>{
+      const preview=v.text.length>115?v.text.slice(0,115)+'…':v.text;
+      const item=el('button',{cls:'cover-select-item',type:'button'},span('cover-select-ref',v.stelle),span('cover-select-preview',preview));
+      item.onclick=()=>set({view:'coverlearn',coverVerseId:v.id,coverLeft:0,coverRight:null,activeTab:'verse'});
+      list.appendChild(item);
+    });
+    wrap.appendChild(list);
+    return wrap;
+  };
+
+  window.renderCoverLearn=function(){
+    const verse=coverSelectedVerse();
+    if(!verse){S.view='coverselect';return renderCoverSelect();}
+    const words=verse.text.trim().split(/\s+/).filter(Boolean);
+    const max=words.length+1;
+    const initialLeft=Math.max(0,Math.min(max,Number(S.coverLeft)||0));
+    const initialRightRaw=S.coverRight==null?max:Number(S.coverRight);
+    const initialRight=Math.max(initialLeft,Math.min(max,initialRightRaw));
+    const hdr=div('page-header',btn('back-btn','←',()=>set({view:'coverselect',coverLeft:0,coverRight:null})),el('h2',{cls:'page-title'},'Bibelvers abdecken'));
+    const count=span('cover-control-count','');
+    const leftRange=el('input',{cls:'cover-dual-input',type:'range',min:'0',max:String(max),step:'1',value:String(initialLeft),'aria-label':'Linke Grenze, vom Anfang her aufdecken'});
+    const rightRange=el('input',{cls:'cover-dual-input',type:'range',min:'0',max:String(max),step:'1',value:String(initialRight),'aria-label':'Rechte Grenze, vom Ende her aufdecken'});
+    const base=div('cover-dual-base');
+    const leftVisible=div('cover-dual-visible');
+    const hiddenTrack=div('cover-dual-hidden');
+    const rightVisible=div('cover-dual-visible');
+    const dualWrap=div('cover-dual-wrap',base,leftVisible,hiddenTrack,rightVisible,leftRange,rightRange);
+    const control=div('cover-control',
+      div('cover-control-top',span('cover-control-label','Verdeckten Bereich einstellen'),count),
+      div('cover-dual-labels',span('','Vom Anfang aufdecken'),span('','Vom Ende aufdecken')),
+      dualWrap,
+      div('cover-dual-scale',span('','Versanfang'),span('','Versende und Bibelstelle'))
+    );
+    const verseLine=el('div',{cls:'cover-verse'});
+    const wordEls=[];
+    words.forEach((word,i)=>{
+      const w=span('cover-word',word);
+      w.dataset.coverIndex=String(i+1);
+      wordEls.push(w);
+      verseLine.appendChild(w);
+    });
+    const reference=span('cover-reference',verse.stelle);
+    reference.dataset.coverIndex=String(max);
+    const card=div('cover-card',verseLine,reference);
+    const update=(source)=>{
+      let left=Math.max(0,Math.min(max,Number(leftRange.value)||0));
+      let right=Math.max(0,Math.min(max,Number(rightRange.value)||0));
+      if(left>right){
+        if(source==='left')left=right;
+        else right=left;
+      }
+      leftRange.value=String(left);
+      rightRange.value=String(right);
+      S.coverLeft=left;
+      S.coverRight=right;
+      const visible=index=>index<=left || index>right;
+      wordEls.forEach((w,i)=>w.classList.toggle('cover-hidden',!visible(i+1)));
+      reference.classList.toggle('cover-hidden',!visible(max));
+      const hiddenCount=Math.max(0,right-left);
+      count.textContent=hiddenCount===0?'Alles sichtbar':hiddenCount===max?'Alles abgedeckt':hiddenCount+' Elemente verdeckt';
+      const leftPct=max?left/max*100:0;
+      const rightPct=max?right/max*100:100;
+      leftVisible.style.left='0%';leftVisible.style.right=(100-leftPct)+'%';
+      hiddenTrack.style.left=leftPct+'%';hiddenTrack.style.right=(100-rightPct)+'%';
+      rightVisible.style.left=rightPct+'%';rightVisible.style.right='0%';
+      leftRange.setAttribute('aria-valuetext',left+' Elemente vom Anfang sichtbar');
+      rightRange.setAttribute('aria-valuetext',(max-right)+' Elemente vom Ende sichtbar');
+    };
+    leftRange.oninput=()=>update('left');
+    rightRange.oninput=()=>update('right');
+    update();
+    return el('div',{},hdr,p('cover-note','Verschiebe die beiden Punkte auf demselben Balken. Nur der Bereich zwischen ihnen bleibt verdeckt.'),control,card);
+  };
+
+  window.renderVerseTab=renderVerseTab=function(){
+    const content=previousVerseTab();
+    const learnBtn=typeof v115MkMenuBtn==='function'
+      ?v115MkMenuBtn('cover-choice-btn','🙈','Lernen: Bibelvers abdecken','Decke den Vers schrittweise ab oder auf, um ihn auswendig zu lernen.',()=>set({view:'coverselect',coverVerseId:null,coverLeft:0,coverRight:null,activeTab:'verse'}))
+      :el('button',{cls:'menu-btn cover-choice-btn',type:'button',onclick:()=>set({view:'coverselect',coverVerseId:null,coverLeft:0,coverRight:null,activeTab:'verse'})},div('mc-icon','🙈'),el('div',{},p('mc-title','Lernen: Bibelvers abdecken'),p('mc-sub','Decke den Vers schrittweise ab oder auf, um ihn auswendig zu lernen.')));
+    const buttons=[...content.children].filter(n=>n.classList&&n.classList.contains('menu-btn'));
+    const flashBtn=buttons.find(n=>n.textContent.includes('Test: Karteikarten'));
+    content.insertBefore(learnBtn,flashBtn||null);
+    return content;
+  };
+
+  window.render=render=function(){
+    if(S.view==='coverselect'){
+      const root=document.getElementById('app');root.innerHTML='';root.appendChild(renderCoverSelect());return;
+    }
+    if(S.view==='coverlearn'){
+      const root=document.getElementById('app');root.innerHTML='';root.appendChild(renderCoverLearn());return;
+    }
+    return previousRender();
+  };
+})();
+</script>
+
+
+<!-- v148: Angepasste Farben der Versmodi -->
+<style>
+/* Lernen: Bibelvers abdecken */
+.cover-choice-btn{
+  background:#1E90FF!important;
+  border-color:rgba(191,219,254,.72)!important;
+  box-shadow:0 0 18px rgba(30,144,255,.28),0 9px 30px rgba(30,144,255,.30)!important;
+}
+
+/* Test: Karteikarten */
+.menu-flash.verse-test,
+.verse-test{
+  background:#00BFFF!important;
+  border-color:rgba(224,247,255,.76)!important;
+  box-shadow:0 0 18px rgba(0,191,255,.28),0 9px 30px rgba(0,191,255,.30)!important;
+}
+
+/* Übung: Reihenfolge */
+.verse-order,
+.menu-order.verse-order{
+  background:#1874CD!important;
+  border-color:rgba(191,219,254,.64)!important;
+  box-shadow:0 0 16px rgba(24,116,205,.24),0 9px 28px rgba(24,116,205,.28)!important;
+}
+</style>
+
+
+<!-- v149: Finale Farben der Bücher- und Versmodi -->
+<style>
+/* Bücher: Übung Vorgänger & Nachfolger */
+.book-journey,
+.menu-bibel.book-journey{
+  background:#00FF00!important;
+  border-color:rgba(190,255,190,.72)!important;
+  box-shadow:0 0 18px rgba(0,255,0,.22),0 9px 30px rgba(0,255,0,.24)!important;
+}
+
+/* Bücher: Übung Bücher ordnen */
+.book-temple,
+.menu-bibelsort.book-temple{
+  background:#00CD00!important;
+  border-color:rgba(180,255,180,.68)!important;
+  box-shadow:0 0 17px rgba(0,205,0,.22),0 9px 29px rgba(0,205,0,.25)!important;
+}
+
+/* Bücher: Übung Lücke füllen */
+.book-fill{
+  background:#008B00!important;
+  border-color:rgba(152,251,152,.62)!important;
+  box-shadow:0 0 16px rgba(0,139,0,.22),0 9px 28px rgba(0,139,0,.27)!important;
+}
+
+/* Bücher: Test Bücher der Reihe nach */
+.book-test,
+.menu-allbooks.book-test{
+  background:#76EE00!important;
+  border-color:rgba(220,255,180,.76)!important;
+  box-shadow:0 0 19px rgba(118,238,0,.25),0 9px 31px rgba(118,238,0,.27)!important;
+}
+
+/* Verse: Übung Lückentext */
+.verse-gap,
+.menu-luecke.verse-gap{
+  background:#00B2EE!important;
+  border-color:rgba(207,246,255,.72)!important;
+  box-shadow:0 0 17px rgba(0,178,238,.24),0 9px 29px rgba(0,178,238,.28)!important;
+}
+
+/* Verse: Übung Reihenfolge */
+.verse-order,
+.menu-order.verse-order{
+  background:#009ACD!important;
+  border-color:rgba(191,239,255,.68)!important;
+  box-shadow:0 0 16px rgba(0,154,205,.23),0 9px 28px rgba(0,154,205,.28)!important;
+}
+
+/* Verse: Übung Bibelstelle nennen */
+.verse-reference{
+  background:#00688B!important;
+  border-color:rgba(173,216,230,.62)!important;
+  box-shadow:0 0 15px rgba(0,104,139,.22),0 9px 27px rgba(0,104,139,.30)!important;
+}
+
+/* Verse: Lernen Bibelvers abdecken */
+.cover-choice-btn{
+  background:#0000FF!important;
+  border-color:rgba(191,219,254,.74)!important;
+  box-shadow:0 0 19px rgba(0,0,255,.28),0 9px 31px rgba(0,0,255,.30)!important;
+}
+
+/* Verse: Test Karteikarten */
+.menu-flash.verse-test,
+.verse-test{
+  background:#00BFFF!important;
+  border-color:rgba(224,247,255,.76)!important;
+  box-shadow:0 0 18px rgba(0,191,255,.28),0 9px 30px rgba(0,191,255,.30)!important;
+}
+</style>
+
+
+<style>
+/*
+  Ruhigere Farbhierarchie:
+  - Übungen: dunklere, klar unterscheidbare Verläufe
+  - Lernen: kräftiger eigener Akzent
+  - Tests: hellster Akzent mit kontrolliertem Leuchteffekt
+*/
+
+/* BÜCHER ---------------------------------------------------- */
+
+/* Übung: Vorgänger & Nachfolger | dunkles Waldgrün */
+.book-journey,
+.menu-bibel.book-journey{
+  background:linear-gradient(135deg,#123f35 0%,#176b55 54%,#1f8568 100%)!important;
+  border-color:rgba(110,231,183,.42)!important;
+  box-shadow:0 9px 28px rgba(16,105,80,.22)!important;
+}
+
+/* Übung: Bücher ordnen | klares Tannengrün */
+.book-temple,
+.menu-bibelsort.book-temple{
+  background:linear-gradient(135deg,#183b27 0%,#21733c 54%,#2d8a49 100%)!important;
+  border-color:rgba(134,239,172,.40)!important;
+  box-shadow:0 9px 28px rgba(27,112,55,.22)!important;
+}
+
+/* Übung: Lücke füllen | dunkles Petrolgrün */
+.book-fill{
+  background:linear-gradient(135deg,#103b3a 0%,#12635c 54%,#168176 100%)!important;
+  border-color:rgba(94,234,212,.38)!important;
+  box-shadow:0 9px 28px rgba(15,105,96,.21)!important;
+}
+
+/* Test: Bücher der Reihe nach | markantes, aber gedämpftes Limettengrün */
+.book-test,
+.menu-allbooks.book-test{
+  background:linear-gradient(135deg,#355314 0%,#4d7c0f 48%,#65a30d 100%)!important;
+  border-color:rgba(190,242,100,.68)!important;
+  box-shadow:0 0 18px rgba(132,204,22,.22),0 11px 32px rgba(77,124,15,.28)!important;
+}
+
+/* VERSE --------------------------------------------------------------- */
+
+/* Übung: Lückentext | tiefes Himmelblau */
+.verse-gap,
+.menu-luecke.verse-gap{
+  background:linear-gradient(135deg,#123c5a 0%,#17668d 54%,#1d7da6 100%)!important;
+  border-color:rgba(125,211,252,.42)!important;
+  box-shadow:0 9px 28px rgba(14,116,144,.22)!important;
+}
+
+/* Übung: Reihenfolge | dunkles Cyanblau */
+.verse-order,
+.menu-order.verse-order{
+  background:linear-gradient(135deg,#14344f 0%,#175477 54%,#1b6b91 100%)!important;
+  border-color:rgba(103,232,249,.36)!important;
+  box-shadow:0 9px 28px rgba(8,100,139,.20)!important;
+}
+
+/* Übung: Bibelstelle nennen | tiefes Stahlblau */
+.verse-reference{
+  background:linear-gradient(135deg,#172e49 0%,#244d70 54%,#2b648c 100%)!important;
+  border-color:rgba(147,197,253,.36)!important;
+  box-shadow:0 9px 28px rgba(30,82,126,.22)!important;
+}
+
+/* Lernen: Bibelvers abdecken | kräftiges Königsblau, deutlich abgehoben */
+.cover-choice-btn{
+  background:linear-gradient(135deg,#202a78 0%,#2946b8 50%,#3568d4 100%)!important;
+  border-color:rgba(165,180,252,.68)!important;
+  box-shadow:0 0 17px rgba(99,102,241,.23),0 11px 32px rgba(37,67,180,.30)!important;
+}
+
+/* Test: Karteikarten | hellster Blauton und stärkster Fokus */
+.menu-flash.verse-test,
+.verse-test{
+  background:linear-gradient(135deg,#075985 0%,#0284c7 48%,#0ea5e9 100%)!important;
+  border-color:rgba(186,230,253,.78)!important;
+  box-shadow:0 0 21px rgba(56,189,248,.30),0 12px 35px rgba(2,132,199,.32)!important;
+}
+
+/* Einheitliche Lesbarkeit auf allen farbigen Moduskarten */
+.book-journey .mc-title,.book-temple .mc-title,.book-fill .mc-title,.book-test .mc-title,
+.verse-gap .mc-title,.verse-order .mc-title,.verse-reference .mc-title,
+.cover-choice-btn .mc-title,.verse-test .mc-title{
+  color:#fff!important;
+  text-shadow:0 1px 8px rgba(0,0,0,.26)!important;
+}
+.book-journey .mc-sub,.book-temple .mc-sub,.book-fill .mc-sub,.book-test .mc-sub,
+.verse-gap .mc-sub,.verse-order .mc-sub,.verse-reference .mc-sub,
+.cover-choice-btn .mc-sub,.verse-test .mc-sub{
+  color:rgba(255,255,255,.78)!important;
+}
+</style>
+
 </body>
 </html>
