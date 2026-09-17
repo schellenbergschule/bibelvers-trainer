@@ -3376,6 +3376,7 @@ document.head.appendChild(quizTimeStyle);
 </style>
 
 
+<!-- v150: Harmonische Farben und klare Modus-Hierarchie -->
 <style>
 /*
   Ruhigere Farbhierarchie:
@@ -3384,7 +3385,7 @@ document.head.appendChild(quizTimeStyle);
   - Tests: hellster Akzent mit kontrolliertem Leuchteffekt
 */
 
-/* BÜCHER ---------------------------------------------------- */
+/* BÜCHER -------------------------------------------------------------- */
 
 /* Übung: Vorgänger & Nachfolger | dunkles Waldgrün */
 .book-journey,
@@ -3470,6 +3471,169 @@ document.head.appendChild(quizTimeStyle);
   color:rgba(255,255,255,.78)!important;
 }
 </style>
+
+
+
+<!-- v151: Lernen - Reihenfolge der Bibelbuecher -->
+<style>
+.booklearn-choice-btn{background:linear-gradient(135deg,#0f766e,#0891b2 52%,#2563eb)!important;border:1px solid rgba(165,243,252,.55)!important;box-shadow:0 0 18px rgba(34,211,238,.2),0 9px 30px rgba(37,99,235,.24)!important;color:#fff!important}
+.bl-setup{display:flex;flex-direction:column;gap:14px}
+.bl-testaments{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bl-testament{padding:15px 12px;border-radius:17px;border:1px solid rgba(165,243,252,.2);background:rgba(255,255,255,.055);color:#ede9fe;font:700 14px 'Inter',sans-serif;cursor:pointer;transition:.16s}
+.bl-testament.active{background:linear-gradient(135deg,rgba(13,148,136,.38),rgba(37,99,235,.3));border-color:rgba(165,243,252,.72);box-shadow:0 0 0 3px rgba(34,211,238,.09)}
+.bl-start-card,.bl-learn-card{padding:18px;border-radius:21px;background:linear-gradient(145deg,rgba(15,118,110,.2),rgba(30,58,138,.25));border:1px solid rgba(165,243,252,.28);box-shadow:0 15px 38px rgba(8,145,178,.13)}
+.bl-label{display:block;margin-bottom:8px;font-size:12px;font-weight:750;color:#cffafe;letter-spacing:.02em}
+.bl-input{width:100%;padding:13px 14px;border-radius:14px;border:1px solid rgba(165,243,252,.3);background:rgba(7,12,35,.72);color:#fff;font:650 15px 'Inter',sans-serif;outline:none}
+.bl-input:focus{border-color:#67e8f9;box-shadow:0 0 0 3px rgba(34,211,238,.12)}
+.bl-error{min-height:18px;margin:7px 2px 0;color:#fecaca;font-size:12px}
+.bl-help{margin:0 0 14px;color:rgba(224,242,254,.72);font-size:12px;line-height:1.55}
+.bl-question{text-align:center;color:#bae6fd;font-size:13px;font-weight:650;margin-bottom:8px}
+.bl-current{text-align:center;color:#fff;font-family:'Lora',serif;font-size:clamp(25px,7vw,38px);font-weight:750;line-height:1.2;margin-bottom:16px}
+.bl-arrow{text-align:center;color:#67e8f9;font-size:23px;margin:0 0 13px}
+.bl-answer-shell{min-height:92px;border-radius:18px;background:rgba(3,7,18,.55);border:1px solid rgba(165,243,252,.2);display:flex;align-items:center;justify-content:center;padding:16px;margin-bottom:16px;overflow:hidden}
+.bl-answer{font-family:'Lora',serif;font-size:clamp(25px,7vw,40px);font-weight:750;letter-spacing:.02em;text-align:center;white-space:pre-wrap;overflow-wrap:anywhere}
+.bl-char-hidden{color:transparent;text-shadow:0 0 10px rgba(103,232,249,.2);border-bottom:3px solid rgba(165,243,252,.32);margin:0 1px}
+.bl-char-visible{color:#ecfeff;margin:0 1px}
+.bl-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.bl-btn{min-height:49px;border:0;border-radius:15px;color:#fff;font:750 14px 'Inter',sans-serif;cursor:pointer;padding:11px 13px}
+.bl-reveal{background:linear-gradient(135deg,#475569,#334155)}
+.bl-next{background:linear-gradient(135deg,#0891b2,#2563eb);box-shadow:0 8px 22px rgba(37,99,235,.22)}
+.bl-start{width:100%;margin-top:11px;background:linear-gradient(135deg,#0d9488,#2563eb)}
+.bl-meta{display:flex;justify-content:space-between;gap:10px;color:rgba(207,250,254,.68);font-size:11px;margin-bottom:11px}
+.bl-finish{text-align:center;padding:25px 18px}
+.bl-finish-icon{font-size:47px;margin-bottom:8px}
+@media(max-width:430px){.bl-testaments,.bl-actions{grid-template-columns:1fr}.bl-learn-card{padding:15px}.bl-answer-shell{min-height:82px}}
+</style>
+<script>
+(function(){
+  const previousBooksTab=window.renderBooksTab;
+  const previousRender=window.render;
+
+  function blBooks(){return S.blTestament==='AT'?BUECHER_AT:BUECHER_NT;}
+  function blNormal(s){return String(s||'').trim().toLowerCase().replace(/\s+/g,' ').replace(/[.–—]/g,'-');}
+  function blFindBook(input,books){
+    const n=blNormal(input);
+    if(!n)return -1;
+    let idx=books.findIndex(b=>blNormal(b)===n);
+    if(idx>=0)return idx;
+    if(typeof abMatch==='function')idx=books.findIndex(b=>abMatch(input,b));
+    return idx;
+  }
+  function blReset(testament){
+    set({view:'booklearnselect',activeTab:'books',blTestament:testament,blStartInput:'',blIndex:null,blLeft:0,blRight:null,blRevealed:false,blError:''});
+  }
+  function blHeader(title,back){
+    return el('div',{},btn('back-btn','← Zurück',back),p('view-title',title));
+  }
+
+  window.renderBookLearnSelect=function(){
+    const wrap=div('view');
+    wrap.appendChild(blHeader('Bibelbücher lernen',()=>set({view:'menu',activeTab:'books'})));
+    wrap.appendChild(p('bl-help','Wähle ein Testament und gib das Buch ein, bei dem du starten möchtest. Danach überlegst du dir Schritt für Schritt immer das nächste Buch.'));
+    const at=el('button',{type:'button',cls:'bl-testament'+(S.blTestament==='AT'?' active':''),onclick:()=>blReset('AT')},'Altes Testament');
+    const nt=el('button',{type:'button',cls:'bl-testament'+(S.blTestament==='NT'?' active':''),onclick:()=>blReset('NT')},'Neues Testament');
+    const choices=div('bl-testaments',at,nt);
+    const setup=div('bl-setup',choices);
+    if(S.blTestament){
+      const books=blBooks();
+      const listId='bl-book-list';
+      const input=el('input',{cls:'bl-input',type:'text',value:S.blStartInput||'',placeholder:'Buchname eingeben…',list:listId,autocomplete:'off','aria-label':'Startbuch eingeben'});
+      input.oninput=e=>{S.blStartInput=e.target.value;S.blError='';const err=wrap.querySelector('.bl-error');if(err)err.textContent='';};
+      input.onkeydown=e=>{if(e.key==='Enter')start();};
+      const dl=el('datalist',{id:listId}); books.forEach(b=>dl.appendChild(el('option',{value:b})));
+      const error=p('bl-error',S.blError||'');
+      function start(){
+        const idx=blFindBook(input.value,books);
+        if(idx<0){S.blError='Dieses Buch wurde im gewählten Testament nicht gefunden.';error.textContent=S.blError;return;}
+        set({view:'booklearn',activeTab:'books',blStartInput:books[idx],blIndex:idx,blLeft:0,blRight:null,blRevealed:false,blError:''});
+      }
+      const card=div('bl-start-card',el('label',{cls:'bl-label',for:'bl-start-input'},'Bei welchem Buch möchtest du starten?'));
+      input.id='bl-start-input';
+      card.append(input,dl,error,el('button',{type:'button',cls:'bl-btn bl-start',onclick:start},'Lernen starten'));
+      setup.appendChild(card);
+      setTimeout(()=>input.focus(),60);
+    }
+    wrap.appendChild(setup);
+    return wrap;
+  };
+
+  function blSlider(max,leftValue,rightValue,onChange){
+    const control=div('cover-control');
+    control.appendChild(div('cover-control-top',p('cover-control-title','Hilfe aufdecken'),p('cover-count','Von beiden Seiten')));
+    const left=el('input',{cls:'cover-dual-input',type:'range',min:'0',max:String(max),step:'1',value:String(leftValue),'aria-label':'Von links aufdecken'});
+    const right=el('input',{cls:'cover-dual-input',type:'range',min:'0',max:String(max),step:'1',value:String(rightValue),'aria-label':'Von rechts aufdecken'});
+    const base=div('cover-dual-base'),lv=div('cover-dual-visible'),hidden=div('cover-dual-hidden'),rv=div('cover-dual-visible');
+    const rail=div('cover-dual-wrap',base,lv,hidden,rv,left,right);
+    function update(source){
+      let l=Math.max(0,Math.min(max,Number(left.value)||0));
+      let r=Math.max(0,Math.min(max,Number(right.value)||0));
+      if(l>r){if(source==='left')l=r;else r=l;}
+      left.value=String(l);right.value=String(r);
+      const lp=max?l/max*100:0,rp=max?r/max*100:100;
+      lv.style.left='0';lv.style.right=(100-lp)+'%';
+      hidden.style.left=lp+'%';hidden.style.right=(100-rp)+'%';
+      rv.style.left=rp+'%';rv.style.right='0';
+      onChange(l,r);
+    }
+    left.oninput=()=>update('left');right.oninput=()=>update('right');
+    control.append(p('cover-note','Ziehe links oder rechts, um einzelne Buchstaben als Hilfe aufzudecken.'),rail,div('cover-dual-scale',el('span',{},'Anfang'),el('span',{},'Ende')));
+    update();
+    return control;
+  }
+
+  window.renderBookLearn=function(){
+    const books=blBooks(),idx=Number.isInteger(S.blIndex)?S.blIndex:0;
+    if(!S.blTestament||!books.length)return renderBookLearnSelect();
+    const wrap=div('view');
+    wrap.appendChild(blHeader('Bibelbücher lernen',()=>set({view:'booklearnselect',activeTab:'books',blIndex:null,blLeft:0,blRight:null,blRevealed:false})));
+    if(idx>=books.length-1){
+      wrap.appendChild(div('bl-start-card bl-finish',p('bl-finish-icon','🎉'),p('view-title','Am Ende angekommen!'),p('bl-help','Du bist bis '+books[books.length-1]+' gekommen und hast die Reihenfolge des '+(S.blTestament==='AT'?'Alten':'Neuen')+' Testaments durchlaufen.'),el('button',{type:'button',cls:'bl-btn bl-start',onclick:()=>set({view:'booklearnselect',activeTab:'books',blIndex:null,blStartInput:'',blLeft:0,blRight:null,blRevealed:false})},'Neues Startbuch wählen')));
+      return wrap;
+    }
+    const answer=books[idx+1],max=Array.from(answer).length;
+    let left=Math.max(0,Math.min(max,Number(S.blLeft)||0));
+    let right=S.blRight==null?max:Math.max(0,Math.min(max,Number(S.blRight)));
+    if(left>right)left=right;
+    const answerEl=div('bl-answer');
+    function paint(){
+      answerEl.innerHTML='';
+      const chars=Array.from(answer);
+      chars.forEach((ch,i)=>answerEl.appendChild(el('span',{cls:(S.blRevealed||i<left||i>=right)?'bl-char-visible':'bl-char-hidden'},ch===' '?'\u00a0':ch)));
+    }
+    function advance(){set({blIndex:idx+1,blLeft:0,blRight:null,blRevealed:false});}
+    const card=div('bl-learn-card');
+    card.append(div('bl-meta',el('span',{},S.blTestament==='AT'?'Altes Testament':'Neues Testament'),el('span',{},(idx+1)+' von '+books.length)),p('bl-question','Welches Buch kommt als Nächstes?'),p('bl-current',books[idx]),p('bl-arrow','↓'),div('bl-answer-shell',answerEl));
+    paint();
+    const slider=blSlider(max,left,right,(l,r)=>{left=l;right=r;S.blLeft=l;S.blRight=r;S.blRevealed=false;paint();});
+    const reveal=el('button',{type:'button',cls:'bl-btn bl-reveal',onclick:()=>{S.blRevealed=true;paint();}},'Lösung anzeigen');
+    const next=el('button',{type:'button',cls:'bl-btn bl-next',onclick:advance},idx+1===books.length-1?'Zum Abschluss':'Weiter');
+    card.append(slider,div('bl-actions',reveal,next));
+    wrap.appendChild(card);
+    return wrap;
+  };
+
+  window.renderBooksTab=renderBooksTab=function(){
+    const content=previousBooksTab();
+    const learnBtn=typeof v115MkMenuBtn==='function'
+      ?v115MkMenuBtn('booklearn-choice-btn','🧠','Lernen: Reihenfolge der Bibelbücher','Steige bei einem Buch ein und überlege dir Schritt für Schritt das nächste.',()=>set({view:'booklearnselect',activeTab:'books',blTestament:null,blStartInput:'',blIndex:null,blLeft:0,blRight:null,blRevealed:false,blError:''}))
+      :el('button',{cls:'menu-btn booklearn-choice-btn',type:'button',onclick:()=>set({view:'booklearnselect',activeTab:'books',blTestament:null,blStartInput:'',blIndex:null,blLeft:0,blRight:null,blRevealed:false,blError:''})},div('mc-icon','🧠'),el('div',{},p('mc-title','Lernen: Reihenfolge der Bibelbücher'),p('mc-sub','Steige bei einem Buch ein und überlege dir Schritt für Schritt das nächste.')));
+    const buttons=[...content.children].filter(n=>n.classList&&n.classList.contains('menu-btn'));
+    const testBtn=buttons.find(n=>n.textContent.includes('Test: Bücher der Reihe nach'));
+    content.insertBefore(learnBtn,testBtn||null);
+    return content;
+  };
+
+  window.render=render=function(){
+    if(S.view==='booklearnselect'){
+      const root=document.getElementById('app');root.innerHTML='';root.appendChild(renderBookLearnSelect());return;
+    }
+    if(S.view==='booklearn'){
+      const root=document.getElementById('app');root.innerHTML='';root.appendChild(renderBookLearn());return;
+    }
+    return previousRender();
+  };
+})();
+</script>
 
 </body>
 </html>
