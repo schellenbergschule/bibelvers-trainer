@@ -495,7 +495,7 @@ body.is-mobile .profile-trophy-badge{font-size:9.5px;padding:3px 6px;}
       <button id="auth-tab-login" type="button" class="bt128-auth-tab active" onclick="switchAuthTab('login')">Anmelden</button>
       <button id="auth-tab-register" type="button" class="bt128-auth-tab" onclick="switchAuthTab('register')">Registrieren</button>
     </div>
-    <form id="login-form" onsubmit="doLogin(event);return false;" autocomplete="on" method="post" action="#app">
+    <form id="login-form" onsubmit="window.doLogin(event);return false;" autocomplete="on" method="post" action="#app">
       <div id="login-alert"></div>
       <div class="bt128-fg"><label for="login-username">Benutzername</label><input type="text" id="login-username" name="username" placeholder="Benutzername" autocomplete="username" required autocapitalize="none" spellcheck="false"></div>
       <div class="bt128-fg"><label for="current-password">Passwort</label><input type="password" id="current-password" name="password" placeholder="••••••••" autocomplete="current-password" required></div>
@@ -2697,7 +2697,7 @@ document.head.appendChild(quizTimeStyle);
   window.doLogin=async function(e){
     if(e)e.preventDefault();
     const un=document.getElementById('login-username')?.value.trim()||'';
-    const pw=document.getElementById('login-password')?.value||'';
+    const pw=document.getElementById('current-password')?.value||'';
     if(S.profilesLoading){showAlert('login-alert','Profile werden noch geladen. Bitte kurz warten.');return false;}
     if(!un||!pw){showAlert('login-alert','Bitte Benutzername und Passwort ausfüllen.');return false;}
     const user=(S.users||[]).find(u=>(u.name||'').trim().toLowerCase()===un.toLowerCase());
@@ -3686,156 +3686,6 @@ document.head.appendChild(quizTimeStyle);
     view.querySelectorAll('.bl-char-hidden').forEach(function(span){
       if(span.textContent==='\u00a0')span.classList.add('bl-char-space-hidden');
     });
-    return view;
-  };
-})();
-</script>
-
-
-<style>
-#bt-auth-migration{position:fixed;inset:0;z-index:99999;background:rgba(7,5,18,.88);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:20px}
-#bt-auth-migration.open{display:flex}
-#bt-auth-migration .card{width:min(440px,100%);background:linear-gradient(145deg,#17112b,#0e0a1c);border:1px solid rgba(196,181,253,.24);border-radius:24px;padding:26px;box-shadow:0 24px 80px rgba(0,0,0,.5);color:#ede9fe}
-#bt-auth-migration h2{margin:0 0 8px;font-size:24px}
-#bt-auth-migration p{color:rgba(237,233,254,.75);line-height:1.5}
-#bt-auth-migration label{display:block;margin:14px 0 6px;font-size:13px;color:#ddd6fe}
-#bt-auth-migration input{width:100%;box-sizing:border-box;padding:12px;border-radius:12px;border:1px solid rgba(196,181,253,.25);background:rgba(255,255,255,.06);color:white}
-#bt-auth-migration button{width:100%;margin-top:18px;padding:12px;border:0;border-radius:12px;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:white;font-weight:700;cursor:pointer}
-#bt-auth-migration .cancel{background:transparent;border:1px solid rgba(196,181,253,.2);margin-top:8px}
-#bt-auth-migration .error{min-height:20px;color:#fca5a5;margin-top:10px;font-size:13px}
-</style>
-<div id="bt-auth-migration" role="dialog" aria-modal="true" aria-labelledby="bt-migration-title">
-  <form class="card" id="bt-migration-form">
-    <h2 id="bt-migration-title">Konto sicher umstellen</h2>
-    <p>Dein bestehendes Profil bleibt vollständig erhalten. Bestätige einmal dein bisheriges Passwort und lege ein neues, sicheres Passwort fest.</p>
-    <label for="bt-old-password">Bisheriges Passwort</label>
-    <input id="bt-old-password" type="password" autocomplete="current-password" required>
-    <label for="bt-new-password">Neues Passwort</label>
-    <input id="bt-new-password" type="password" autocomplete="new-password" minlength="8" required>
-    <label for="bt-confirm-password">Neues Passwort wiederholen</label>
-    <input id="bt-confirm-password" type="password" autocomplete="new-password" minlength="8" required>
-    <div class="error" id="bt-migration-error" aria-live="polite"></div>
-    <button type="submit">Konto jetzt umstellen</button>
-    <button type="button" class="cancel" id="bt-migration-cancel">Abbrechen</button>
-  </form>
-</div>
-<script>
-/* Sichere Worker-Authentifizierung, Testintegration v152-auth-test */
-(function(){
-  'use strict';
-  const AUTH_API='https://bibel-trainer-auth.schellenberg-schule.workers.dev';
-  const SESSION_KEY='bt_firebase_session_v1';
-  let migrationUsername='';
-
-  function value(...ids){for(const id of ids){const e=document.getElementById(id);if(e&&typeof e.value==='string')return e.value;}return '';}
-  function alertText(id,text){const e=document.getElementById(id);if(e){e.textContent=text||'';e.style.display=text?'block':'none';}}
-  function busy(form,on){if(!form)return;form.querySelectorAll('button,input').forEach(e=>{if(e.id!=='bt-migration-cancel')e.disabled=!!on;});}
-  async function request(path,body){
-    const response=await fetch(AUTH_API+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    let data={};try{data=await response.json();}catch(_){data={ok:false,error:'Der Anmeldedienst hat ungültig geantwortet.'};}
-    return {response,data};
-  }
-  function storeSession(result){
-    const f=result&&result.firebase||{};
-    const a=result&&result.account||{};
-    sessionStorage.setItem(SESSION_KEY,JSON.stringify({uid:a.uid,username:a.username,idToken:f.idToken,refreshToken:f.refreshToken,expiresAt:Date.now()+Number(f.expiresIn||3600)*1000,isMainAdmin:!!a.isMainAdmin,isContentAdmin:!!a.isContentAdmin}));
-  }
-  async function openAccount(account){
-    const uid=account.uid;
-    let user=(Array.isArray(S.users)?S.users:[]).find(u=>u&&u.id===uid);
-    if(!user)user={id:uid,name:account.username||'Profil',color:'#8b5cf6',emoji:'✝',verseCount:0};
-    const vd=await fbGet('verses',uid);
-    const cloud=await loadProfileCloud(uid);
-    const merged={...user,...cloud,id:uid,name:user.name||account.username,isMainAdmin:!!account.isMainAdmin,isContentAdmin:!!account.isContentAdmin};
-    S.verses=vd&&Array.isArray(vd.list)?vd.list:[];
-    S.counts={...S.counts,[uid]:S.verses.length};
-    S.user=merged;
-    if(!(S.users||[]).some(u=>u.id===uid))S.users=[...(S.users||[]),merged];
-    else S.users=S.users.map(u=>u.id===uid?merged:u);
-    S.vsCustomIds=merged.lastVerseSelectionIds||[];
-    S.view='menu';S.activeTab='books';S.modal=null;
-    document.body.classList.remove('bt128-auth-active');
-    render();
-  }
-  function openMigration(username,oldPassword){
-    migrationUsername=username;
-    document.getElementById('bt-old-password').value=oldPassword||'';
-    document.getElementById('bt-new-password').value='';
-    document.getElementById('bt-confirm-password').value='';
-    document.getElementById('bt-migration-error').textContent='';
-    document.getElementById('bt-auth-migration').classList.add('open');
-    setTimeout(()=>document.getElementById(oldPassword?'bt-new-password':'bt-old-password').focus(),30);
-  }
-  function closeMigration(){document.getElementById('bt-auth-migration').classList.remove('open');}
-
-  window.doLogin=async function(e){
-    if(e)e.preventDefault();
-    const form=document.getElementById('login-form');
-    const username=value('login-username','username').trim();
-    const password=value('login-password','password');
-    alertText('login-alert','');
-    if(!username||!password){alertText('login-alert','Bitte Benutzername und Passwort eingeben.');return false;}
-    busy(form,true);
-    try{
-      const {response,data}=await request('/login',{username,password});
-      if(response.ok&&data.ok){storeSession(data);await openAccount(data.account);return false;}
-      if(response.status===409&&(data.accountStatus==='pending'||/noch nicht.*umgestellt/i.test(data.error||''))){openMigration(username,password);return false;}
-      alertText('login-alert',data.error||'Die Anmeldung ist fehlgeschlagen.');
-    }catch(err){console.error(err);alertText('login-alert','Der Anmeldedienst ist momentan nicht erreichbar.');}
-    finally{busy(form,false);}
-    return false;
-  };
-
-  window.doRegister=async function(e){
-    if(e)e.preventDefault();
-    const form=document.getElementById('register-form');
-    const username=value('reg-username').trim();
-    const password=value('new-password','reg-password');
-    const passwordConfirmation=value('confirm-password','reg-password2');
-    const emoji=value('reg-emoji')||'✝';
-    const color=value('reg-color')||'#8b5cf6';
-    alertText('reg-alert','');
-    if(!username||!password||!passwordConfirmation){alertText('reg-alert','Bitte alle Felder ausfüllen.');return false;}
-    busy(form,true);
-    try{
-      const {response,data}=await request('/register',{username,password,passwordConfirmation});
-      if(!response.ok||!data.ok){alertText('reg-alert',data.error||'Die Registrierung ist fehlgeschlagen.');return false;}
-      const uid=data.account.uid;
-      const user={id:uid,name:data.account.username||username,color,emoji,verseCount:0};
-      S.users=[...(S.users||[]).filter(u=>u.id!==uid),user];
-      await fbSet('app','users',{list:S.users});
-      await fbSet('verses',uid,{list:[]});
-      await fbMerge('user_profiles',uid,{color,emoji,quizHighscores:[],quizQuestions:[],lastVerseSelectionIds:[]});
-      storeSession(data);await openAccount(data.account);
-      if(typeof showToast==='function')showToast('Dein Profil ist bereit!','stats','Willkommen',1600);
-    }catch(err){console.error(err);alertText('reg-alert','Der Anmeldedienst ist momentan nicht erreichbar.');}
-    finally{busy(form,false);}
-    return false;
-  };
-
-  document.getElementById('bt-migration-cancel').addEventListener('click',closeMigration);
-  document.getElementById('bt-migration-form').addEventListener('submit',async function(e){
-    e.preventDefault();
-    const oldPassword=document.getElementById('bt-old-password').value;
-    const newPassword=document.getElementById('bt-new-password').value;
-    const passwordConfirmation=document.getElementById('bt-confirm-password').value;
-    const error=document.getElementById('bt-migration-error');error.textContent='';
-    if(newPassword!==passwordConfirmation){error.textContent='Die beiden neuen Passwörter stimmen nicht überein.';return;}
-    busy(this,true);
-    try{
-      const {response,data}=await request('/migrate-legacy-account',{username:migrationUsername,oldPassword,newPassword,passwordConfirmation});
-      if(!response.ok||!data.ok){error.textContent=data.error||'Die Kontoumstellung ist fehlgeschlagen.';return;}
-      storeSession(data);closeMigration();await openAccount(data.account);
-      if(typeof showToast==='function')showToast('Dein Konto wurde sicher umgestellt.','stats','Erledigt',2000);
-    }catch(err){console.error(err);error.textContent='Der Anmeldedienst ist momentan nicht erreichbar.';}
-    finally{busy(this,false);}
-  });
-
-  const previousRenderMenu=window.renderMenu;
-  if(typeof previousRenderMenu==='function')window.renderMenu=renderMenu=function(){
-    const view=previousRenderMenu();
-    const buttons=[...view.querySelectorAll('button')].filter(b=>b.textContent.trim()==='Abmelden');
-    buttons.forEach(b=>b.onclick=function(){sessionStorage.removeItem(SESSION_KEY);set({user:null,verses:[],view:'select',activeTab:'books'});});
     return view;
   };
 })();
