@@ -3635,5 +3635,61 @@ document.head.appendChild(quizTimeStyle);
 })();
 </script>
 
+
+
+<!-- v152: Lesbarer Titel und blickdichte Buchabdeckung -->
+<style>
+/* Der globale view-title-Stil war in dieser Ansicht dunkel. */
+.bl-page-title{
+  color:#f8fafc!important;
+  text-shadow:0 2px 14px rgba(103,232,249,.18)!important;
+  margin:8px 0 16px!important;
+}
+/* Verdeckte Zeichen sind nun vollstaendig blickdichte, gleichfoermige Bloecke. */
+.bl-answer{display:flex!important;align-items:center;justify-content:center;gap:3px;min-height:48px}
+.bl-char-hidden{
+  display:inline-block!important;
+  width:.72em!important;
+  height:.82em!important;
+  margin:0!important;
+  color:transparent!important;
+  font-size:1em!important;
+  line-height:1!important;
+  text-shadow:none!important;
+  border:0!important;
+  border-radius:4px!important;
+  background:linear-gradient(180deg,#334a62,#26394d)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 2px 5px rgba(0,0,0,.28)!important;
+  overflow:hidden!important;
+  user-select:none!important;
+}
+.bl-char-visible{display:inline-block!important;color:#ecfeff!important;margin:0!important;min-width:.28em;text-shadow:none!important}
+.bl-char-space-hidden{width:.36em!important;background:#26394d!important}
+@media(max-width:430px){.bl-answer{gap:2px}.bl-char-hidden{width:.66em!important}}
+</style>
+<script>
+(function(){
+  /* Titel dieser beiden Ansichten gezielt hell darstellen. */
+  const oldSelect=window.renderBookLearnSelect;
+  const oldLearn=window.renderBookLearn;
+  window.renderBookLearnSelect=function(){
+    const view=oldSelect();
+    const title=view.querySelector('.view-title');
+    if(title)title.classList.add('bl-page-title');
+    return view;
+  };
+  window.renderBookLearn=function(){
+    const view=oldLearn();
+    const title=view.querySelector('.view-title');
+    if(title)title.classList.add('bl-page-title');
+    /* Leerzeichen erhalten eine schmalere, ebenfalls blickdichte Abdeckung. */
+    view.querySelectorAll('.bl-char-hidden').forEach(function(span){
+      if(span.textContent==='\u00a0')span.classList.add('bl-char-space-hidden');
+    });
+    return view;
+  };
+})();
+</script>
+
 </body>
 </html>
