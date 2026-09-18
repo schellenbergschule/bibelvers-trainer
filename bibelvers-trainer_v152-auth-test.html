@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-<title>v155 - Bibel-Trainer</title>
+<title>Bibel-Trainer</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#2c3e50">
 
@@ -504,8 +504,8 @@ body.is-mobile .profile-trophy-badge{font-size:9.5px;padding:3px 6px;}
     <form id="register-form" class="bt128-hidden" onsubmit="doRegister(event);return false;" autocomplete="on" method="post" action="#app">
       <div id="reg-alert"></div>
       <div class="bt128-fg"><label for="reg-username">Benutzername</label><input type="text" id="reg-username" name="username" placeholder="Benutzername wählen" maxlength="24" autocomplete="username" required autocapitalize="none" spellcheck="false"></div>
-      <div class="bt128-fg"><label for="new-password">Passwort</label><input type="password" id="new-password" name="new-password" placeholder="Sicheres Passwort" autocomplete="new-password" minlength="8" required></div>
-      <div class="bt128-fg"><label for="confirm-password">Passwort wiederholen</label><input type="password" id="confirm-password" name="new-password2" placeholder="Passwort nochmals eingeben" autocomplete="new-password" minlength="8" required></div>
+      <div class="bt128-fg"><label for="new-password">Passwort</label><input type="password" id="new-password" name="new-password" placeholder="Sicheres Passwort" autocomplete="new-password" minlength="4" required></div>
+      <div class="bt128-fg"><label for="confirm-password">Passwort wiederholen</label><input type="password" id="confirm-password" name="new-password2" placeholder="Passwort nochmals eingeben" autocomplete="new-password" minlength="4" required></div>
       <div class="bt128-profile-preview"><div id="reg-avatar-preview">✝</div><div><strong>Dein Lernprofil</strong><span>Symbol und Farbe kannst du später ändern.</span></div></div>
       <div class="bt128-fg"><label>Symbol</label><div class="bt128-emoji-grid" id="reg-emoji-grid"></div><input type="hidden" id="reg-emoji" value="✝"></div>
       <div class="bt128-fg"><label>Farbe</label><div class="bt128-color-grid" id="reg-color-grid"></div><input type="hidden" id="reg-color" value="#8b5cf6"></div>
@@ -528,24 +528,6 @@ firebase.initializeApp({
   appId:"1:56194333927:web:d89d7fc9409b93941a3642"
 });
 const db=firebase.firestore();
-// v155: Authentifizierung wird ausschliesslich ueber den Cloudflare Worker ausgefuehrt.
-// Nach dem Deployment hier die exakte Worker-Basis-URL eintragen, ohne abschliessenden Slash.
-const AUTH_API_BASE = "__CLOUDFLARE_AUTH_WORKER_URL__";
-async function authApi(path,payload){
-  if(!AUTH_API_BASE.startsWith("https://")||AUTH_API_BASE.includes("__CLOUDFLARE"))
-    throw new Error("Cloudflare-Authentifizierung ist noch nicht konfiguriert.");
-  const r=await fetch(AUTH_API_BASE+path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
-  let data={};try{data=await r.json();}catch(e){}
-  if(!r.ok||!data.ok)throw new Error(data.error||"Authentifizierungsdienst nicht erreichbar.");
-  return data;
-}
-function storeAuthSession(data){
-  if(data&&data.firebase&&data.firebase.idToken){
-    sessionStorage.setItem("bt_auth_id_token",data.firebase.idToken);
-    sessionStorage.setItem("bt_auth_expires_at",String(Date.now()+(Number(data.firebase.expiresIn||3600)*1000)));
-  }
-}
-
 async function fbGet(c,d){try{const s=await db.collection(c).doc(d).get();return s.exists?s.data():null;}catch(e){console.error(e);return null;}}
 async function fbSet(c,d,v){try{await db.collection(c).doc(d).set(v);}catch(e){console.error(e);}}
 async function fbMerge(c,d,v){try{await db.collection(c).doc(d).set(v,{merge:true});}catch(e){console.error(e);}}
@@ -1497,38 +1479,7 @@ function renderProfile(){
     if(S.pNew.length<2){set({pErr:"Neues Passwort zu kurz.",pOk:false});showToast('Das neue Passwort ist noch zu kurz.','error','Noch zu kurz',2200);return;}
     if(S.pNew!==S.pNew2){set({pErr:"Passwörter stimmen nicht überein.",pOk:false});showToast('Die neuen Passwörter passen noch nicht zusammen.','error','Passwort-Check',2200);return;}
     const newHash=await hashPw(S.pNew);
-    const originalUsers=S.users;
-    const upd={...u,pw:newHash};
-    const updatedUsers=originalUsers.map(x=>x.id===u.id?upd:x);
-    savePw.disabled=true;
-    savePw.textContent="Wird gespeichert…";
-    try{
-      // Beide Passwort-Speicher atomar aktualisieren. Fehler werden hier nicht verschluckt.
-      const batch=db.batch();
-      batch.set(db.collection("app").doc("users"),{list:updatedUsers});
-      batch.set(db.collection("user_profiles").doc(u.id),{pw:newHash},{merge:true});
-      await batch.commit();
-      // Erfolg erst nach einer frischen Cloud-Abfrage anzeigen.
-      const check=await db.collection("app").doc("users").get();
-      const savedList=check.exists?(check.data().list||[]):[];
-      const savedUser=savedList.find(x=>x.id===u.id);
-      if(!savedUser||savedUser.pw!==newHash)throw new Error("Passwort konnte nicht verifiziert werden.");
-      const cloud=await loadProfileCloud(u.id);
-      if(cloud.pw!==newHash)throw new Error("Profil-Passwort konnte nicht verifiziert werden.");
-      S.users=savedList;
-      S.user={...upd,...cloud,pw:newHash};
-      set({pOld:"",pNew:"",pNew2:"",pErr:"",pOk:true});
-      showToast('Das neue Passwort wurde in der Cloud gespeichert und geprüft.','success','Passwort aktualisiert',1800);
-    }catch(e){
-      console.error("Passwortaenderung:",e);
-      S.users=originalUsers;
-      S.user=u;
-      set({pErr:"Das Passwort konnte nicht dauerhaft gespeichert werden. Bitte erneut versuchen.",pOk:false});
-      showToast('Die Cloud-Speicherung wurde nicht bestätigt. Bitte versuche es erneut.','error','Speichern fehlgeschlagen',3200);
-    }finally{
-      savePw.disabled=false;
-      savePw.textContent="Passwort ändern";
-    }
+    const upd={...u,pw:newHash};await saveUsers(S.users.map(x=>x.id===u.id?upd:x));S.user=upd;set({pOld:"",pNew:"",pNew2:"",pErr:"",pOk:true});showToast('Passwort gespeichert.','success','Aktualisiert',1400);
   });savePw.style.marginTop="12px";
   const pwPanel=div("form-panel",el("label",{cls:"f-label"},"Aktuelles Passwort"),pOldI,el("label",{cls:"f-label"},"Neues Passwort"),pNewI,el("label",{cls:"f-label"},"Wiederholen"),pNew2I,pErrEl,pOkEl,savePw);
   let dangerBtns;
@@ -1589,7 +1540,7 @@ function renderNewUser(){
 }
 async function doCreate(){
   if(!S.nName.trim()){set({nErr:"Bitte einen Namen eingeben."});return;}
-  if(S.nPw.length<4){set({nErr:"Passwort muss mindestens 8 Zeichen haben und eine Zahl enthalten."});return;}
+  if(S.nPw.length<4){set({nErr:"Passwort muss mindestens 4 Zeichen haben."});return;}
   if(S.nPw!==S.nPw2){set({nErr:"Passwörter stimmen nicht überein."});return;}
   const name=S.nName.trim(),pw=S.nPw,color=S.nColor,emoji=S.nEmoji;
   const id="u_"+Date.now();const h=await hashPw(pw);const u={id,name,pw:h,color,emoji,verseCount:0};
@@ -2745,16 +2696,15 @@ document.head.appendChild(quizTimeStyle);
   }
   window.doLogin=async function(e){
     if(e)e.preventDefault();
-    const un=val('login-username').trim(),pw=val('current-password','login-password');
-    if(!un||!pw){showAuthError('login-alert','Bitte Benutzername und Passwort ausfüllen.');return false;}
-    try{
-      const data=await authApi('/login',{username:un,password:pw});
-      storeAuthSession(data);
-      const uid=data.account&&data.account.uid;
-      const user=(S.users||[]).find(u=>u.id===uid)||(S.users||[]).find(u=>(u.name||'').trim().toLowerCase()===un.toLowerCase());
-      if(!user)throw new Error('Das Profil konnte nach der Anmeldung nicht geladen werden.');
-      await maybeStoreCredential(un,pw);await openUserFixed(user);
-    }catch(err){showAuthError('login-alert',err.message||'Anmeldung fehlgeschlagen.');showToast(err.message||'Anmeldung fehlgeschlagen.','error','Login fehlgeschlagen',3000);}
+    const un=document.getElementById('login-username')?.value.trim()||'';
+    const pw=document.getElementById('current-password')?.value||'';
+    if(S.profilesLoading){showAlert('login-alert','Profile werden noch geladen. Bitte kurz warten.');return false;}
+    if(!un||!pw){showAlert('login-alert','Bitte Benutzername und Passwort ausfüllen.');return false;}
+    const user=(S.users||[]).find(u=>(u.name||'').trim().toLowerCase()===un.toLowerCase());
+    if(!user){showAlert('login-alert','Dieses Profil wurde nicht gefunden.');return false;}
+    const h=await hashPw(pw);
+    if(h!==user.pw){showAlert('login-alert','Das Passwort stimmt nicht.');showToast('Das Passwort stimmt noch nicht.','error','Login fehlgeschlagen',2200);return false;}
+    await showApp(user);
     return false;
   };
   window.doRegister=async function(e){
@@ -2765,7 +2715,7 @@ document.head.appendChild(quizTimeStyle);
     const emoji=document.getElementById('reg-emoji')?.value||'✝';
     const color=document.getElementById('reg-color')?.value||PALETTE[0];
     if(!un||!pw||!pw2){showAlert('reg-alert','Bitte alle Felder ausfüllen.');return false;}
-    if(pw.length<8||!/[a-zäöü]/i.test(pw)||!/\d/.test(pw)){showAlert('reg-alert','Passwort muss mindestens 8 Zeichen haben und eine Zahl enthalten.');return false;}
+    if(pw.length<4){showAlert('reg-alert','Passwort muss mindestens 4 Zeichen haben.');return false;}
     if(pw!==pw2){showAlert('reg-alert','Passwörter stimmen nicht überein.');return false;}
     if((S.users||[]).some(u=>(u.name||'').trim().toLowerCase()===un.toLowerCase())){showAlert('reg-alert','Diesen Benutzernamen gibt es bereits.');return false;}
     const id='u_'+Date.now();
@@ -2847,22 +2797,9 @@ document.head.appendChild(quizTimeStyle);
     const emoji=val('reg-emoji')||'✝';
     const color=val('reg-color')||PALETTE[0];
     if(!un||!pw||!pw2){showAuthError('reg-alert','Bitte alle Felder ausfüllen.');return false;}
-    if(pw.length<8||!/[a-zäöü]/i.test(pw)||!/\d/.test(pw)){showAuthError('reg-alert','Passwort muss mindestens 8 Zeichen haben und eine Zahl enthalten.');return false;}
+    if(pw.length<4){showAuthError('reg-alert','Passwort muss mindestens 4 Zeichen haben.');return false;}
     if(pw!==pw2){showAuthError('reg-alert','Passwörter stimmen nicht überein.');return false;}
     if((S.users||[]).some(u=>(u.name||'').trim().toLowerCase()===un.toLowerCase())){showAuthError('reg-alert','Diesen Benutzernamen gibt es bereits.');return false;}
-    try{
-      const data=await authApi('/register',{username:un,password:pw,passwordConfirmation:pw2});
-      storeAuthSession(data);
-      const id=data.account.uid;
-      const user={id,name:un,color,emoji,pw:null,authManaged:true,createdAt:Date.now()};
-      await db.collection("user_profiles").doc(id).set(user,{merge:true});
-      S.users=[...(S.users||[]),user];
-      await db.collection("app").doc("users").set({list:S.users});
-      await openUserFixed(user);
-    }catch(err){showAuthError('reg-alert',err.message||'Registrierung fehlgeschlagen.');}
-    return false;
-    /* v155: alter lokaler Registrierungsweg entfernt.
-
     const id='u_'+Date.now();
     const h=await hashPw(pw);
     const user={id,name:un,pw:h,color,emoji,verseCount:0};
@@ -2874,7 +2811,6 @@ document.head.appendChild(quizTimeStyle);
     await openUserFixed(user);
     showToast(`Profil ${un} ist bereit!`,'stats','Willkommen',1500);
     return false;
-    */
   };
 })();
 </script>
@@ -3755,5 +3691,9 @@ document.head.appendChild(quizTimeStyle);
 })();
 </script>
 
+<style>.v156-bg{position:fixed;inset:0;z-index:99999;background:#071326cc;display:grid;place-items:center;padding:16px}.v156-box{background:white;border-radius:22px;padding:26px;width:min(480px,100%);box-shadow:0 25px 70px #0008}.v156-box input{box-sizing:border-box;width:100%;padding:12px;margin:6px 0 12px;border:2px solid #d7dfed;border-radius:12px;font:inherit}.v156-box button{padding:11px 16px;border:0;border-radius:12px;font-weight:800;cursor:pointer}.v156-go{background:#315efb;color:white}.v156-row{display:flex;gap:10px;justify-content:flex-end}.v156-msg{min-height:22px;color:#b42318;font-weight:700}</style><script>
+(()=>{const API='https://bibel-trainer-auth.schellenberg-schule.workers.dev',oldLogin=window.doLogin;async function call(path,body){const r=await fetch(API+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});let d={};try{d=await r.json()}catch{}return{r,d}}function session(un,d){try{sessionStorage.setItem('bt_secure_auth_session',JSON.stringify({username:un,account:d.account,firebase:d.firebase,at:Date.now()}))}catch{}}function migrate(un,oldPw,u){const o=document.createElement('div');o.className='v156-bg';o.innerHTML=`<form class="v156-box"><h2>Sichere Anmeldung aktivieren</h2><p>Für <b></b> muss einmalig ein neues Passwort gewählt werden. Das bestehende Profil bleibt vollständig erhalten.</p><label>Neues Passwort</label><input id="v156n" type="password" minlength="8" autocomplete="new-password" required><label>Passwort wiederholen</label><input id="v156c" type="password" minlength="8" autocomplete="new-password" required><div class="v156-msg"></div><div class="v156-row"><button type="button">Abbrechen</button><button class="v156-go" type="submit">Sicher umstellen</button></div></form>`;o.querySelector('b').textContent=un;document.body.appendChild(o);o.querySelector('button[type=button]').onclick=()=>o.remove();o.querySelector('form').onsubmit=async e=>{e.preventDefault();const n=o.querySelector('#v156n').value,c=o.querySelector('#v156c').value,m=o.querySelector('.v156-msg'),b=o.querySelector('.v156-go');if(n.length<8){m.textContent='Mindestens 8 Zeichen erforderlich.';return}if(n!==c){m.textContent='Die Passwörter stimmen nicht überein.';return}b.disabled=true;m.textContent='Umstellung läuft ...';try{const{x:r,d}=await Promise.resolve(call('/migrate-legacy-account',{username:un,oldPassword:oldPw,newPassword:n,passwordConfirmation:c})).then(z=>({x:z.r,d:z.d}));if(!r.ok||!d.ok)throw Error(d.error||'Umstellung fehlgeschlagen.');session(un,d);const nu={...u,pw:await hashPw(n),secureAuth:true,firebaseUid:d.account?.uid||u.id};S.users=S.users.map(x=>x.id===u.id?nu:x);await saveUsers(S.users);o.remove();await maybeStoreCredential(un,n);await openUserFixed(nu);showToast('Konto sicher umgestellt.','success','Fertig',2400)}catch(err){m.textContent=err.message;b.disabled=false}};o.querySelector('#v156n').focus()}
+window.doLogin=async e=>{e?.preventDefault();const un=val('login-username').trim(),pw=val('current-password','login-password');if(!un||!pw){showAuthError('login-alert','Bitte Benutzername und Passwort ausfüllen.');return false}const u=(S.users||[]).find(x=>(x.name||'').trim().toLowerCase()===un.toLowerCase());if(!u){showAuthError('login-alert','Dieses Profil wurde nicht gefunden.');return false}try{const{r,d}=await call('/login',{username:un,password:pw});if(r.ok&&d.ok){session(un,d);const h=await hashPw(pw),nu={...u,pw:h,secureAuth:true,firebaseUid:d.account?.uid||u.id};if(u.pw!==h){S.users=S.users.map(x=>x.id===u.id?nu:x);await saveUsers(S.users);await maybeStoreCredential(un,pw);await openUserFixed(nu)}else await oldLogin(null);return false}}catch{}if(await hashPw(pw)!==u.pw){showAuthError('login-alert','Das Passwort stimmt nicht.');return false}migrate(un,pw,u);return false};})();
+</script>
 </body>
 </html>
