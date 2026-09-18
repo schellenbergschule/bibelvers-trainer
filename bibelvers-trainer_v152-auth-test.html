@@ -2795,14 +2795,29 @@ document.head.appendChild(quizTimeStyle);
     if(!un||!pw){showAuthError('login-alert','Bitte Benutzername und Passwort ausfüllen.');return false;}
     const user=(S.users||[]).find(u=>(u.name||'').trim().toLowerCase()===un.toLowerCase());
     if(!user){showAuthError('login-alert','Dieses Profil wurde nicht gefunden.');return false;}
-    if(user.secureAuth){
-      try{
-        const {r,data}=await authCall('/login',{username:user.name,password:pw});
-        if(!r.ok||!data.ok){showAuthError('login-alert',data.error||'Das Passwort stimmt nicht.');return false;}
+    // v159: Immer zuerst beim sicheren Anmeldedienst pruefen. So werden Konten,
+    // die bereits in D1 aktiv sind, auch dann erkannt, wenn im alten Profil
+    // das lokale Kennzeichen secureAuth noch fehlt.
+    try{
+      const {r,data}=await authCall('/login',{username:user.name,password:pw});
+      if(r.ok&&data.ok){
+        const updated=user.secureAuth?user:{...user,secureAuth:true,firebaseUid:data.account?.uid||user.firebaseUid||user.id};
+        if(!user.secureAuth)await saveUsers((S.users||[]).map(u=>u.id===user.id?updated:u));
         try{sessionStorage.setItem('bt_secure_auth_session',JSON.stringify({username:user.name,account:data.account,firebase:data.firebase,at:Date.now()}));}catch(_){}
-        await maybeStoreCredential(un,pw);await openUserFixed(user);
-      }catch(_){showAuthError('login-alert','Der sichere Anmeldedienst ist momentan nicht erreichbar. Bitte später erneut versuchen.');}
-      return false;
+        await maybeStoreCredential(un,pw);await openUserFixed(updated);
+        return false;
+      }
+      // Ein bereits als sicher markiertes Konto darf nie erneut migriert werden.
+      if(user.secureAuth){
+        showAuthError('login-alert',data.error||'Das Passwort stimmt nicht.');
+        return false;
+      }
+    }catch(_){
+      if(user.secureAuth){
+        showAuthError('login-alert','Der sichere Anmeldedienst ist momentan nicht erreichbar. Bitte später erneut versuchen.');
+        return false;
+      }
+      // Bei alten Konten bleibt die lokale Pruefung als Migrations-Fallback erhalten.
     }
     const h=await hashPw(pw);
     if(h!==user.pw){showAuthError('login-alert','Das Passwort stimmt nicht.');showToast('Das Passwort stimmt noch nicht.','error','Login fehlgeschlagen',2200);return false;}
@@ -2829,11 +2844,12 @@ document.head.appendChild(quizTimeStyle);
     }
 
     try{
-      const registration=await authApi('/register',{
+      const {r,data:registration}=await authCall('/register',{
         username:un,
         password:pw,
         passwordConfirmation:pw2
       });
+      if(!r.ok||!registration.ok)throw new Error(registration.error||'Registrierung fehlgeschlagen.');
       const id=registration?.account?.uid;
       if(!id) throw new Error('Das neue Benutzerkonto konnte nicht eindeutig zugeordnet werden.');
 
