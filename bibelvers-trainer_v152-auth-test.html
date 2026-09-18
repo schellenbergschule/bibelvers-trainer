@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
+<!-- v158: Registrierung via Cloudflare Worker, Firebase Authentication und D1 -->
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>Bibel-Trainer</title>
@@ -504,8 +505,8 @@ body.is-mobile .profile-trophy-badge{font-size:9.5px;padding:3px 6px;}
     <form id="register-form" class="bt128-hidden" onsubmit="doRegister(event);return false;" autocomplete="on" method="post" action="#app">
       <div id="reg-alert"></div>
       <div class="bt128-fg"><label for="reg-username">Benutzername</label><input type="text" id="reg-username" name="username" placeholder="Benutzername wählen" maxlength="24" autocomplete="username" required autocapitalize="none" spellcheck="false"></div>
-      <div class="bt128-fg"><label for="new-password">Passwort</label><input type="password" id="new-password" name="new-password" placeholder="Sicheres Passwort" autocomplete="new-password" minlength="4" required></div>
-      <div class="bt128-fg"><label for="confirm-password">Passwort wiederholen</label><input type="password" id="confirm-password" name="new-password2" placeholder="Passwort nochmals eingeben" autocomplete="new-password" minlength="4" required></div>
+      <div class="bt128-fg"><label for="new-password">Passwort</label><input type="password" id="new-password" name="new-password" placeholder="Sicheres Passwort" autocomplete="new-password" minlength="8" required></div>
+      <div class="bt128-fg"><label for="confirm-password">Passwort wiederholen</label><input type="password" id="confirm-password" name="new-password2" placeholder="Passwort nochmals eingeben" autocomplete="new-password" minlength="8" required></div>
       <div class="bt128-profile-preview"><div id="reg-avatar-preview">✝</div><div><strong>Dein Lernprofil</strong><span>Symbol und Farbe kannst du später ändern.</span></div></div>
       <div class="bt128-fg"><label>Symbol</label><div class="bt128-emoji-grid" id="reg-emoji-grid"></div><input type="hidden" id="reg-emoji" value="✝"></div>
       <div class="bt128-fg"><label>Farbe</label><div class="bt128-color-grid" id="reg-color-grid"></div><input type="hidden" id="reg-color" value="#8b5cf6"></div>
@@ -2707,28 +2708,7 @@ document.head.appendChild(quizTimeStyle);
     await showApp(user);
     return false;
   };
-  window.doRegister=async function(e){
-    if(e)e.preventDefault();
-    const un=document.getElementById('reg-username')?.value.trim()||'';
-    const pw=document.getElementById('reg-password')?.value||'';
-    const pw2=document.getElementById('reg-password2')?.value||'';
-    const emoji=document.getElementById('reg-emoji')?.value||'✝';
-    const color=document.getElementById('reg-color')?.value||PALETTE[0];
-    if(!un||!pw||!pw2){showAlert('reg-alert','Bitte alle Felder ausfüllen.');return false;}
-    if(pw.length<4){showAlert('reg-alert','Passwort muss mindestens 4 Zeichen haben.');return false;}
-    if(pw!==pw2){showAlert('reg-alert','Passwörter stimmen nicht überein.');return false;}
-    if((S.users||[]).some(u=>(u.name||'').trim().toLowerCase()===un.toLowerCase())){showAlert('reg-alert','Diesen Benutzernamen gibt es bereits.');return false;}
-    const id='u_'+Date.now();
-    const h=await hashPw(pw);
-    const user={id,name:un,pw:h,color,emoji,verseCount:0};
-    await saveUsers([...(S.users||[]),user]);
-    await fbSet('verses',id,{list:[]});
-    await fbMerge('user_profiles',id,{quizHighscores:[],quizQuestions:[],lastVerseSelectionIds:[]});
-    S.counts={...S.counts,[id]:0};
-    await showApp(user);
-    showToast(`Profil ${un} ist bereit!`,'stats','Willkommen',1500);
-    return false;
-  };
+  /* v158: alter lokaler Registrierungsweg entfernt; aktive Registrierung im Migrationsblock. */
 
   window.renderSelect=function(){
     document.body.classList.add('bt128-auth-active');
@@ -2836,20 +2816,45 @@ document.head.appendChild(quizTimeStyle);
     const pw2=val('confirm-password','reg-password2');
     const emoji=val('reg-emoji')||'✝';
     const color=val('reg-color')||PALETTE[0];
+
     if(!un||!pw||!pw2){showAuthError('reg-alert','Bitte alle Felder ausfüllen.');return false;}
-    if(pw.length<4){showAuthError('reg-alert','Passwort muss mindestens 4 Zeichen haben.');return false;}
+    if(pw.length<8||!/\d/.test(pw)){
+      showAuthError('reg-alert','Passwort muss mindestens 8 Zeichen haben und eine Zahl enthalten.');
+      return false;
+    }
     if(pw!==pw2){showAuthError('reg-alert','Passwörter stimmen nicht überein.');return false;}
-    if((S.users||[]).some(u=>(u.name||'').trim().toLowerCase()===un.toLowerCase())){showAuthError('reg-alert','Diesen Benutzernamen gibt es bereits.');return false;}
-    const id='u_'+Date.now();
-    const h=await hashPw(pw);
-    const user={id,name:un,pw:h,color,emoji,verseCount:0};
-    await saveUsers([...(S.users||[]),user]);
-    await fbSet('verses',id,{list:[]});
-    await fbMerge('user_profiles',id,{quizHighscores:[],quizQuestions:[],lastVerseSelectionIds:[]});
-    S.counts={...S.counts,[id]:0};
-    await maybeStoreCredential(un,pw);
-    await openUserFixed(user);
-    showToast(`Profil ${un} ist bereit!`,'stats','Willkommen',1500);
+    if((S.users||[]).some(u=>(u.name||'').trim().toLowerCase()===un.toLowerCase())){
+      showAuthError('reg-alert','Diesen Benutzernamen gibt es bereits.');
+      return false;
+    }
+
+    try{
+      const registration=await authApi('/register',{
+        username:un,
+        password:pw,
+        passwordConfirmation:pw2
+      });
+      const id=registration?.account?.uid;
+      if(!id) throw new Error('Das neue Benutzerkonto konnte nicht eindeutig zugeordnet werden.');
+
+      const user={id,name:un,color,emoji,pw:null,authManaged:true,createdAt:Date.now(),verseCount:0};
+      await fbSet('verses',id,{list:[]});
+      await fbMerge('user_profiles',id,{
+        ...user,
+        quizHighscores:[],
+        quizQuestions:[],
+        lastVerseSelectionIds:[]
+      });
+      await saveUsers([...(S.users||[]),user]);
+      S.counts={...S.counts,[id]:0};
+      await maybeStoreCredential(un,pw);
+      await openUserFixed(user);
+      showToast(`Profil ${un} ist bereit!`,'stats','Willkommen',1500);
+    }catch(err){
+      const message=err?.message||'Registrierung fehlgeschlagen.';
+      showAuthError('reg-alert',message);
+      showToast(message,'error','Registrierung fehlgeschlagen',3000);
+    }
     return false;
   };
 })();
