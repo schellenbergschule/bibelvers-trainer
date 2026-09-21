@@ -502,6 +502,16 @@ body.is-mobile .profile-trophy-badge{font-size:9.5px;padding:3px 6px;}
 .pw-admin-entry{background:linear-gradient(135deg,#7c2d12,#b45309 52%,#7c2d12)!important;border:1px solid rgba(251,191,36,.48)!important;box-shadow:0 8px 30px rgba(180,83,9,.24)!important}
 .pw-admin-wrap{padding-bottom:28px}.pw-admin-note{padding:14px 15px;margin:0 0 14px;border-radius:16px;background:rgba(245,158,11,.10);border:1px solid rgba(251,191,36,.25);color:#fef3c7;font-size:12.5px;line-height:1.55}.pw-admin-toolbar{display:flex;gap:9px;margin-bottom:14px}.pw-admin-toolbar button,.pw-admin-actions button{border:0;border-radius:12px;padding:10px 13px;font:inherit;font-size:12px;font-weight:800;cursor:pointer}.pw-admin-refresh{background:#4f46e5;color:white}.pw-admin-card{padding:16px;margin-bottom:12px;border-radius:18px;background:linear-gradient(145deg,rgba(255,255,255,.065),rgba(99,102,241,.07));border:1px solid rgba(196,181,253,.18)}.pw-admin-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.pw-admin-name{font-size:16px;font-weight:800;color:#f5f3ff}.pw-admin-user{margin-top:3px;font-size:12px;color:#c4b5fd}.pw-admin-pill{padding:4px 8px;border-radius:999px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.4px}.pw-admin-pill.open{background:rgba(59,130,246,.16);color:#bfdbfe}.pw-admin-pill.approved{background:rgba(34,197,94,.14);color:#bbf7d0}.pw-admin-pill.rejected,.pw-admin-pill.expired{background:rgba(239,68,68,.14);color:#fecaca}.pw-admin-pill.completed{background:rgba(139,92,246,.18);color:#ddd6fe}.pw-admin-meta{margin-top:10px;color:rgba(221,214,254,.63);font-size:11px;line-height:1.55}.pw-admin-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}.pw-approve{background:#15803d;color:white}.pw-reject{background:#991b1b;color:white}.pw-code{background:#6d28d9;color:white}.pw-admin-empty{padding:30px 18px;text-align:center;border-radius:18px;border:1px dashed rgba(196,181,253,.22);color:rgba(221,214,254,.62)}.pw-code-box{position:fixed;inset:0;z-index:12000;background:rgba(7,5,18,.9);display:grid;place-items:center;padding:18px}.pw-code-card{width:min(440px,100%);padding:24px;border-radius:24px;background:#17122d;border:1px solid #6d5ca8;color:#f5f3ff;box-shadow:0 24px 80px #000}.pw-code-value{margin:18px 0;padding:16px;text-align:center;border-radius:14px;background:#0f0c20;border:1px solid #7c3aed;font:900 27px ui-monospace,monospace;letter-spacing:.16em;color:#fff}.pw-code-card button{width:100%;padding:12px;border:0;border-radius:12px;background:#7c3aed;color:white;font-weight:900;cursor:pointer;margin-top:8px}
 </style>
+
+<style>
+.admin-menu-entry{background:linear-gradient(135deg,#581c87,#7e22ce 52%,#4c1d95)!important;border:1px solid rgba(216,180,254,.48)!important;box-shadow:0 8px 30px rgba(126,34,206,.24)!important}
+.admin-hub-wrap,.admin-users-wrap{padding-bottom:28px}
+.admin-hub-card{width:100%;display:flex;align-items:center;gap:14px;margin-bottom:12px;padding:17px 18px;border-radius:18px;border:1px solid rgba(196,181,253,.2);background:linear-gradient(135deg,rgba(124,58,237,.20),rgba(30,27,75,.42));color:#f5f3ff;text-align:left;cursor:pointer}
+.admin-hub-card strong{display:block;font-size:15px;margin-bottom:3px}.admin-hub-card span{display:block;font-size:12px;color:rgba(221,214,254,.65)}.admin-hub-icon{font-size:25px;width:40px;text-align:center}
+.admin-user-card{padding:16px;margin-bottom:12px;border-radius:18px;background:linear-gradient(145deg,rgba(255,255,255,.06),rgba(99,102,241,.07));border:1px solid rgba(196,181,253,.18)}
+.admin-user-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.admin-user-name{font-size:16px;font-weight:850;color:#f5f3ff}.admin-user-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}.admin-user-badge{padding:3px 7px;border-radius:999px;font-size:10px;font-weight:850;background:rgba(59,130,246,.15);color:#bfdbfe}.admin-user-badge.pending{background:rgba(245,158,11,.14);color:#fde68a}.admin-user-badge.admin{background:rgba(168,85,247,.18);color:#e9d5ff}.admin-user-meta{margin-top:10px;color:rgba(221,214,254,.6);font-size:11px;line-height:1.55;word-break:break-word}.admin-user-delete{margin-top:12px;padding:9px 12px;border:0;border-radius:11px;background:#991b1b;color:#fff;font-weight:850;cursor:pointer}.admin-user-delete:disabled{opacity:.4;cursor:not-allowed}.admin-delete-box{position:fixed;inset:0;z-index:13000;background:rgba(7,5,18,.91);display:grid;place-items:center;padding:18px}.admin-delete-card{width:min(460px,100%);padding:24px;border-radius:24px;background:#17122d;border:1px solid #7f1d1d;color:#f5f3ff;box-shadow:0 24px 80px #000}.admin-delete-card input{box-sizing:border-box;width:100%;padding:12px;margin:8px 0 12px;border-radius:12px;border:1px solid #7f1d1d;background:#0f0c20;color:#fff;font:inherit}.admin-delete-card button{width:100%;padding:12px;margin-top:8px;border:0;border-radius:12px;font-weight:900;cursor:pointer}.admin-delete-confirm{background:#b91c1c;color:#fff}.admin-delete-cancel{background:#312e55;color:#fff}.admin-users-toolbar{display:flex;gap:9px;margin-bottom:14px}.admin-users-toolbar button{padding:10px 13px;border:0;border-radius:12px;background:#4f46e5;color:white;font-weight:850;cursor:pointer}
+.pw-admin-name::before{content:'Erkennungsangabe: ';display:block;margin-bottom:3px;font-size:10px;text-transform:uppercase;letter-spacing:.45px;color:rgba(221,214,254,.48);font-weight:800}
+</style>
 </head>
 <body>
 <div class="orb1"></div><div class="orb2"></div><div class="orb3"></div>
@@ -3986,6 +3996,97 @@ document.head.appendChild(quizTimeStyle);
   window.renderMenu=renderMenu=function(){const node=oldRenderMenu();if(mainAdmin()){const button=document.createElement('button');button.type='button';button.className='menu-btn pw-admin-entry';button.innerHTML='<div class="mc-icon">🔐</div><div><p class="mc-title">Passwortanfragen</p><p class="mc-sub">Anfragen prüfen und Einmalcodes erstellen</p></div>';button.onclick=window.openPasswordResetAdmin;node.appendChild(button);}return node;};
   const oldRender=window.render||render;
   window.render=render=function(){if(S.view==='password-reset-admin'){const root=document.getElementById('app');root.innerHTML='';root.appendChild(view());return;}return oldRender();};
+})();
+</script>
+
+<script>
+(function(){
+  const API='https://bibel-trainer-auth.schellenberg-schule.workers.dev';
+  const accountState={loading:false,error:'',items:[]};
+  function session(){try{return JSON.parse(sessionStorage.getItem('bt_secure_auth_session')||'null');}catch{return null;}}
+  function isMainAdmin(){return Boolean(session()?.account?.isMainAdmin);}
+  function token(){return session()?.firebase?.idToken||'';}
+  function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function fmt(v){if(!v)return '–';const d=new Date(String(v).replace(' ','T')+'Z');return Number.isNaN(d.getTime())?String(v):d.toLocaleString('de-CH');}
+  async function api(path,method='GET',body){
+    const r=await fetch(API+path,{method,headers:{...(body?{'Content-Type':'application/json'}:{}),'Authorization':'Bearer '+token()},...(body?{body:JSON.stringify(body)}:{})});
+    let data={};try{data=await r.json();}catch{data={ok:false,error:'Ungültige Antwort des Anmeldedienstes.'};}
+    if(!r.ok||!data.ok)throw new Error(data.error||'Die Anfrage ist fehlgeschlagen.');
+    return data;
+  }
+  function adminHub(){
+    const wrap=document.createElement('div');wrap.className='admin-hub-wrap';
+    wrap.innerHTML='<div class="page-header"><button class="back-btn" type="button">←</button><h2 class="page-title">Administration</h2></div><button class="admin-hub-card" data-passwords><div class="admin-hub-icon">🔐</div><div><strong>Passwortanfragen</strong><span>Anfragen prüfen, genehmigen und Einmalcodes erstellen</span></div></button><button class="admin-hub-card" data-users><div class="admin-hub-icon">👥</div><div><strong>Benutzerkonten</strong><span>Aktive und noch nicht migrierte Konten verwalten</span></div></button>';
+    wrap.querySelector('.back-btn').onclick=()=>set({view:'menu'});
+    wrap.querySelector('[data-passwords]').onclick=()=>window.openPasswordResetAdmin();
+    wrap.querySelector('[data-users]').onclick=()=>{S.view='admin-users';render();loadAccounts();};
+    return wrap;
+  }
+  async function loadAccounts(){
+    accountState.loading=true;accountState.error='';render();
+    try{const data=await api('/admin/accounts');accountState.items=data.accounts||[];}
+    catch(e){accountState.error=e?.message||'Benutzerkonten konnten nicht geladen werden.';}
+    finally{accountState.loading=false;render();}
+  }
+  function shortUid(uid){const v=String(uid||'');return v.length>16?v.slice(0,8)+'…'+v.slice(-6):v;}
+  function accountsView(){
+    const wrap=document.createElement('div');wrap.className='admin-users-wrap';
+    wrap.innerHTML='<div class="page-header"><button class="back-btn" type="button">←</button><h2 class="page-title">Benutzerkonten</h2></div><div class="pw-admin-note"><strong>Vorsicht:</strong> Das Löschen entfernt Anmeldung, Profil, Verse und Lernstand dauerhaft. Hauptadministratorkonten sind geschützt.</div><div class="admin-users-toolbar"><button type="button">↻ Aktualisieren</button></div><div data-users-list></div>';
+    wrap.querySelector('.back-btn').onclick=()=>{S.view='admin-hub';render();};
+    wrap.querySelector('.admin-users-toolbar button').onclick=loadAccounts;
+    const list=wrap.querySelector('[data-users-list]');
+    if(!isMainAdmin()){list.innerHTML='<div class="pw-admin-empty">Keine Berechtigung.</div>';return wrap;}
+    if(accountState.loading){list.innerHTML='<div class="pw-admin-empty">Benutzerkonten werden geladen …</div>';return wrap;}
+    if(accountState.error){list.innerHTML='<div class="pw-admin-empty">'+esc(accountState.error)+'</div>';return wrap;}
+    if(!accountState.items.length){list.innerHTML='<div class="pw-admin-empty">Keine Benutzerkonten vorhanden.</div>';return wrap;}
+    list.innerHTML=accountState.items.map(a=>{
+      const protectedAccount=a.isMainAdmin||a.isCurrentAdmin;
+      const badges='<div class="admin-user-badges"><span class="admin-user-badge '+(a.status==='pending'?'pending':'')+'">'+esc(a.status)+'</span>'+(a.isMainAdmin?'<span class="admin-user-badge admin">Hauptadmin</span>':'')+(a.isContentAdmin?'<span class="admin-user-badge admin">Inhaltsadmin</span>':'')+'</div>';
+      return '<article class="admin-user-card"><div class="admin-user-head"><div><div class="admin-user-name">'+esc(a.username)+'</div>'+badges+'</div></div><div class="admin-user-meta">UID: '+esc(shortUid(a.firebaseUid))+'<br>Erstellt: '+esc(fmt(a.createdAt))+'<br>Migriert: '+esc(fmt(a.migrationCompletedAt))+'</div><button type="button" class="admin-user-delete" data-delete="'+esc(a.firebaseUid)+'" data-name="'+esc(a.username)+'" '+(protectedAccount?'disabled title="Hauptadministratorkonto geschützt"':'')+'>'+(protectedAccount?'Geschützt':'Benutzer löschen')+'</button></article>';
+    }).join('');
+    list.querySelectorAll('[data-delete]:not(:disabled)').forEach(b=>b.onclick=()=>deleteDialog(b.dataset.delete,b.dataset.name));
+    return wrap;
+  }
+  function deleteDialog(firebaseUid,username){
+    const box=document.createElement('div');box.className='admin-delete-box';
+    box.innerHTML='<div class="admin-delete-card"><h2 style="margin:0 0 10px">Benutzer endgültig löschen</h2><p style="color:#fecaca;line-height:1.5">Dadurch werden Anmeldung, Profil, Verse, Fortschritt, Coins, Pokale und weitere Benutzerdaten dauerhaft gelöscht.</p><p style="color:#ddd6fe;line-height:1.5">Gib zur Bestätigung den Benutzernamen <strong>'+esc(username)+'</strong> exakt ein:</p><input data-confirm autocomplete="off"><div data-message style="min-height:20px;color:#fca5a5;font-size:12px"></div><button type="button" class="admin-delete-confirm">Endgültig löschen</button><button type="button" class="admin-delete-cancel">Abbrechen</button></div>';
+    const input=box.querySelector('[data-confirm]'),msg=box.querySelector('[data-message]'),confirm=box.querySelector('.admin-delete-confirm');
+    box.querySelector('.admin-delete-cancel').onclick=()=>box.remove();
+    confirm.onclick=async()=>{
+      if(input.value!==username){msg.textContent='Der Benutzername stimmt nicht exakt überein.';return;}
+      confirm.disabled=true;confirm.textContent='Wird gelöscht …';msg.textContent='';
+      try{
+        await api('/admin/delete-account','POST',{firebaseUid,usernameConfirmation:input.value});
+        await fbDel('verses',firebaseUid);
+        await fbDel('user_profiles',firebaseUid);
+        const updated=(S.users||[]).filter(u=>u.id!==firebaseUid);
+        await saveUsers(updated);
+        S.users=updated;
+        if(S.counts&&Object.prototype.hasOwnProperty.call(S.counts,firebaseUid)){const counts={...S.counts};delete counts[firebaseUid];S.counts=counts;}
+        box.remove();showToast('Benutzerkonto und Profildaten wurden gelöscht.','success','Benutzer gelöscht',2400);await loadAccounts();
+      }catch(e){msg.textContent=e?.message||'Das Konto konnte nicht vollständig gelöscht werden.';confirm.disabled=false;confirm.textContent='Endgültig löschen';}
+    };
+    document.body.appendChild(box);setTimeout(()=>input.focus(),40);
+  }
+  window.openAdminHub=function(){if(!isMainAdmin())return;S.view='admin-hub';render();};
+  const previousMenu=window.renderMenu||renderMenu;
+  window.renderMenu=renderMenu=function(){
+    const node=previousMenu();
+    node.querySelectorAll('.pw-admin-entry').forEach(el=>el.remove());
+    if(isMainAdmin()){
+      const button=document.createElement('button');button.type='button';button.className='menu-btn admin-menu-entry';button.innerHTML='<div class="mc-icon">🛡️</div><div><p class="mc-title">Administration</p><p class="mc-sub">Passwortanfragen und Benutzerkonten</p></div>';button.onclick=window.openAdminHub;
+      const profile=[...node.querySelectorAll('.menu-profile')].pop();
+      if(profile)profile.insertAdjacentElement('afterend',button);else node.appendChild(button);
+    }
+    return node;
+  };
+  const previousRender=window.render||render;
+  window.render=render=function(){
+    if(S.view==='admin-hub'||S.view==='admin-users'){
+      const root=document.getElementById('app');root.innerHTML='';root.appendChild(S.view==='admin-hub'?adminHub():accountsView());return;
+    }
+    return previousRender();
+  };
 })();
 </script>
 </body>
