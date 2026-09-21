@@ -3951,7 +3951,7 @@ document.head.appendChild(quizTimeStyle);
   function mainAdmin(){return Boolean(session()?.account?.isMainAdmin);}
   function token(){return session()?.firebase?.idToken||'';}
   function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-  function fmt(v){if(!v)return '–';const d=new Date(String(v).replace(' ','T')+'Z');return Number.isNaN(d.getTime())?String(v):d.toLocaleString('de-CH');}
+  function fmt(v){if(!v)return '–';const raw=String(v);const d=new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(raw)?raw:raw.replace(' ','T')+'Z');if(Number.isNaN(d.getTime()))return raw;const parts=new Intl.DateTimeFormat('de-CH',{timeZone:'Europe/Zurich',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',timeZoneName:'short'}).formatToParts(d);const get=t=>parts.find(x=>x.type===t)?.value||'';const zone=get('timeZoneName').replace('GMT+2','MESZ').replace('GMT+1','MEZ');return `${get('day')}.${get('month')}.${get('year')}, ${get('hour')}:${get('minute')} Uhr ${zone}`;}
   async function call(path,method='GET',body){
     const r=await fetch(API+path,{method,headers:{...(body?{'Content-Type':'application/json'}:{}),'Authorization':'Bearer '+token()},...(body?{body:JSON.stringify(body)}:{})});
     let data={};try{data=await r.json();}catch{data={ok:false,error:'Ungültige Antwort des Anmeldedienstes.'};}
@@ -3973,7 +3973,8 @@ document.head.appendChild(quizTimeStyle);
     box.querySelector('[data-copy]').onclick=async()=>{try{await navigator.clipboard.writeText(code);box.querySelector('[data-copy]').textContent='Kopiert';}catch{box.querySelector('[data-copy]').textContent='Bitte manuell kopieren';}};
     box.querySelector('[data-close]').onclick=()=>box.remove();document.body.appendChild(box);
   }
-  async function createCode(id){
+  async function createCode(id,replaceExisting=false){
+    if(replaceExisting&&!window.confirm('Vorhandenen Code ersetzen?\n\nDer bisherige Einmalcode wird sofort ungültig. Der neue Code ist ab der Erzeugung 48 Stunden gültig.'))return;
     try{const data=await call('/admin/password-reset-code','POST',{requestId:Number(id)});codeDialog(data.resetCode,data.expiresAt);await load();}
     catch(e){showToast(e.message,'error','Code konnte nicht erzeugt werden',3000);}
   }
@@ -3982,7 +3983,7 @@ document.head.appendChild(quizTimeStyle);
   function view(){
     const wrap=document.createElement('div');wrap.className='pw-admin-wrap';
     wrap.innerHTML='<div class="page-header"><button class="back-btn" type="button">←</button><h2 class="page-title">Passwortanfragen</h2></div><div class="pw-admin-note"><strong>Sicherheit:</strong> Name oder Erkennungsangabe ist nur eine Zuordnungshilfe. Einen Einmalcode erst nach persönlicher oder anderweitig sicherer Identitätsprüfung weitergeben.</div><div class="pw-admin-toolbar"><button class="pw-admin-refresh" type="button">↻ Aktualisieren</button></div><div data-list></div>';
-    wrap.querySelector('.back-btn').onclick=()=>set({view:'menu'});wrap.querySelector('.pw-admin-refresh').onclick=load;
+    wrap.querySelector('.back-btn').onclick=()=>{S.activeTab='admin';S.view='admin-hub';render();};wrap.querySelector('.pw-admin-refresh').onclick=load;
     const list=wrap.querySelector('[data-list]');
     if(!mainAdmin()){list.innerHTML='<div class="pw-admin-empty">Keine Berechtigung.</div>';return wrap;}
     if(state.loading){list.innerHTML='<div class="pw-admin-empty">Anfragen werden geladen …</div>';return wrap;}
@@ -3991,12 +3992,12 @@ document.head.appendChild(quizTimeStyle);
     list.innerHTML=state.items.map(x=>{
       const st=String(x.status||'open');let actions='';
       if(st==='open')actions='<div class="pw-admin-actions"><button class="pw-approve" data-approve="'+x.id+'">Genehmigen</button><button class="pw-reject" data-reject="'+x.id+'">Ablehnen</button></div>';
-      if(st==='approved')actions='<div class="pw-admin-actions"><button class="pw-code" data-code="'+x.id+'">8-stelligen Einmalcode erzeugen</button><button class="pw-reject" data-reject="'+x.id+'">Ablehnen</button></div>';
+      if(st==='approved'){const hasCode=Boolean(x.code_created_at||x.reset_code_expires_at);actions='<div class="pw-admin-actions"><button class="pw-code" data-code="'+x.id+'" data-replace="'+(hasCode?'1':'0')+'">'+(hasCode?'Neuen Code erzeugen':'8-stelligen Einmalcode erzeugen')+'</button><button class="pw-reject" data-reject="'+x.id+'">Ablehnen</button></div>';}
       return '<article class="pw-admin-card"><div class="pw-admin-top"><div><div class="pw-admin-name">'+esc(x.requester_identity||'Keine Erkennungsangabe')+'</div><div class="pw-admin-user">Benutzername: '+esc(x.username||x.username_normalized||'–')+'</div></div><span class="pw-admin-pill '+esc(st)+'">'+esc(st)+'</span></div><div class="pw-admin-meta">Angefragt: '+esc(fmt(x.requested_at))+'<br>Code erzeugt: '+esc(fmt(x.code_created_at))+'<br>Gültig bis: '+esc(fmt(x.reset_code_expires_at))+'<br>Fehlversuche: '+esc(x.failed_code_attempts||0)+'</div>'+actions+'</article>';
     }).join('');
     list.querySelectorAll('[data-approve]').forEach(b=>b.onclick=()=>status(b.dataset.approve,'approved'));
     list.querySelectorAll('[data-reject]').forEach(b=>b.onclick=()=>status(b.dataset.reject,'rejected'));
-    list.querySelectorAll('[data-code]').forEach(b=>b.onclick=()=>createCode(b.dataset.code));return wrap;
+    list.querySelectorAll('[data-code]').forEach(b=>b.onclick=()=>createCode(b.dataset.code,b.dataset.replace==='1'));return wrap;
   }
   const oldRenderMenu=window.renderMenu||renderMenu;
   window.renderMenu=renderMenu=function(){const node=oldRenderMenu();if(mainAdmin()){const button=document.createElement('button');button.type='button';button.className='menu-btn pw-admin-entry';button.innerHTML='<div class="mc-icon">🔐</div><div><p class="mc-title">Passwortanfragen</p><p class="mc-sub">Anfragen prüfen und Einmalcodes erstellen</p></div>';button.onclick=window.openPasswordResetAdmin;node.appendChild(button);}return node;};
@@ -4022,8 +4023,7 @@ document.head.appendChild(quizTimeStyle);
   }
   function adminHub(){
     const wrap=document.createElement('div');wrap.className='admin-hub-wrap';
-    wrap.innerHTML='<div class="page-header"><button class="back-btn" type="button">←</button><h2 class="page-title">Administration</h2></div><button class="admin-hub-card" data-passwords><div class="admin-hub-icon">🔐</div><div><strong>Passwortanfragen</strong><span>Anfragen prüfen, genehmigen und Einmalcodes erstellen</span></div></button><button class="admin-hub-card" data-users><div class="admin-hub-icon">👥</div><div><strong>Benutzerkonten</strong><span>Aktive und noch nicht migrierte Konten verwalten</span></div></button>';
-    wrap.querySelector('.back-btn').onclick=()=>set({view:'menu'});
+    wrap.innerHTML='<div class="page-header"><h2 class="page-title">Administration</h2></div><button class="admin-hub-card" data-passwords><div class="admin-hub-icon">🔐</div><div><strong>Passwortanfragen</strong><span>Anfragen prüfen, genehmigen und Einmalcodes erstellen</span></div></button><button class="admin-hub-card" data-users><div class="admin-hub-icon">👥</div><div><strong>Benutzerkonten</strong><span>Aktive und noch nicht migrierte Konten verwalten</span></div></button>';
     wrap.querySelector('[data-passwords]').onclick=()=>window.openPasswordResetAdmin();
     wrap.querySelector('[data-users]').onclick=()=>{S.view='admin-users';render();loadAccounts();};
     return wrap;
