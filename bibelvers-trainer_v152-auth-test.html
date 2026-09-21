@@ -480,6 +480,23 @@ body.is-mobile .profile-trophy-badge{font-size:9.5px;padding:3px 6px;}
 </style>
 
 <!-- Reiterwechsel scrollt automatisch nach oben, damit keine alte Scrollposition übernommen wird. -->
+
+<style>
+#password-reset-request-form.reset-request-complete > h2,
+#password-reset-request-form.reset-request-complete > p,
+#password-reset-request-form.reset-request-complete > .bt128-fg,
+#password-reset-request-form.reset-request-complete > button[type="submit"]{
+  display:none!important;
+}
+#password-reset-request-form.reset-request-complete > button[onclick="openPasswordResetCode()"]{
+  margin-top:18px!important;
+  padding:15px 18px!important;
+  border-radius:16px!important;
+  background:linear-gradient(135deg,#8b5cf6,#6d39e8)!important;
+  color:white!important;
+  box-shadow:0 10px 28px rgba(109,57,232,.24)!important;
+}
+</style>
 </head>
 <body>
 <div class="orb1"></div><div class="orb2"></div><div class="orb3"></div>
@@ -2854,6 +2871,8 @@ document.head.appendChild(quizTimeStyle);
   window.openPasswordResetRequest=function(){
     const loginName=document.getElementById('login-username')?.value.trim()||'';
     const requestName=document.getElementById('reset-request-username');if(requestName&&!requestName.value)requestName.value=loginName;
+    const requestForm=document.getElementById('password-reset-request-form');
+    if(requestForm)requestForm.classList.remove('reset-request-complete');
     setResetAlert('password-reset-request-alert','');showResetForm('password-reset-request-form');
   };
   window.openPasswordResetCode=function(){
@@ -2876,10 +2895,8 @@ document.head.appendChild(quizTimeStyle);
       if(!r.ok||!data.ok)throw new Error(data.error||'Die Anfrage konnte nicht gesendet werden.');
       setResetAlert('password-reset-request-alert',data.message||'Die Anfrage wurde gespeichert.',true);
       const codeName=document.getElementById('reset-code-username');if(codeName)codeName.value=username;
-      const next=document.createElement('button');
-      next.type='button';next.className='bt128-auth-submit';next.style.marginTop='10px';next.textContent='Einmalcode eingeben';next.onclick=window.openPasswordResetCode;
-      const alert=document.getElementById('password-reset-request-alert');
-      if(alert&&!alert.parentElement.querySelector('[data-reset-next]')){next.dataset.resetNext='1';alert.insertAdjacentElement('afterend',next);}
+      const requestForm=document.getElementById('password-reset-request-form');
+      if(requestForm)requestForm.classList.add('reset-request-complete');
     }catch(err){setResetAlert('password-reset-request-alert',err?.message||'Die Anfrage konnte nicht gesendet werden.');}
     finally{if(button){button.disabled=false;button.textContent='Anfrage absenden';}}
     return false;
