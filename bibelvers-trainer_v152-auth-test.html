@@ -518,7 +518,13 @@ body.is-mobile .profile-trophy-badge{font-size:9.5px;padding:3px 6px;}
 .tab-nav.admin-tab-nav{width:min(640px,calc(100vw - 20px))!important;grid-template-columns:repeat(6,1fr)!important}
 @media(max-width:620px){.tab-nav.admin-tab-nav{width:min(98vw,640px)!important;gap:3px!important;padding:6px!important}.admin-tab-nav .tab-btn{padding:8px 2px 7px!important}.admin-tab-nav .tab-label{font-size:9px!important}.admin-tab-nav .tab-icon{font-size:17px!important}}
 </style>
-<style>.admin-user-badge.pending{white-space:nowrap}</style></head>
+<style>.admin-user-badge.pending{white-space:nowrap}</style>
+<style>
+.tab-btn{position:relative}
+.admin-alert-badge{position:absolute;top:3px;right:clamp(5px,16%,18px);min-width:18px;height:18px;padding:0 5px;display:flex;align-items:center;justify-content:center;border-radius:999px;background:#dc2626;color:#fff;border:2px solid #17122f;font-size:10px;font-weight:900;line-height:1;box-shadow:0 3px 10px rgba(220,38,38,.45)}
+.admin-alert-badge[hidden]{display:none!important}
+</style>
+</head>
 <body>
 <div class="orb1"></div><div class="orb2"></div><div class="orb3"></div>
 <div class="stars"></div>
@@ -597,7 +603,7 @@ async function fbMerge(c,d,v){try{await db.collection(c).doc(d).set(v,{merge:tru
 async function fbDel(c,d){try{await db.collection(c).doc(d).delete();}catch(e){console.error(e);}}
 
 const PALETTE=["#8b5cf6","#6366f1","#ec4899","#f97316","#14b8a6","#10b981","#3b82f6","#f59e0b","#22c55e","#0ea5e9","#06b6d4","#a855f7","#d946ef","#eab308","#ef4444","#f43f5e","#84cc16","#0f766e","#2563eb","#7c2d12","#be123c","#0891b2","#4ade80","#facc15"];
-const EMOJIS=["✝","🕊","📖","🌟","🙏","⚓","🌿","💎","🔥","🌙","👑","❤️","📚","💡","🏆","🛡️","🦁","🐑","🐟","🪨","⭐","✨","🕯️","☀️","🧭","🗺️","🏛️","⛪","🎺","🪔","🪶","🌊"];
+const EMOJIS=["✝","🕊","📖","🌟","🙏","⚓","🌿","💎","🔥","🌙","👑","❤️","📚","💡","🏆","🛡️","🦁","🐯","🐑","🐟","🪨","⭐","✨","🕯️","☀️","🧭","🗺️","🏛️","⛪","🎺","🪔","🪶","🌊"];
 const BUECHER=["1. Mose","2. Mose","3. Mose","4. Mose","5. Mose","Josua","Richter","Rut","1. Samuel","2. Samuel","1. Könige","2. Könige","1. Chronik","2. Chronik","Esra","Nehemia","Ester","Hiob","Psalmen","Sprüche","Prediger","Hoheslied","Jesaja","Jeremia","Klagelieder","Hesekiel","Daniel","Hosea","Joel","Amos","Obadja","Jona","Micha","Nahum","Habakuk","Zefanja","Haggai","Sacharja","Maleachi","Matthäus","Markus","Lukas","Johannes","Apostelgeschichte","Römer","1. Korinther","2. Korinther","Galater","Epheser","Philipper","Kolosser","1. Thessalonicher","2. Thessalonicher","1. Timotheus","2. Timotheus","Titus","Philemon","Hebräer","Jakobus","1. Petrus","2. Petrus","1. Johannes","2. Johannes","3. Johannes","Judas","Offenbarung"];
 const BUECHER_AT=BUECHER.slice(0,39),BUECHER_NT=BUECHER.slice(39);
 const KAPITEL=[50,40,27,36,34,24,21,4,31,24,22,25,29,36,10,13,10,42,150,31,12,8,66,52,5,48,12,14,3,9,1,4,7,3,3,3,2,14,4,28,16,24,41,28,16,16,13,6,6,4,4,5,3,6,4,3,1,13,5,5,3,5,1,1,1,22];
@@ -3744,7 +3750,7 @@ document.head.appendChild(quizTimeStyle);
 
 <!-- v151: Lernen - Reihenfolge der Bibelbuecher -->
 <style>
-.booklearn-choice-btn{background:linear-gradient(135deg,#0f766e,#0891b2 52%,#2563eb)!important;border:1px solid rgba(165,243,252,.55)!important;box-shadow:0 0 18px rgba(34,211,238,.2),0 9px 30px rgba(37,99,235,.24)!important;color:#fff!important}
+.booklearn-choice-btn{background:linear-gradient(135deg,#0f766e,#0d9488 52%,#166534)!important;border:1px solid rgba(110,231,183,.52)!important;box-shadow:0 0 18px rgba(16,185,129,.18),0 9px 30px rgba(22,101,52,.25)!important;color:#fff!important}
 .bl-setup{display:flex;flex-direction:column;gap:14px}
 .bl-testaments{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .bl-testament{padding:15px 12px;border-radius:17px;border:1px solid rgba(165,243,252,.2);background:rgba(255,255,255,.055);color:#ede9fe;font:700 14px 'Inter',sans-serif;cursor:pointer;transition:.16s}
@@ -4170,6 +4176,50 @@ document.head.appendChild(quizTimeStyle);
       if(root&&!root.querySelector('.tab-nav'))root.appendChild(renderTabNav());
     }
   };
+})();
+</script>
+
+<script>
+(function(){
+  let adminOpenRequestCount=null;
+  let adminCountLoading=false;
+  let adminCountCheckedAt=0;
+  function session(){try{return JSON.parse(sessionStorage.getItem('bt_secure_auth_session')||'null');}catch{return null;}}
+  function isMainAdmin(){return Boolean(session()?.account?.isMainAdmin);}
+  async function refreshAdminBadge(force=false){
+    if(!isMainAdmin()||adminCountLoading)return;
+    if(!force&&Date.now()-adminCountCheckedAt<30000&&adminOpenRequestCount!==null){paintBadges();return;}
+    const idToken=session()?.firebase?.idToken;if(!idToken)return;
+    adminCountLoading=true;
+    try{
+      const r=await fetch('https://bibel-trainer-auth.schellenberg-schule.workers.dev/admin/password-reset-requests',{headers:{'Authorization':'Bearer '+idToken}});
+      const data=await r.json();
+      if(r.ok&&data.ok){adminOpenRequestCount=(data.requests||[]).filter(x=>String(x.status||'').toLowerCase()==='open').length;adminCountCheckedAt=Date.now();paintBadges();}
+    }catch(_){/* Badge failure must not block navigation. */}
+    finally{adminCountLoading=false;}
+  }
+  function paintBadges(){
+    document.querySelectorAll('[data-admin-tab]').forEach(btn=>{
+      let badge=btn.querySelector('.admin-alert-badge');
+      if(!badge){badge=document.createElement('span');badge.className='admin-alert-badge';btn.appendChild(badge);}
+      const count=Number(adminOpenRequestCount||0);badge.textContent=count>99?'99+':String(count);badge.hidden=count<1;badge.setAttribute('aria-label',count+' offene Passwortanfragen');
+    });
+  }
+  window.refreshAdminRequestBadge=refreshAdminBadge;
+  window.renderTabNav=renderTabNav=function(){
+    const tabs=[{id:'books',icon:'📚',label:'Bücher'},{id:'verse',icon:'📖',label:'Verse'},{id:'quiz',icon:'💡',label:'Wissen'},{id:'stats',icon:'📊',label:'Statistik'},{id:'profile',icon:'⚙️',label:'Profil'}];
+    if(isMainAdmin())tabs.push({id:'admin',icon:'🛡️',label:'Admin'});
+    const current=(S.view==='admin-hub'||S.view==='admin-users'||S.view==='password-reset-admin')?'admin':(S.activeTab||'books');
+    const nav=el('div',{cls:'tab-nav quiz-tab-nav'+(isMainAdmin()?' admin-tab-nav':'')},...tabs.map(t=>{
+      const attrs={cls:'tab-btn'+(current===t.id?' active':''),type:'button'};if(t.id==='admin')attrs['data-admin-tab']='1';
+      const b=el('button',attrs,span('tab-icon',t.icon),span('tab-label',t.label));
+      b.onclick=()=>{if(t.id==='admin'){S.activeTab='admin';if(typeof window.openAdminHub==='function')window.openAdminHub();return;}set({activeTab:t.id,view:'menu'});};return b;
+    }));
+    nav.style.gridTemplateColumns='repeat('+tabs.length+',1fr)';nav.style.width=isMainAdmin()?'min(640px,calc(100vw - 20px))':'min(540px,calc(100vw - 20px))';
+    if(isMainAdmin())setTimeout(()=>refreshAdminBadge(false),0);return nav;
+  };
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshAdminBadge(true);});
+  window.addEventListener('focus',()=>refreshAdminBadge(true));
 })();
 </script>
 </body>
