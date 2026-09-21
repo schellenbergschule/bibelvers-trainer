@@ -523,8 +523,10 @@ body.is-mobile .profile-trophy-badge{font-size:9.5px;padding:3px 6px;}
     <form id="password-reset-request-form" class="bt128-hidden" onsubmit="submitPasswordResetRequest(event);return false;" autocomplete="off">
       <div id="password-reset-request-alert"></div>
       <h2 style="margin:0 0 8px;color:#f5f3ff;font-size:22px">Passwort zurücksetzen</h2>
-      <p style="margin:0 0 18px;color:rgba(221,214,254,.72);font-size:13px;line-height:1.5">Gib deinen Benutzernamen ein; der Hauptadministrator kann danach einen zeitlich begrenzten Einmalcode erstellen.</p>
+      <p style="margin:0 0 18px;color:rgba(221,214,254,.72);font-size:13px;line-height:1.5">Gib deinen Benutzernamen und eine eindeutige Erkennungsangabe ein. Der Hauptadministrator prüft die Anfrage und übermittelt dir den Einmalcode persönlich oder über einen bereits bekannten Kontaktweg.</p>
       <div class="bt128-fg"><label for="reset-request-username">Benutzername</label><input type="text" id="reset-request-username" placeholder="Benutzername" autocomplete="username" required autocapitalize="none" spellcheck="false"></div>
+      <div class="bt128-fg"><label for="reset-request-identity">Name oder Erkennungsangabe</label><input type="text" id="reset-request-identity" placeholder="z. B. Vorname Nachname, Klasse 7a" maxlength="120" autocomplete="name" required></div>
+      <p style="margin:-4px 0 16px;color:rgba(221,214,254,.58);font-size:12px;line-height:1.45">Diese Angabe hilft bei der Zuordnung, ersetzt aber keine persönliche Identitätsprüfung.</p>
       <button type="submit" class="bt128-auth-submit">Anfrage absenden</button>
       <button type="button" onclick="openPasswordResetCode()" style="display:block;width:100%;margin-top:10px;padding:8px;border:0;background:transparent;color:#c4b5fd;font:inherit;font-weight:700;cursor:pointer">Ich habe bereits einen Einmalcode</button>
       <button type="button" onclick="closePasswordReset()" style="display:block;width:100%;padding:8px;border:0;background:transparent;color:rgba(221,214,254,.62);font:inherit;cursor:pointer">Zurück zur Anmeldung</button>
@@ -532,9 +534,9 @@ body.is-mobile .profile-trophy-badge{font-size:9.5px;padding:3px 6px;}
     <form id="password-reset-code-form" class="bt128-hidden" onsubmit="submitPasswordResetWithCode(event);return false;" autocomplete="off">
       <div id="password-reset-code-alert"></div>
       <h2 style="margin:0 0 8px;color:#f5f3ff;font-size:22px">Neues Passwort festlegen</h2>
-      <p style="margin:0 0 18px;color:rgba(221,214,254,.72);font-size:13px;line-height:1.5">Trage den vom Hauptadministrator erhaltenen Einmalcode und dein neues Passwort ein.</p>
+      <p style="margin:0 0 18px;color:rgba(221,214,254,.72);font-size:13px;line-height:1.5">Trage den vom Hauptadministrator erhaltenen achtstelligen Einmalcode und dein neues Passwort ein. Der Code ist 48 Stunden gültig.</p>
       <div class="bt128-fg"><label for="reset-code-username">Benutzername</label><input type="text" id="reset-code-username" placeholder="Benutzername" autocomplete="username" required autocapitalize="none" spellcheck="false"></div>
-      <div class="bt128-fg"><label for="reset-code">Einmalcode</label><input type="text" id="reset-code" placeholder="ABCDE" maxlength="5" autocomplete="one-time-code" required autocapitalize="characters" spellcheck="false" style="text-transform:uppercase;letter-spacing:.18em"></div>
+      <div class="bt128-fg"><label for="reset-code">Einmalcode</label><input type="text" id="reset-code" placeholder="7KMP4RX9" maxlength="8" autocomplete="one-time-code" required autocapitalize="characters" spellcheck="false" style="text-transform:uppercase;letter-spacing:.18em"></div>
       <div class="bt128-fg"><label for="reset-new-password">Neues Passwort</label><input type="password" id="reset-new-password" placeholder="Mindestens 8 Zeichen" autocomplete="new-password" minlength="8" required></div>
       <div class="bt128-fg"><label for="reset-confirm-password">Passwort wiederholen</label><input type="password" id="reset-confirm-password" placeholder="Passwort nochmals eingeben" autocomplete="new-password" minlength="8" required></div>
       <button type="submit" class="bt128-auth-submit">Passwort speichern</button>
@@ -2887,13 +2889,16 @@ document.head.appendChild(quizTimeStyle);
   window.submitPasswordResetRequest=async function(e){
     if(e)e.preventDefault();
     const username=document.getElementById('reset-request-username')?.value.trim()||'';
+    const requesterIdentity=document.getElementById('reset-request-identity')?.value.trim().replace(/\s+/g,' ')||'';
     if(!username){setResetAlert('password-reset-request-alert','Bitte gib deinen Benutzernamen ein.');return false;}
+    if(requesterIdentity.length<3){setResetAlert('password-reset-request-alert','Bitte gib deinen Namen oder eine eindeutige Erkennungsangabe ein.');return false;}
+    if(requesterIdentity.length>120){setResetAlert('password-reset-request-alert','Die Erkennungsangabe darf höchstens 120 Zeichen enthalten.');return false;}
     const button=document.querySelector('#password-reset-request-form button[type="submit"]');
     if(button){button.disabled=true;button.textContent='Anfrage wird gesendet …';}
     try{
-      const {r,data}=await authCall('/request-password-reset',{username});
+      const {r,data}=await authCall('/request-password-reset',{username,requesterIdentity});
       if(!r.ok||!data.ok)throw new Error(data.error||'Die Anfrage konnte nicht gesendet werden.');
-      setResetAlert('password-reset-request-alert',data.message||'Die Anfrage wurde gespeichert.',true);
+      setResetAlert('password-reset-request-alert','Anfrage entgegengenommen. Falls ein aktives Konto mit diesem Benutzernamen vorhanden ist, prüft der Hauptadministrator die Anfrage und übermittelt den 48 Stunden gültigen Einmalcode persönlich oder über einen bereits bekannten Kontaktweg.',true);
       const codeName=document.getElementById('reset-code-username');if(codeName)codeName.value=username;
       const requestForm=document.getElementById('password-reset-request-form');
       if(requestForm)requestForm.classList.add('reset-request-complete');
@@ -2907,7 +2912,7 @@ document.head.appendChild(quizTimeStyle);
     const resetCode=(document.getElementById('reset-code')?.value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
     const newPassword=document.getElementById('reset-new-password')?.value||'';
     const passwordConfirmation=document.getElementById('reset-confirm-password')?.value||'';
-    if(!username||resetCode.length!==5){setResetAlert('password-reset-code-alert','Bitte prüfe Benutzername und Einmalcode.');return false;}
+    if(!username||resetCode.length!==8){setResetAlert('password-reset-code-alert','Bitte prüfe Benutzername und den achtstelligen Einmalcode.');return false;}
     if(newPassword.length<8||!/[a-z]/.test(newPassword)||!/[0-9]/.test(newPassword)){setResetAlert('password-reset-code-alert','Das Passwort braucht mindestens 8 Zeichen, einen Kleinbuchstaben und eine Zahl.');return false;}
     if(newPassword!==passwordConfirmation){setResetAlert('password-reset-code-alert','Die beiden Passwörter stimmen nicht überein.');return false;}
     const button=document.querySelector('#password-reset-code-form button[type="submit"]');
