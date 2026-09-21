@@ -518,7 +518,7 @@ body.is-mobile .profile-trophy-badge{font-size:9.5px;padding:3px 6px;}
 .tab-nav.admin-tab-nav{width:min(640px,calc(100vw - 20px))!important;grid-template-columns:repeat(6,1fr)!important}
 @media(max-width:620px){.tab-nav.admin-tab-nav{width:min(98vw,640px)!important;gap:3px!important;padding:6px!important}.admin-tab-nav .tab-btn{padding:8px 2px 7px!important}.admin-tab-nav .tab-label{font-size:9px!important}.admin-tab-nav .tab-icon{font-size:17px!important}}
 </style>
-</head>
+<style>.admin-user-badge.pending{white-space:nowrap}</style></head>
 <body>
 <div class="orb1"></div><div class="orb2"></div><div class="orb3"></div>
 <div class="stars"></div>
@@ -1528,8 +1528,26 @@ function renderProfile(){
   const cRow=div("color-row",...PALETTE.map(c=>{const d=div("color-opt"+(S.pColor===c?" sel":""));d.style.background=c;d.onclick=()=>set({pColor:c});return d;}));
   const saveApp=btn("save-btn","Speichern",async()=>{
     const newName=(S.pName||"").trim()||u.name;
-    const upd={...u,name:newName,emoji:S.pEmoji,color:S.pColor};
-    await saveUsers(S.users.map(x=>x.id===u.id?upd:x));S.user=upd;S.pName=newName;render();showToast('Profil gespeichert.','success','Style aktualisiert',1400);
+    if(newName.length<3||newName.length>24){showToast('Der Benutzername muss 3 bis 24 Zeichen lang sein.','error','Ungültiger Benutzername',2400);return;}
+    let secureSession=null;try{secureSession=JSON.parse(sessionStorage.getItem('bt_secure_auth_session')||'null');}catch(_){secureSession=null;}
+    const nameChanged=newName!==u.name;
+    saveApp.disabled=true;saveApp.textContent='Wird gespeichert …';
+    try{
+      if(nameChanged){
+        if(!secureSession?.firebase?.idToken)throw new Error('Bitte melde dich erneut an, bevor du den Benutzernamen änderst.');
+        const response=await fetch('https://bibel-trainer-auth.schellenberg-schule.workers.dev/change-username',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+secureSession.firebase.idToken},body:JSON.stringify({newUsername:newName})});
+        let data={};try{data=await response.json();}catch(_){data={ok:false,error:'Ungültige Antwort des Anmeldedienstes.'};}
+        if(!response.ok||!data.ok)throw new Error(data.error||'Der Benutzername konnte nicht geändert werden.');
+        secureSession.username=newName;secureSession.account={...(secureSession.account||{}),...(data.account||{}),username:newName};secureSession.at=Date.now();
+        sessionStorage.setItem('bt_secure_auth_session',JSON.stringify(secureSession));
+      }
+      const upd={...u,name:newName,emoji:S.pEmoji,color:S.pColor};
+      await saveUsers(S.users.map(x=>x.id===u.id?upd:x));
+      await saveProfileCloudPatch(u.id,{name:newName,emoji:S.pEmoji,color:S.pColor});
+      S.user=upd;S.users=S.users.map(x=>x.id===u.id?upd:x);S.pName=newName;render();
+      showToast(nameChanged?'Benutzername und Profil wurden sicher aktualisiert.':'Profil gespeichert.','success','Aktualisiert',1800);
+    }catch(err){S.pName=u.name;render();showToast(err?.message||'Das Profil konnte nicht gespeichert werden.','error','Speichern fehlgeschlagen',3200);}
+    finally{saveApp.disabled=false;saveApp.textContent='Speichern';}
   });
   const pOldI=el("input",{cls:"f-input",type:"password",placeholder:"Aktuelles Passwort"});pOldI.value=S.pOld;pOldI.oninput=e=>{S.pOld=e.target.value;S.pErr="";S.pOk=false;};
   const pNewI=el("input",{cls:"f-input",type:"password",placeholder:"Neues Passwort"});pNewI.value=S.pNew;pNewI.oninput=e=>{S.pNew=e.target.value;S.pErr="";S.pOk=false;};
@@ -4047,10 +4065,19 @@ document.head.appendChild(quizTimeStyle);
     if(!accountState.items.length){list.innerHTML='<div class="pw-admin-empty">Keine Benutzerkonten vorhanden.</div>';return wrap;}
     list.innerHTML=accountState.items.map(a=>{
       const protectedAccount=a.isMainAdmin||a.isCurrentAdmin;
-      const badges='<div class="admin-user-badges"><span class="admin-user-badge '+(a.status==='pending'?'pending':'')+'">'+esc(a.status)+'</span>'+(a.isMainAdmin?'<span class="admin-user-badge admin">Hauptadmin</span>':'')+(a.isContentAdmin?'<span class="admin-user-badge admin">Inhaltsadmin</span>':'')+'</div>';
-      return '<article class="admin-user-card"><div class="admin-user-head"><div><div class="admin-user-name">'+esc(a.username)+'</div>'+badges+'</div></div><div class="admin-user-meta">UID: '+esc(shortUid(a.firebaseUid))+'<br>Erstellt: '+esc(fmt(a.createdAt))+'<br>Migriert: '+esc(fmt(a.migrationCompletedAt))+'</div><button type="button" class="admin-user-delete" data-delete="'+esc(a.firebaseUid)+'" data-name="'+esc(a.username)+'" '+(protectedAccount?'disabled title="Hauptadministratorkonto geschützt"':'')+'>'+(protectedAccount?'Geschützt':'Benutzer löschen')+'</button></article>';
+      const profile=(S.users||[]).find(u=>u.id===a.firebaseUid);const profileName=profile?.name||'';const mismatch=Boolean(profileName&&profileName!==a.username);
+      const badges='<div class="admin-user-badges"><span class="admin-user-badge '+(a.status==='pending'?'pending':'')+'">'+esc(a.status)+'</span>'+(a.isMainAdmin?'<span class="admin-user-badge admin">Hauptadmin</span>':'')+(a.isContentAdmin?'<span class="admin-user-badge admin">Inhaltsadmin</span>':'')+(mismatch?'<span class="admin-user-badge pending">Name abweichend</span>':'')+'</div>';
+      const repair=mismatch?'<button type="button" class="pw-code" style="margin-top:12px;padding:9px 12px;border:0;border-radius:11px;font-weight:850;cursor:pointer" data-repair="'+esc(a.firebaseUid)+'" data-old-name="'+esc(a.username)+'" data-profile-name="'+esc(profileName)+'">Mit Profilnamen synchronisieren</button>':'';
+      return '<article class="admin-user-card"><div class="admin-user-head"><div><div class="admin-user-name">'+esc(a.username)+'</div>'+badges+'</div></div><div class="admin-user-meta">Anmeldename in D1: '+esc(a.username)+'<br>Profilname: '+esc(profileName||'–')+'<br>UID: '+esc(shortUid(a.firebaseUid))+'<br>Erstellt: '+esc(fmt(a.createdAt))+'<br>Migriert: '+esc(fmt(a.migrationCompletedAt))+'</div>'+repair+'<br><button type="button" class="admin-user-delete" data-delete="'+esc(a.firebaseUid)+'" data-name="'+esc(a.username)+'" '+(protectedAccount?'disabled title="Hauptadministratorkonto geschützt"':'')+'>'+(protectedAccount?'Geschützt':'Benutzer löschen')+'</button></article>';
     }).join('');
     list.querySelectorAll('[data-delete]:not(:disabled)').forEach(b=>b.onclick=()=>deleteDialog(b.dataset.delete,b.dataset.name));
+    list.querySelectorAll('[data-repair]').forEach(b=>b.onclick=async()=>{
+      const wanted=b.dataset.profileName,oldName=b.dataset.oldName;
+      if(!window.confirm('Benutzernamen synchronisieren?\n\nD1-Anmeldename: '+oldName+'\nProfilname: '+wanted+'\n\nDanach meldet sich das Konto mit dem Profilnamen an.'))return;
+      b.disabled=true;b.textContent='Wird synchronisiert …';
+      try{await api('/admin/change-username','POST',{firebaseUid:b.dataset.repair,newUsername:wanted});showToast('Benutzername wurde mit dem Profil synchronisiert.','success','Konto repariert',2200);await loadAccounts();}
+      catch(e){showToast(e?.message||'Synchronisierung fehlgeschlagen.','error','Reparatur fehlgeschlagen',3200);b.disabled=false;b.textContent='Mit Profilnamen synchronisieren';}
+    });
     return wrap;
   }
   function deleteDialog(firebaseUid,username){
