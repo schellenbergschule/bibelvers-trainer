@@ -524,6 +524,17 @@ body.is-mobile .profile-trophy-badge{font-size:9.5px;padding:3px 6px;}
 .admin-alert-badge{position:absolute;top:3px;right:clamp(5px,16%,18px);min-width:18px;height:18px;padding:0 5px;display:flex;align-items:center;justify-content:center;border-radius:999px;background:#dc2626;color:#fff;border:2px solid #17122f;font-size:10px;font-weight:900;line-height:1;box-shadow:0 3px 10px rgba(220,38,38,.45)}
 .admin-alert-badge[hidden]{display:none!important}
 </style>
+
+<style>
+.community-card-clickable{cursor:pointer;transition:transform .18s,border-color .18s,box-shadow .18s}.community-card-clickable:hover,.community-card-clickable:focus{transform:translateY(-2px);border-color:rgba(167,139,250,.48);box-shadow:0 12px 28px rgba(76,29,149,.24);outline:none}.community-open-hint{margin-top:8px;font-size:10px;color:rgba(196,181,253,.56)}
+.community-detail-overlay{position:fixed;inset:0;z-index:15000;display:grid;place-items:center;padding:18px;background:rgba(5,3,16,.86);backdrop-filter:blur(8px)}.community-detail-card{width:min(470px,100%);max-height:calc(100dvh - 36px);overflow:auto;padding:22px;border-radius:24px;background:linear-gradient(145deg,#21183f,#11152f);border:1px solid rgba(196,181,253,.28);box-shadow:0 28px 80px rgba(0,0,0,.62);color:#f5f3ff}.community-detail-head{display:flex;align-items:center;gap:13px;margin-bottom:18px}.community-detail-avatar{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:29px;border:2px solid}.community-detail-name{font-family:'Lora',serif;font-size:21px;font-weight:600;color:#fff}.community-detail-sub{font-size:12px;color:rgba(221,214,254,.58);margin-top:3px}.community-detail-row{padding:12px 13px;margin-bottom:8px;border-radius:14px;background:rgba(255,255,255,.055);border:1px solid rgba(196,181,253,.12)}.community-detail-label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.45px;color:rgba(196,181,253,.58);margin-bottom:4px}.community-detail-value{display:block;font-size:13px;line-height:1.45;color:#f5f3ff;font-weight:600}.community-detail-close{width:100%;margin-top:10px;padding:12px;border:0;border-radius:13px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;font:inherit;font-weight:800;cursor:pointer}.community-detail-loading,.community-detail-error{text-align:center;padding:24px 8px;color:rgba(221,214,254,.72)}
+</style>
+<style>
+.reward-chip.double{background:linear-gradient(135deg,#1d4ed8,#2563eb)!important;border-color:#60a5fa!important;color:#eff6ff!important}
+.reward-chip.def{background:linear-gradient(135deg,#7f1d1d,#b91c1c)!important;border-color:#f87171!important;color:#fff1f2!important}
+.reward-chip.hint{background:linear-gradient(135deg,#6b21a8,#9333ea)!important;border-color:#c084fc!important;color:#faf5ff!important;cursor:pointer!important}
+.loot-card .loot-symbol{font-size:3.4rem!important;filter:drop-shadow(0 5px 12px rgba(0,0,0,.3))}
+</style>
 </head>
 <body>
 <div class="orb1"></div><div class="orb2"></div><div class="orb3"></div>
@@ -599,7 +610,15 @@ firebase.initializeApp({
 const db=firebase.firestore();
 async function fbGet(c,d){try{const s=await db.collection(c).doc(d).get();return s.exists?s.data():null;}catch(e){console.error(e);return null;}}
 async function fbSet(c,d,v){try{await db.collection(c).doc(d).set(v);}catch(e){console.error(e);}}
-async function fbMerge(c,d,v){try{await db.collection(c).doc(d).set(v,{merge:true});}catch(e){console.error(e);}}
+async function fbMerge(c,d,v){
+  try{
+    await db.collection(c).doc(d).set(v,{merge:true});
+    return true;
+  }catch(e){
+    console.error('Firebase-Merge fehlgeschlagen:',e);
+    throw e;
+  }
+}
 async function fbDel(c,d){try{await db.collection(c).doc(d).delete();}catch(e){console.error(e);}}
 
 const PALETTE=["#8b5cf6","#6366f1","#ec4899","#f97316","#14b8a6","#10b981","#3b82f6","#f59e0b","#22c55e","#0ea5e9","#06b6d4","#a855f7","#d946ef","#eab308","#ef4444","#f43f5e","#84cc16","#0f766e","#2563eb","#7c2d12","#be123c","#0891b2","#4ade80","#facc15"];
@@ -881,6 +900,71 @@ async function saveVerses(list){
 }
 async function loadProfileCloud(uid){return await fbGet("user_profiles",uid)||{};}
 async function saveProfileCloudPatch(uid,patch){if(!uid||!patch)return;await fbMerge("user_profiles",uid,patch);}
+
+// v171: Einheitlicher persönlicher Erfolgsspeicher mit verlustfreier Altstand-Zusammenführung.
+const ACHIEVEMENT_STORAGE_VERSION=2;
+const ACHIEVEMENT_COUNTER_FIELDS=[
+  'trophiesAT','trophiesNT',
+  'journeyWinsAT','journeyWinsNT','journeyWinsALL',
+  'templeWinsAT','templeWinsNT','templeWinsALL'
+];
+const ACHIEVEMENT_LIST_FIELDS=['quizHighscores','bookFillHighscores'];
+const ACHIEVEMENT_FIELD_SET=new Set([...ACHIEVEMENT_COUNTER_FIELDS,...ACHIEVEMENT_LIST_FIELDS]);
+function achievementNum(v){const n=Number(v);return Number.isFinite(n)&&n>=0?Math.floor(n):0;}
+function stableAchievementKey(value){
+  if(value===null||value===undefined)return String(value);
+  if(Array.isArray(value))return '['+value.map(stableAchievementKey).join(',')+']';
+  if(typeof value==='object')return '{'+Object.keys(value).sort().map(k=>JSON.stringify(k)+':'+stableAchievementKey(value[k])).join(',')+'}';
+  return JSON.stringify(value);
+}
+function mergeAchievementList(...lists){
+  const seen=new Set(),result=[];
+  lists.flatMap(v=>Array.isArray(v)?v:[]).forEach(entry=>{if(!entry)return;const key=stableAchievementKey(entry);if(seen.has(key))return;seen.add(key);result.push(entry);});
+  return result;
+}
+function mergeAchievementProfile(appUser,cloudProfile,currentUser,localQuizScores){
+  const app=appUser||{},cloud=cloudProfile||{},current=currentUser||{};
+  const merged={...app,...cloud,...current};
+  ACHIEVEMENT_COUNTER_FIELDS.forEach(field=>merged[field]=Math.max(achievementNum(app[field]),achievementNum(cloud[field]),achievementNum(current[field])));
+  merged.quizHighscores=mergeAchievementList(app.quizHighscores,cloud.quizHighscores,current.quizHighscores,localQuizScores);
+  merged.bookFillHighscores=mergeAchievementList(app.bookFillHighscores,cloud.bookFillHighscores,current.bookFillHighscores);
+  merged.achievementStorageVersion=ACHIEVEMENT_STORAGE_VERSION;
+  merged.achievementsReconciledAt=new Date().toISOString();
+  return merged;
+}
+function achievementProfilePatch(user){
+  const patch={achievementStorageVersion:ACHIEVEMENT_STORAGE_VERSION,achievementsReconciledAt:user.achievementsReconciledAt,quizHighscores:Array.isArray(user.quizHighscores)?user.quizHighscores:[],bookFillHighscores:Array.isArray(user.bookFillHighscores)?user.bookFillHighscores:[]};
+  ACHIEVEMENT_COUNTER_FIELDS.forEach(field=>patch[field]=achievementNum(user[field]));return patch;
+}
+async function reconcileAchievementProfile(appUser,cloudProfile){
+  let localQuiz=[];try{const key='bt_quiz_highscores_'+String(appUser?.id||cloudProfile?.id||'');const raw=localStorage.getItem(key);if(raw)localQuiz=JSON.parse(raw);}catch(_){localQuiz=[];}
+  const merged=mergeAchievementProfile(appUser,cloudProfile,S.user,localQuiz);if(!merged.id)merged.id=appUser?.id||cloudProfile?.id;
+  await saveProfileCloudPatch(merged.id,achievementProfilePatch(merged));return merged;
+}
+
+// Neue Erfolge werden ausschliesslich im persönlichen Dokument user_profiles/{uid} gespeichert.
+let achievementSaveChain=Promise.resolve();
+function saveAchievementPatch(patch){
+  if(!S.user?.id||!patch)return Promise.resolve(false);
+  const uid=S.user.id;
+  const clean={};
+  Object.entries(patch).forEach(([key,value])=>{
+    if(!ACHIEVEMENT_FIELD_SET.has(key))return;
+    clean[key]=ACHIEVEMENT_COUNTER_FIELDS.includes(key)?achievementNum(value):(Array.isArray(value)?value:[]);
+  });
+  if(!Object.keys(clean).length)return Promise.resolve(false);
+  const stamp=new Date().toISOString();
+  const cloudPatch={...clean,achievementStorageVersion:ACHIEVEMENT_STORAGE_VERSION,achievementsUpdatedAt:stamp};
+  const updated={...S.user,...clean,achievementStorageVersion:ACHIEVEMENT_STORAGE_VERSION,achievementsUpdatedAt:stamp};
+  S.user=updated;
+  S.users=(S.users||[]).map(u=>u.id===uid?{...u,...clean}:u);
+  achievementSaveChain=achievementSaveChain.catch(()=>{}).then(async()=>{
+    try{await saveProfileCloudPatch(uid,cloudPatch);return true;}
+    catch(err){console.error('Persönlicher Erfolg konnte nicht gespeichert werden:',err);if(typeof showToast==='function')showToast('Der neue Erfolg konnte nicht in der Cloud gespeichert werden. Bitte Internetverbindung prüfen und nochmals versuchen.','error','Speichern fehlgeschlagen',4200);return false;}
+  });
+  return achievementSaveChain;
+}
+
 
 async function saveLastVerseSelection(ids){
   if(!S.user)return;
@@ -1496,7 +1580,7 @@ function renderAllBooks(){
   const color=isAT?"rgba(232,197,71,.4)":"rgba(56,189,248,.4)";const colorText=isAT?"#e8c547":"#7dd3fc";
   if(S.abWon){
     const key=isAT?"trophiesAT":"trophiesNT";
-    if(!S.abTrophySaved){S.abTrophySaved=true;const newT=(S.user[key]||0)+1;const upd={...S.user,[key]:newT};S.user=upd;saveUsers(S.users.map(u=>u.id===upd.id?upd:u));}
+    if(!S.abTrophySaved){S.abTrophySaved=true;const newT=achievementNum(S.user?.[key])+1;saveAchievementPatch({[key]:newT}).then(saved=>{if(saved&&typeof showToast==='function')showToast('Der Pokal wurde in deiner Statistik gespeichert.','success','Pokal gespeichert',2200);});}
     const t=S.user[key]||1;
     wrap.appendChild(div("ab-win",el("span",{cls:"ab-win-emoji"},"🏆"),el("h2",{cls:"ab-win-title"},isAT?"Altes Testament gemeistert!":"Neues Testament gemeistert!"),el("p",{cls:"ab-win-sub"},`Alle ${books.length} Bücher richtig eingegeben!`),div("trophy-section",el("p",{cls:"trophy-title",style:`color:${colorText};`},`Pokale ${S.abTestament} (${t})`),div("trophy-row",...Array(Math.min(t,20)).fill("").map(()=>el("span",{},"🏆")))),el("div",{style:"display:flex;gap:10px;"},btn("ghost-btn","Anderes Testament",()=>set({abTestament:null,abIdx:0,abInput:"",abFeedback:"",abFeedbackOk:null,abWon:false,abTrophySaved:false})),btn("prim-btn","Nochmal",()=>set({abIdx:0,abInput:"",abFeedback:"",abFeedbackOk:null,abWon:false,abTrophySaved:false})))));
     return wrap;
@@ -1652,7 +1736,7 @@ async function doLogin(){
 
     const vd=await fbGet("verses",t.id);
     const cloud=await loadProfileCloud(t.id);
-    const mergedUser={...t,...cloud};
+    const mergedUser=await reconcileAchievementProfile(t,cloud);
     S.verses=vd?(vd.list||[]):[];
     S.counts={...S.counts,[t.id]:S.verses.length};
     S.user=mergedUser;
@@ -1767,7 +1851,7 @@ const css=`
 `;
 const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
 const ensure=()=>{S.activeTab=S.activeTab||'books';S.journeyClaimed=S.journeyClaimed||[];S.bfStreak=S.bfStreak||1;S.bfInput=S.bfInput||'';S.bfMsg=S.bfMsg||'';S.bfMsgOk=S.bfMsgOk??null;['journeyStep','journeyDouble','journeyJoker','journeySkip','journeyHint','journeyTurbo','journeyShield','templeStones','bfScore','bfCorrect'].forEach(k=>S[k]=S[k]||0);};ensure();
-function saveUserPatch(p){if(!S.user)return;const upd={...S.user,...p};S.user=upd;const users=S.users.map(u=>u.id===upd.id?upd:u);S.users=users;saveUsers(users);saveProfileCloudPatch(upd.id,p);}
+function saveUserPatch(p){if(!S.user)return Promise.resolve(false);const keys=Object.keys(p||{});if(keys.length&&keys.every(k=>ACHIEVEMENT_FIELD_SET.has(k)))return saveAchievementPatch(p);const upd={...S.user,...p};S.user=upd;const users=S.users.map(u=>u.id===upd.id?upd:u);S.users=users;return Promise.all([saveUsers(users),saveProfileCloudPatch(upd.id,p)]); }
 function incUser(k){saveUserPatch({[k]:(S.user&&S.user[k]||0)+1});}
 function scopeKey(prefix,scope){return prefix+(scope==='AT'?'AT':scope==='NT'?'NT':'ALL');}
 function scopeLabel(s){return s==='AT'?'AT':s==='NT'?'NT':'AT & NT';}
@@ -1779,19 +1863,24 @@ renderBooksTab=function(){const mk=(c,i,t,s,a)=>el('button',{cls:`menu-btn ${c}`
 renderStatsTab=function(){const w=renderStats();if(w.firstChild)w.removeChild(w.firstChild);w.insertBefore(tabTitle('Meine Statistik','Meine Statistik','Mein Lernen - meine Erfolge!'),w.firstChild||null);return w;};
 renderProfileTab=function(){if(S.user&&(!S.pName&&!S.pEmoji&&!S.pColor)){S.pEmoji=S.user.emoji;S.pColor=S.user.color;S.pName=S.user.name;}const w=renderProfile();if(w.firstChild)w.removeChild(w.firstChild);w.insertBefore(tabTitle('Einstellungen','Profil','Passe Name, Symbol, Farbe und Passwort an.'),w.firstChild||null);return w;};
 renderMenu=function(){const u=S.user,active=S.activeTab||'books';const hdr=div('page-header',el('div',{style:`width:42px;height:42px;border-radius:50%;background:${u.color}28;border:1.5px solid ${u.color}55;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0`},u.emoji),el('div',{},el('p',{style:'font-size:15px;font-weight:500;color:rgba(237,233,254,.92);margin-bottom:1px'},`Hallo, ${u.name}!`)),el('button',{type:'button',style:'font-size:12px;padding:5px 10px;margin-left:auto;background:linear-gradient(135deg,rgba(139,92,246,.15),rgba(99,102,241,.1));border:1px solid rgba(196,181,253,.2);color:rgba(221,214,254,.8);border-radius:10px;cursor:pointer;',onclick:()=>set({user:null,verses:[],view:'select',activeTab:'books'})},'Abmelden'));const content=active==='books'?renderBooksTab():active==='stats'?renderStatsTab():active==='profile'?renderProfileTab():renderVerseTab();return el('div',{cls:'tab-shell'},hdr,div('tab-content',content),renderTabNav());};
-const JL={4:{icon:'🎁',name:'Wüstenrast'},8:{icon:'🎁',name:'Manna-Station'},12:{icon:'🎁',name:'Jordanblick'}};const JR=[{key:'double',symbol:'🎯',name:'Doppelte Punkte',effect:'Die nächste korrekte Antwort zählt 2 Schritte.'},{key:'joker',symbol:'💡',name:'Joker',effect:'Der nächste Fehler wird verziehen – kein Rückfall.'},{key:'skip',symbol:'⏭️',name:'Skip',effect:'Du darfst die aktuelle Frage ohne Strafe überspringen.'},{key:'hint',symbol:'🔍',name:'Hinweis',effect:'Du kannst dir den ersten Buchstaben der gesuchten Antworten anzeigen lassen.'},{key:'turbo',symbol:'⚡',name:'Turbo',effect:'Die nächsten 3 korrekten Antworten geben je 2 Schritte.'},{key:'shield',symbol:'🛡️',name:'Schutzschild',effect:'Der nächste Fehler wirft dich nur 1 Schritt zurück.'}];
-journeyRange=s=>s==='AT'?{min:1,max:37,label:'Altes Testament'}:s==='NT'?{min:40,max:64,label:'Neues Testament'}:{min:1,max:64,label:'AT & NT'};randBook=function(s,e){const r=journeyRange(s);let n;do{n=Math.floor(Math.random()*(r.max-r.min+1))+r.min;}while(n===e);return n;};initBookJourney=s=>set({view:'bibelorder',activeTab:'books',journeyScope:s,boBook:randBook(s,null),boVor:'',boNach:'',journeyStep:0,journeyClaimed:[],journeyRewardOpen:false,journeyReward:null,journeyDouble:0,journeyJoker:0,journeySkip:0,journeyHint:0,journeyShowHint:false,journeyTurbo:0,journeyShield:0,journeyDone:false,journeyStatsSaved:false,journeyMsg:'',journeyMsgOk:null});
+const JL={4:{icon:'🎁',name:'Wüstenrast'},8:{icon:'🎁',name:'Manna-Station'},12:{icon:'🎁',name:'Jordanblick'}};const JR=[
+  {key:'joker',symbol:'🛡️',name:'Fehler verzeihen',effect:'Der nächste Fehler wird automatisch verziehen. Du gehst nicht zurück.',chipClass:'def'},
+  {key:'hint',symbol:'🔤',name:'Erster Buchstabe',effect:'Bei Bedarf antippen: Die ersten Buchstaben von Vorgänger und Nachfolger werden angezeigt.',chipClass:'hint'},
+  {key:'double',symbol:'✌️',name:'Doppelter Schritt',effect:'Die nächste richtige Antwort bringt automatisch 2 Schritte.',chipClass:'double'},
+  {key:'advance',symbol:'👣',name:'Gratisschritt',effect:'Du gehst sofort automatisch 1 zusätzlichen Schritt vorwärts.',chipClass:'advance'}
+]
+journeyRange=s=>s==='AT'?{min:1,max:37,label:'Altes Testament'}:s==='NT'?{min:40,max:64,label:'Neues Testament'}:{min:1,max:64,label:'AT & NT'};randBook=function(s,e){const r=journeyRange(s);let n;do{n=Math.floor(Math.random()*(r.max-r.min+1))+r.min;}while(n===e);return n;};initBookJourney=s=>set({view:'bibelorder',activeTab:'books',journeyScope:s,boBook:randBook(s,null),boVor:'',boNach:'',journeyStep:0,journeyClaimed:[],journeyRewardOpen:false,journeyReward:null,journeyDouble:0,journeyJoker:0,journeySkip:0,journeyHint:0,journeyShowHint:false,journeyTurbo:0,journeyShield:0,journeyDone:false,journeyStatsSaved:false,journeyRunId:'jr_'+Date.now()+'_'+Math.random().toString(36).slice(2),journeySavedRunId:null,journeyMsg:'',journeyMsgOk:null});
 function keepRewards(p){['journeyDouble','journeyJoker','journeySkip','journeyHint','journeyTurbo','journeyShield'].forEach(k=>{if(!(k in p))p[k]=Number(S[k]||0);});return p;}
 applyJourneyReward=function(p,r){keepRewards(p);const key={double:'journeyDouble',joker:'journeyJoker',skip:'journeySkip',hint:'journeyHint',turbo:'journeyTurbo',shield:'journeyShield'}[r.key];if(key)p[key]=Number(p[key]||0)+(r.key==='turbo'?3:1);};
 checkJourneyLoot=function(o,n,p){keepRewards(p);const c=new Set(S.journeyClaimed||[]);const hit=[4,8,12].find(m=>o<m&&n>=m&&!c.has(m));if(!hit)return;c.add(hit);const r=JR[Math.floor(Math.random()*JR.length)];p.journeyClaimed=[...c];p.journeyRewardOpen=true;p.journeyReward={...r,milestone:hit,milestoneName:JL[hit].name,milestoneIcon:JL[hit].icon};applyJourneyReward(p,r);};nextJourneyPatch=p=>(keepRewards(p),p.boBook=randBook(S.journeyScope||'ALL',S.boBook),p.boVor='',p.boNach='',p.journeyShowHint=false,p);
-doJourneyAnswer=function(){const i=S.boBook,vor=BUECHER[i-1],nach=BUECHER[i+1];if(!(S.boVor||'').trim()||!(S.boNach||'').trim()){showToast('Bitte gib Vorgänger und Nachfolger ein.','error','Noch unvollständig',2200);return set({journeyMsg:'',journeyMsgOk:false});}const vorOk=abMatch(S.boVor,vor),nachOk=abMatch(S.boNach,nach),ok=vorOk&&nachOk;if(ok){const old=S.journeyStep||0,boost=(S.journeyDouble||0)>0||(S.journeyTurbo||0)>0,gain=boost?2:1,ns=Math.min(15,old+gain),p={journeyStep:ns,journeyMsg:'',journeyMsgOk:true};keepRewards(p);if((S.journeyDouble||0)>0)p.journeyDouble=Math.max(0,S.journeyDouble-1);if((S.journeyTurbo||0)>0)p.journeyTurbo=Math.max(0,S.journeyTurbo-1);checkJourneyLoot(old,ns,p);showToast(`Richtig! ${gain} Schritt${gain>1?'e':''} vorwärts.`,'books','Richtige Antwort',1500);if(ns>=15){p.journeyDone=true;if(!S.journeyStatsSaved){p.journeyStatsSaved=true;incUser(scopeKey('journeyWins',S.journeyScope));}}else nextJourneyPatch(p);return set(p);}const p={journeyMsg:'',journeyMsgOk:false};keepRewards(p);const partial=vorOk||nachOk,loss=3;if((S.journeyJoker||0)>0){p.journeyJoker=Math.max(0,S.journeyJoker-1);nextJourneyPatch(p);showToast('Joker eingesetzt: Fehler verziehen, kein Rückfall.','stats','Joker',2200);}else if((S.journeyShield||0)>0){p.journeyShield=Math.max(0,S.journeyShield-1);p.journeyStep=Math.max(0,(S.journeyStep||0)-1);nextJourneyPatch(p);showToast('Schutzschild: nur 1 Schritt zurück.','stats','Schutzschild',2200);}else{p.journeyStep=Math.max(0,(S.journeyStep||0)-loss);nextJourneyPatch(p);showToast(`Leider falsch. Richtig wäre: ${vor} / ${nach}. Du gehst 3 Schritte zurück.`,'error','Nicht ganz',5200);}set(p);};
+doJourneyAnswer=function(){const i=S.boBook,vor=BUECHER[i-1],nach=BUECHER[i+1];if(!(S.boVor||'').trim()||!(S.boNach||'').trim()){showToast('Bitte gib Vorgänger und Nachfolger ein.','error','Noch unvollständig',2200);return set({journeyMsg:'',journeyMsgOk:false});}const vorOk=abMatch(S.boVor,vor),nachOk=abMatch(S.boNach,nach),ok=vorOk&&nachOk;if(ok){const old=S.journeyStep||0,boost=(S.journeyDouble||0)>0||(S.journeyTurbo||0)>0,gain=boost?2:1,ns=Math.min(15,old+gain),p={journeyStep:ns,journeyMsg:'',journeyMsgOk:true};keepRewards(p);if((S.journeyDouble||0)>0)p.journeyDouble=Math.max(0,S.journeyDouble-1);if((S.journeyTurbo||0)>0)p.journeyTurbo=Math.max(0,S.journeyTurbo-1);checkJourneyLoot(old,ns,p);showToast(`Richtig! ${gain} Schritt${gain>1?'e':''} vorwärts.`,'books','Richtige Antwort',1500);if(ns>=15){p.journeyDone=true;}else nextJourneyPatch(p);return set(p);}const p={journeyMsg:'',journeyMsgOk:false};keepRewards(p);const partial=vorOk||nachOk,loss=3;if((S.journeyJoker||0)>0){p.journeyJoker=Math.max(0,S.journeyJoker-1);nextJourneyPatch(p);showToast('Joker eingesetzt: Fehler verziehen, kein Rückfall.','stats','Joker',2200);}else if((S.journeyShield||0)>0){p.journeyShield=Math.max(0,S.journeyShield-1);p.journeyStep=Math.max(0,(S.journeyStep||0)-1);nextJourneyPatch(p);showToast('Schutzschild: nur 1 Schritt zurück.','stats','Schutzschild',2200);}else{p.journeyStep=Math.max(0,(S.journeyStep||0)-loss);nextJourneyPatch(p);showToast(`Leider falsch. Richtig wäre: ${vor} / ${nach}. Du gehst 3 Schritte zurück.`,'error','Nicht ganz',5200);}set(p);};
 useJourneySkip=()=>{if((S.journeySkip||0)>0)set(nextJourneyPatch({journeySkip:Math.max(0,S.journeySkip-1),journeyMsg:'⏭️ Frage übersprungen – ohne Strafe.',journeyMsgOk:true}));};useJourneyHint=()=>{if((S.journeyHint||0)>0)set({journeyHint:Math.max(0,S.journeyHint-1),journeyShowHint:true,journeyMsg:'🔍 Hinweis aktiviert.',journeyMsgOk:true});};journeyPos=s=>({x:6+s*(88/15),y:70-Math.sin(s/15*Math.PI)*36+Math.sin(s*.9)*7});
 renderJourneyScopeSelect=function(){const hdr=div('page-header',btn('back-btn','←',()=>set({view:'menu',activeTab:'books'})),el('h2',{cls:'page-title'},'Exodus-Reise'));const c=(s,i,t)=>el('button',{cls:'scope-btn',type:'button',onclick:()=>initBookJourney(s)},span('scope-icon',i),el('div',{},p('scope-title',t),p('scope-sub','grün markierte Bücher-Challenge')));return el('div',{},hdr,tabTitle('','Vorgänger & Nachfolger','Wähle, welche Bücher in der Reise vorkommen sollen.'),div('scope-grid',c('AT','📜','Nur Altes Testament'),c('NT','✝️','Nur Neues Testament'),c('ALL','📖','AT & NT gemeinsam')));};
 renderJourneyMap=function(){const step=S.journeyStep||0,c=new Set(S.journeyClaimed||[]),map=div('journey-map',div('journey-sky'));map.appendChild(el('svg',{cls:'route-svg',viewBox:'0 0 100 100',preserveAspectRatio:'none'},el('path',{cls:'route-path',d:'M6 70 C22 34 36 78 50 48 S76 24 94 42'})));for(let i=0;i<=15;i++){const p=journeyPos(i);let cl='route-dot'+(i<=step?' done':'');if(JL[i])cl='route-dot loot'+(c.has(i)?' claimed':'');const d=div(cl,JL[i]?'🎁':'');d.style.left=p.x+'%';d.style.top=p.y+'%';map.appendChild(d);}map.append(span('map-label start','Ägypten'),span('map-label goal','Kanaan'));const p=journeyPos(step),tr=span('traveler','👥');tr.style.left=p.x+'%';tr.style.top=p.y+'%';map.appendChild(tr);return map;};
-renderRewardChips=function(){const chips=[span('reward-title','Aktive Belohnungen – antippen zum Einsetzen')];const add=(cls,sym,lab,n,action)=>{for(let i=0;i<Number(n||0);i++){const c=span(cls+(action?' use':''),`${sym} ${lab}`);if(action)c.onclick=action;chips.push(c);}};add('reward-chip','🎯','Doppelt',S.journeyDouble,null);add('reward-chip def','💡','Joker',S.journeyJoker,null);add('reward-chip','⏭️','Skip',S.journeySkip,useJourneySkip);add('reward-chip def','🔍','Hinweis',S.journeyHint,useJourneyHint);add('reward-chip','⚡','Turbo',S.journeyTurbo,null);add('reward-chip def','🛡️','Schutz',S.journeyShield,null);if(chips.length===1)chips.push(span('reward-chip empty','Keine aktive Belohnung'));return div('reward-row',...chips);};
+renderRewardChips=function(){const chips=[span('reward-title','Aktive Joker – nur den Buchstaben-Joker antippen')];const add=(cls,sym,lab,n,action,title)=>{for(let i=0;i<Number(n||0);i++){const c=span('reward-chip '+cls+(action?' use':''),`${sym} ${lab}`);c.title=title||lab;if(action)c.onclick=action;chips.push(c);}};add('double','✌️','Doppelter Schritt',S.journeyDouble,null,'Wird bei der nächsten richtigen Antwort automatisch eingesetzt.');add('def','🛡️','Fehler verzeihen',S.journeyJoker,null,'Wird beim nächsten Fehler automatisch eingesetzt.');add('hint','🔤','Erster Buchstabe',S.journeyHint,useJourneyHint,'Antippen, um die ersten Buchstaben anzuzeigen.');if(chips.length===1)chips.push(span('reward-chip empty','Keine aktiven Joker'));return div('reward-row',...chips);};
 renderLootPopup=function(){if(!S.journeyRewardOpen||!S.journeyReward)return null;const r=S.journeyReward;return div('loot-pop',div('loot-card',span('loot-box-anim','🎁'),span('loot-symbol',r.symbol),p('loot-title','Lootbox geöffnet!'),p('loot-sub',`${r.milestoneIcon} ${r.milestoneName}: ${r.name}\n${r.effect}`),btn('prim-btn','Weiter',()=>set({journeyRewardOpen:false}))));};
 renderConfetti=function(){const items=['🎉','✨','🌟','🎊','💫'];return div('confetti',...Array.from({length:42},(_,i)=>{const s=span('',items[i%items.length]);s.style.left=(Math.random()*100)+'%';s.style.animationDelay=(Math.random()*2.3)+'s';s.style.animationDuration=(2.4+Math.random()*1.8)+'s';return s;}));};
-renderBibelOrder=function(){if(!S.journeyScope)return renderJourneyScopeSelect();const i=S.boBook||1,book=BUECHER[i],vor=BUECHER[i-1],nach=BUECHER[i+1],range=journeyRange(S.journeyScope),step=S.journeyStep||0;const hdr=div('page-header',btn('back-btn','←',()=>set({view:'menu',activeTab:'books'})),el('h2',{cls:'page-title'},'Exodus-Reise'));const wrap=el('div',{},hdr,tabTitle('','Vorgänger & Nachfolger',range.label),renderJourneyMap(),div('journey-legend',p('mode-help mode-help-left','Nenne das Buch davor und das danach, um einen Schritt in Richtung Kanaan zu gehen.'),el('ul',{cls:'mode-bullets'},el('li',{},'Bei einer falschen Antwort gehst du 3 Schritte zurück.'),el('li',{},'Nach jeweils 4 Stationen wartet eine Lootbox.')),p('mode-help mode-help-left','🎁 Erreichst du diese Station, gibt es eine zufällige Belohnung.')),div('journey-progress',el('div',{cls:'prog-track'},el('div',{cls:'prog-fill',style:`width:${step/15*100}%`})),span('journey-step',`${step} / 15`)));if(S.journeyDone){wrap.append(renderConfetti(),div('journey-win',span('journey-win-emoji','🏞️'),p('journey-win-title','Bravo! Kanaan erreicht!'),p('journey-win-sub','Du hast die Reise erfolgreich abgeschlossen.'),btn('prim-btn','Neue Reise starten',()=>set({journeyScope:null,journeyDone:false,journeyStep:0}))));return wrap;}const q=div('journey-question',p('journey-book',book),renderRewardChips());const vi=el('input',{cls:'bo-input',type:'text',placeholder:'Vorgänger…'});vi.value=S.boVor||'';vi.oninput=e=>S.boVor=e.target.value;const ni=el('input',{cls:'bo-input',type:'text',placeholder:'Nachfolger…'});ni.value=S.boNach||'';ni.oninput=e=>S.boNach=e.target.value;vi.onkeydown=e=>{if(e.key==='Enter')ni.focus();};ni.onkeydown=e=>{if(e.key==='Enter')doJourneyAnswer();};q.append(el('div',{style:'margin-bottom:8px'},span('f-label','Vorgänger'),vi),el('div',{style:'margin-bottom:8px'},span('f-label','Nachfolger'),ni));if(S.journeyShowHint)q.appendChild(div('hint-box',`Hinweis: Vorgänger beginnt mit „${vor.charAt(0)}“, Nachfolger mit „${nach.charAt(0)}“.`));q.append(btn('bo-check','Antwort prüfen ✓',doJourneyAnswer));wrap.appendChild(q);const pop=renderLootPopup();if(pop)wrap.appendChild(pop);setTimeout(()=>vi.focus(),50);return wrap;};
+renderBibelOrder=function(){if(!S.journeyScope)return renderJourneyScopeSelect();const i=S.boBook||1,book=BUECHER[i],vor=BUECHER[i-1],nach=BUECHER[i+1],range=journeyRange(S.journeyScope),step=S.journeyStep||0;const hdr=div('page-header',btn('back-btn','←',()=>set({view:'menu',activeTab:'books'})),el('h2',{cls:'page-title'},'Exodus-Reise'));const wrap=el('div',{},hdr,tabTitle('','Vorgänger & Nachfolger',range.label),renderJourneyMap(),div('journey-legend',p('mode-help mode-help-left','Nenne das Buch davor und das danach, um einen Schritt in Richtung Kanaan zu gehen.'),el('ul',{cls:'mode-bullets'},el('li',{},'Bei einer falschen Antwort gehst du 3 Schritte zurück.'),el('li',{},'Nach jeweils 4 Stationen wartet eine Lootbox.')),p('mode-help mode-help-left','🎁 Erreichst du diese Station, gibt es eine zufällige Belohnung.')),div('journey-progress',el('div',{cls:'prog-track'},el('div',{cls:'prog-fill',style:`width:${step/15*100}%`})),span('journey-step',`${step} / 15`)));if(S.journeyDone){wrap.append(renderConfetti(),div('journey-win',span('journey-win-emoji','🏞️'),p('journey-win-title','Bravo! Kanaan erreicht!'),p('journey-win-sub','Du hast alle 15 Stationen geschafft. Der Reise-Erfolg wird in deiner Statistik gespeichert.'),btn('prim-btn','Neue Reise starten',()=>set({journeyScope:null,journeyDone:false,journeyStep:0,journeyStatsSaved:false,journeyRunId:null,journeySavedRunId:null}))));return wrap;}const q=div('journey-question',p('journey-book',book),renderRewardChips());const vi=el('input',{cls:'bo-input',type:'text',placeholder:'Vorgänger…'});vi.value=S.boVor||'';vi.oninput=e=>S.boVor=e.target.value;const ni=el('input',{cls:'bo-input',type:'text',placeholder:'Nachfolger…'});ni.value=S.boNach||'';ni.oninput=e=>S.boNach=e.target.value;vi.onkeydown=e=>{if(e.key==='Enter')ni.focus();};ni.onkeydown=e=>{if(e.key==='Enter')doJourneyAnswer();};q.append(el('div',{style:'margin-bottom:8px'},span('f-label','Vorgänger'),vi),el('div',{style:'margin-bottom:8px'},span('f-label','Nachfolger'),ni));if(S.journeyShowHint)q.appendChild(div('hint-box',`Hinweis: Vorgänger beginnt mit „${vor.charAt(0)}“, Nachfolger mit „${nach.charAt(0)}“.`));q.append(btn('bo-check','Antwort prüfen ✓',doJourneyAnswer));wrap.appendChild(q);const pop=renderLootPopup();if(pop)wrap.appendChild(pop);setTimeout(()=>vi.focus(),50);return wrap;};
 
 // Tempel / Bücher ordnen
 const TEMPLE_TOTAL_STEPS=15;
@@ -1817,7 +1906,7 @@ checkTempleOrder=function(){const ok=S.bsCurrent.every((v,i)=>v===S.bsCorrect[i]
 moveBook=function(f,t){if(f===t||f==null||t==null)return;const a=[...S.bsCurrent],[it]=a.splice(f,1);a.splice(t,0,it);S.bsCurrent=a;S.bsDrag=t;S.bsDragOver=t;render();};
 beginTempleDrag=function(pos,e){if(S.bsChecked)return;e.preventDefault();S.bsDrag=pos;S.bsDragOver=pos;const move=ev=>{ev.preventDefault();const row=document.elementFromPoint(ev.clientX,ev.clientY)?.closest?.('[data-bs-pos]');if(row){const to=Number(row.getAttribute('data-bs-pos'));if(to!==S.bsDrag)moveBook(S.bsDrag,to);}},up=()=>{document.removeEventListener('pointermove',move);document.removeEventListener('pointerup',up);document.removeEventListener('pointercancel',up);S.bsDrag=null;S.bsDragOver=null;render();};document.addEventListener('pointermove',move,{passive:false});document.addEventListener('pointerup',up,{once:true});document.addEventListener('pointercancel',up,{once:true});};
 renderTemplePhasePopup=function(){const ph=S.templePhasePopup;if(!ph)return null;const idx=Math.max(0,Math.min(5,ph));const title=idx>=5?'Tempel vollendet!':`Phase ${idx} erreicht`;const sub=idx>=5?'Das fertige Tempelbild ist erreicht.':`${TEMPLE_PHASES[idx-1].emoji} ${TEMPLE_PHASES[idx-1].label} wurde fertiggestellt.`;return div('temple-phase-pop',div('temple-phase-card',el('img',{cls:'temple-popup-img',src:TEMPLE_PHASE_IMAGES[idx],alt:title}),p('temple-popup-title',title),p('temple-popup-sub',sub),btn('prim-btn','Weiter',()=>set({templePhasePopup:null}))));};
-renderBibelSort=function(){if(!S.templeScope)return renderTempleScopeSelect();const popup=renderTemplePhasePopup();const hdr=div('page-header',btn('back-btn','←',()=>set({view:'menu',activeTab:'books'})),el('h2',{cls:'page-title'},'Tempelbau')),wrap=el('div',{},hdr,tabTitle('','Bücher ordnen',`${templeRange(S.templeScope).label} · 5 Phasen à 3 Schritte`),renderTemple());if(S.templeDone){wrap.append(renderConfetti(),div('temple-win',el('img',{cls:'temple-win-img',src:TEMPLE_PHASE_IMAGES[5],alt:'Fertig gebauter Tempel'}),p('temple-win-title','Der Tempel wurde gebaut!'),p('temple-win-sub','Du hast alle 5 Phasen vollendet: Mauer, Treppe, Säulen, Dach und Licht.'),btn('prim-btn','Neuer Tempel',()=>set({templeScope:null,templeDone:false,templeStones:0,templePhasePopup:null,bsChecked:false}))));if(popup)wrap.appendChild(popup);return wrap;}const list=div('bs-books temple-list',...S.bsCurrent.map((idx,pos)=>{let cl='bs-item';if(S.bsChecked)cl+=S.bsCurrent[pos]===S.bsCorrect[pos]?' correct':' wrong';else if(S.bsDragOver===pos)cl+=' drag-over';const it=div(cl,span('bs-pos',String(pos+1)),span('',BUECHER[idx]),span('drag-handle','↕'));it.setAttribute('data-bs-pos',String(pos));if(!S.bsChecked)it.onpointerdown=e=>beginTempleDrag(pos,e);return it;}));wrap.append(p('mode-help','Ziehe die 5 aufeinanderfolgenden Bücher in die richtige Reihenfolge, um den Tempel schrittweise auszubauen.'),el('ul',{cls:'mode-bullets'},el('li',{},'Eine falsche Antwort wirft dich einen Schritt zurück.'),el('li',{},'Eine einmal abgeschlossene Phase kannst du nicht mehr verlieren!')),list);if(!S.bsChecked)wrap.appendChild(btn('bs-check','Antwort prüfen ✓',checkTempleOrder));else wrap.append(btn('bo-next','Nächste Aufgabe →',()=>initBibelSort(S.templeScope)));if(popup)wrap.appendChild(popup);return wrap;};
+renderBibelSort=function(){if(!S.templeScope)return renderTempleScopeSelect();const popup=renderTemplePhasePopup();const hdr=div('page-header',btn('back-btn','←',()=>set({view:'menu',activeTab:'books'})),el('h2',{cls:'page-title'},'Tempelbau')),wrap=el('div',{},hdr,tabTitle('','Bücher ordnen',`${templeRange(S.templeScope).label} · 5 Phasen à 3 Schritte`),renderTemple());if(S.templeDone){wrap.append(renderConfetti(),div('temple-win',el('img',{cls:'temple-win-img',src:TEMPLE_PHASE_IMAGES[5],alt:'Fertig gebauter Tempel'}),p('temple-win-title','Der Tempel wurde gebaut!'),p('temple-win-sub','Du hast alle 5 Phasen vollendet: Mauer, Treppe, Säulen, Dach und Licht. Der Abschluss wird unter Statistik gespeichert.'),btn('prim-btn','Neuer Tempel',()=>set({templeScope:null,templeDone:false,templeStones:0,templePhasePopup:null,bsChecked:false}))));if(popup)wrap.appendChild(popup);return wrap;}const list=div('bs-books temple-list',...S.bsCurrent.map((idx,pos)=>{let cl='bs-item';if(S.bsChecked)cl+=S.bsCurrent[pos]===S.bsCorrect[pos]?' correct':' wrong';else if(S.bsDragOver===pos)cl+=' drag-over';const it=div(cl,span('bs-pos',String(pos+1)),span('',BUECHER[idx]),span('drag-handle','↕'));it.setAttribute('data-bs-pos',String(pos));if(!S.bsChecked)it.onpointerdown=e=>beginTempleDrag(pos,e);return it;}));wrap.append(p('mode-help','Ziehe die 5 aufeinanderfolgenden Bücher in die richtige Reihenfolge, um den Tempel schrittweise auszubauen.'),el('ul',{cls:'mode-bullets'},el('li',{},'Eine falsche Antwort wirft dich einen Schritt zurück.'),el('li',{},'Eine einmal abgeschlossene Phase kannst du nicht mehr verlieren!')),list);if(!S.bsChecked)wrap.appendChild(btn('bs-check','Antwort prüfen ✓',checkTempleOrder));else wrap.append(btn('bo-next','Nächste Aufgabe →',()=>initBibelSort(S.templeScope)));if(popup)wrap.appendChild(popup);return wrap;};
 // Lücke füllen
 bfRange=s=>s==='AT'?{min:0,max:38,label:'AT'}:s==='NT'?{min:39,max:65,label:'NT'}:{min:0,max:65,label:'AT & NT'};bfNext=function(){const r=bfRange(S.bfScope);S.bfIdx=r.min+Math.floor(Math.random()*(r.max-r.min-1));S.bfInput='';};updateBfTimer=function(){const rem=Math.max(0,Math.ceil(((S.bfEndAt||Date.now())-Date.now())/1000));const t=document.getElementById('bfTimer');if(t)t.textContent=String(rem);const b=document.getElementById('bfTimeBar');if(b)b.style.width=(rem/90*100)+'%';};startBookFill=function(s){if(S.bfTimerId)clearInterval(S.bfTimerId);Object.assign(S,{bfScope:s,bfScore:0,bfStreak:1,bfCorrect:0,bfDone:false,bfSaved:false,bfMsg:'',bfMsgOk:null,bfEndAt:Date.now()+90000});bfNext();S.bfTimerId=setInterval(()=>{if(S.view!=='bookfill'){clearInterval(S.bfTimerId);S.bfTimerId=null;return;}if(Date.now()>=S.bfEndAt)finishBookFill();else updateBfTimer();},250);set({view:'bookfill',activeTab:'books',bfFocus:true});};bfHighscores=()=>S.user?.bookFillHighscores||[];saveBookFillScore=async function(){if(!S.user||S.bfSaved)return;S.bfSaved=true;const entry={date:new Date().toISOString(),score:S.bfScore||0,scope:S.bfScope||'ALL',correct:S.bfCorrect||0};const scores=[...bfHighscores(),entry].sort((a,b)=>(b.score||0)-(a.score||0)).slice(0,5);saveUserPatch({bookFillHighscores:scores});};finishBookFill=function(){if(S.bfTimerId){clearInterval(S.bfTimerId);S.bfTimerId=null;}S.bfDone=true;S.bfEndAt=Date.now();saveBookFillScore().then(()=>render());render();};checkBookFill=function(){if(S.bfDone)return;const target=BUECHER[(S.bfIdx||0)+1];if(abMatch(S.bfInput||'',target)){const pts=Math.max(1,S.bfStreak||1);S.bfScore+=pts;S.bfCorrect++;S.bfStreak++;S.bfMsg='';S.bfMsgOk=true;showToast(`+${pts} Punkte – richtig!`,'books','Treffer',900);bfNext();}else{S.bfStreak=1;S.bfMsg='';S.bfMsgOk=false;showToast(`Richtig wäre: ${target}`,'error','Nicht ganz',1400);bfNext();}S.bfFocus=true;render();};renderBookFillScopeSelect=function(){const hdr=div('page-header',btn('back-btn','←',()=>set({view:'menu',activeTab:'books'})),el('h2',{cls:'page-title'},'Lücke füllen')),c=(s,i,t,sub)=>el('button',{cls:'scope-btn',type:'button',onclick:()=>startBookFill(s)},span('scope-icon',i),el('div',{},p('scope-title',t),p('scope-sub',sub)));return el('div',{},hdr,tabTitle('','Lücke füllen','Fülle in 90 Sekunden möglichst viele mittlere Bibelbücher korrekt aus.'),div('scope-grid',c('AT','📜','Nur Altes Testament','39 Bücher'),c('NT','✝️','Nur Neues Testament','27 Bücher'),c('ALL','📖','AT & NT gemeinsam','Alle 66 Bücher')),renderBookFillHighscores());};fmtDate=iso=>{try{return new Date(iso).toLocaleDateString('de-CH',{day:'2-digit',month:'2-digit',year:'numeric'});}catch{return iso||'';}};renderBookFillHighscores=function(){const scores=bfHighscores(),box=div('bf-highscores',p('bf-high-title','🏅 Deine Top 5'));if(!scores.length){box.appendChild(p('tab-sub','Noch kein Ergebnis gespeichert.'));return box;}scores.forEach((sc,i)=>box.appendChild(div('bf-score-row',span('bf-rank',String(i+1)+'.'),el('div',{},span('',scopeLabel(sc.scope)),p('bf-score-meta',`${fmtDate(sc.date)} · ${sc.correct||0} richtige Lücken`)),span('bf-score-points',String(sc.score||0)))));return box;};renderBookFill=function(){if(!S.bfScope)return renderBookFillScopeSelect();const left=BUECHER[S.bfIdx],right=BUECHER[(S.bfIdx||0)+2],rem=Math.max(0,Math.ceil(((S.bfEndAt||Date.now())-Date.now())/1000));if(rem<=0&&!S.bfDone)setTimeout(finishBookFill,0);const hdr=div('page-header',btn('back-btn','←',()=>{if(S.bfTimerId)clearInterval(S.bfTimerId);set({view:'menu',activeTab:'books'});}),el('h2',{cls:'page-title'},'Lücke füllen')),wrap=el('div',{},hdr,tabTitle('','Lücke füllen',scopeLabel(S.bfScope)));if(S.bfDone){wrap.append(div('bf-done',span('bf-done-emoji','⏱️'),p('bf-done-title','Zeit abgelaufen!'),p('bf-done-sub',`Du hast ${S.bfScore||0} Punkte erreicht und ${S.bfCorrect||0} Lücken korrekt gefüllt.`),btn('prim-btn','Neue Runde',()=>set({bfScope:null,bfDone:false,bfSaved:false}))),renderBookFillHighscores());return wrap;}const inp=el('input',{cls:'bf-input',id:'bfInput',type:'text',placeholder:'Mittleres Buch eintippen…'});inp.value=S.bfInput||'';inp.oninput=e=>S.bfInput=e.target.value;inp.onkeydown=e=>{if(e.key==='Enter')checkBookFill();};wrap.append(div('bf-panel',p('mode-help','Fülle das fehlende Buch so schnell und richtig wie möglich aus.'),div('bf-top',div('bf-stat',el('div',{cls:'bf-stat-n',id:'bfTimer'},String(rem)),p('bf-stat-l','Sekunden')),div('bf-stat',p('bf-stat-n',String(S.bfScore||0)),p('bf-stat-l','Punkte')),div('bf-stat',p('bf-stat-n',String(S.bfStreak||1)),p('bf-stat-l','Streak-Wert'))),div('bf-timebar',el('div',{cls:'bf-timebar-fill',id:'bfTimeBar',style:`width:${rem/90*100}%`})),div('bf-books',div('bf-book',left),span('bf-arrow','→'),div('bf-book',right)),div('bf-gap','?'),inp,btn('bf-check','Antwort prüfen ✓',checkBookFill)),renderBookFillHighscores());if(S.bfFocus){S.bfFocus=false;setTimeout(()=>document.getElementById('bfInput')?.focus({preventScroll:true}),40);}return wrap;};
 // Bücher der Reihe nach
@@ -2371,8 +2460,8 @@ document.head.appendChild(quizTimeStyle);
   checkJourneyLoot=function(o,n,p){keepRewards(p);const c=new Set(S.journeyClaimed||[]);const hit=[4,8,12].find(m=>o<m&&n>=m&&!c.has(m));if(!hit)return;c.add(hit);const r=JR[Math.floor(Math.random()*JR.length)];p.journeyClaimed=[...c];p.journeyRewardOpen=true;p.journeyReward={...r,milestone:hit,milestoneName:JOURNEY_LOOT[hit].name,milestoneIcon:JOURNEY_LOOT[hit].icon};applyJourneyReward(p,r);};
   nextJourneyPatch=p=>(keepRewards(p),p.boBook=randBook(S.journeyScope||'ALL',S.boBook),p.boVor='',p.boNach='',p.journeyShowHint=false,p);
   renderJourneyMap=function(){const step=S.journeyStep||0,c=new Set(S.journeyClaimed||[]),map=div('journey-map',div('journey-sky'));map.appendChild(el('svg',{cls:'route-svg',viewBox:'0 0 100 100',preserveAspectRatio:'none'},el('path',{cls:'route-path',d:'M6 70 C22 34 36 78 50 48 S76 24 94 42'})));for(let i=0;i<=JOURNEY_TOTAL;i++){const pp=journeyPos(i);let cl='route-dot'+(i<=step?' done':'');if(JOURNEY_LOOT[i])cl='route-dot loot'+(c.has(i)?' claimed':'');const d=div(cl,JOURNEY_LOOT[i]?'🎁':'');d.style.left=pp.x+'%';d.style.top=pp.y+'%';map.appendChild(d);}map.append(span('map-label start','Ägypten'),span('map-label goal','Kanaan'));const pp=journeyPos(Math.min(step,JOURNEY_TOTAL)),tr=span('traveler','👥');tr.style.left=pp.x+'%';tr.style.top=pp.y+'%';map.appendChild(tr);return map;};
-  doJourneyAnswer=function(){const i=S.boBook,vor=BUECHER[i-1],nach=BUECHER[i+1];if(!(S.boVor||'').trim()||!(S.boNach||'').trim()){showToast('Bitte gib Vorgänger und Nachfolger ein.','error','Noch unvollständig',2200);return set({journeyMsg:'',journeyMsgOk:false});}const vorOk=abMatch(S.boVor,vor),nachOk=abMatch(S.boNach,nach),ok=vorOk&&nachOk;if(ok){const old=S.journeyStep||0,boost=(S.journeyDouble||0)>0||(S.journeyTurbo||0)>0,gain=boost?2:1,ns=Math.min(JOURNEY_TOTAL,old+gain),p={journeyStep:ns,journeyMsg:'',journeyMsgOk:true};keepRewards(p);if((S.journeyDouble||0)>0)p.journeyDouble=Math.max(0,S.journeyDouble-1);if((S.journeyTurbo||0)>0)p.journeyTurbo=Math.max(0,S.journeyTurbo-1);checkJourneyLoot(old,ns,p);showToast(`Richtig! ${gain} Schritt${gain>1?'e':''} vorwärts.`,'books','Richtige Antwort',1500);if(ns>=JOURNEY_TOTAL){p.journeyDone=true;if(!S.journeyStatsSaved){p.journeyStatsSaved=true;incUser(scopeKey('journeyWins',S.journeyScope));}}else nextJourneyPatch(p);return set(p);}const p={journeyMsg:'',journeyMsgOk:false};keepRewards(p);if((S.journeyJoker||0)>0){p.journeyJoker=Math.max(0,S.journeyJoker-1);nextJourneyPatch(p);showToast('Joker eingesetzt: Fehler verziehen, kein Rückfall.','stats','Joker',2200);}else if((S.journeyShield||0)>0){p.journeyShield=Math.max(0,S.journeyShield-1);p.journeyStep=Math.max(0,(S.journeyStep||0)-1);nextJourneyPatch(p);showToast('Schutzschild: nur 1 Schritt zurück.','stats','Schutzschild',2200);}else{p.journeyStep=Math.max(0,(S.journeyStep||0)-3);nextJourneyPatch(p);showToast(`Leider falsch. Richtig wäre: ${vor} / ${nach}. Du gehst 3 Schritte zurück.`,'error','Nicht ganz',5200);}set(p);};
-  renderBibelOrder=function(){if(!S.journeyScope)return renderJourneyScopeSelect();const i=S.boBook||1,book=BUECHER[i],vor=BUECHER[i-1],nach=BUECHER[i+1],range=journeyRange(S.journeyScope),step=S.journeyStep||0;const hdr=div('page-header',btn('back-btn','←',()=>set({view:'menu',activeTab:'books'})),el('h2',{cls:'page-title'},'Exodus-Reise'));const wrap=el('div',{},hdr,tabTitle('','Vorgänger & Nachfolger',range.label),renderJourneyMap(),div('journey-legend',p('mode-help mode-help-left','15 Stationen bis Kanaan. Nenne das Buch davor und danach, um vorwärtszugehen.'),el('ul',{cls:'mode-bullets'},el('li',{},'Bei einer falschen Antwort gehst du 3 Schritte zurück.'),el('li',{},'Nach jeweils 4 Stationen wartet eine Lootbox.')),p('mode-help mode-help-left','🎁 Erreichst du diese Station, gibt es eine zufällige Belohnung.')),div('journey-progress',el('div',{cls:'prog-track'},el('div',{cls:'prog-fill',style:`width:${step/JOURNEY_TOTAL*100}%`})),span('journey-step',`${step} / ${JOURNEY_TOTAL}`)));if(S.journeyDone){wrap.append(renderConfetti(),div('journey-win',span('journey-win-emoji','🏞️'),p('journey-win-title','Bravo! Kanaan erreicht!'),p('journey-win-sub','Du hast die Reise erfolgreich abgeschlossen.'),btn('prim-btn','Neue Reise starten',()=>set({journeyScope:null,journeyDone:false,journeyStep:0}))));return wrap;}const q=div('journey-question',p('journey-book',book),renderRewardChips());const vi=el('input',{cls:'bo-input',type:'text',placeholder:'Vorgänger…'});vi.value=S.boVor||'';vi.oninput=e=>S.boVor=e.target.value;const ni=el('input',{cls:'bo-input',type:'text',placeholder:'Nachfolger…'});ni.value=S.boNach||'';ni.oninput=e=>S.boNach=e.target.value;vi.onkeydown=e=>{if(e.key==='Enter')ni.focus();};ni.onkeydown=e=>{if(e.key==='Enter')doJourneyAnswer();};q.append(el('div',{style:'margin-bottom:8px'},span('f-label','Vorgänger'),vi),el('div',{style:'margin-bottom:8px'},span('f-label','Nachfolger'),ni));if(S.journeyShowHint)q.appendChild(div('hint-box',`Hinweis: Vorgänger beginnt mit „${vor.charAt(0)}“, Nachfolger mit „${nach.charAt(0)}“.`));q.append(btn('bo-check','Antwort prüfen ✓',doJourneyAnswer));wrap.appendChild(q);const pop=renderLootPopup();if(pop)wrap.appendChild(pop);setTimeout(()=>vi.focus(),50);return wrap;};
+  doJourneyAnswer=function(){const i=S.boBook,vor=BUECHER[i-1],nach=BUECHER[i+1];if(!(S.boVor||'').trim()||!(S.boNach||'').trim()){showToast('Bitte gib Vorgänger und Nachfolger ein.','error','Noch unvollständig',2200);return set({journeyMsg:'',journeyMsgOk:false});}const vorOk=abMatch(S.boVor,vor),nachOk=abMatch(S.boNach,nach),ok=vorOk&&nachOk;if(ok){const old=S.journeyStep||0,boost=(S.journeyDouble||0)>0||(S.journeyTurbo||0)>0,gain=boost?2:1,ns=Math.min(JOURNEY_TOTAL,old+gain),p={journeyStep:ns,journeyMsg:'',journeyMsgOk:true};keepRewards(p);if((S.journeyDouble||0)>0)p.journeyDouble=Math.max(0,S.journeyDouble-1);if((S.journeyTurbo||0)>0)p.journeyTurbo=Math.max(0,S.journeyTurbo-1);checkJourneyLoot(old,ns,p);showToast(`Richtig! ${gain} Schritt${gain>1?'e':''} vorwärts.`,'books','Richtige Antwort',1500);if(ns>=JOURNEY_TOTAL){p.journeyDone=true;}else nextJourneyPatch(p);return set(p);}const p={journeyMsg:'',journeyMsgOk:false};keepRewards(p);if((S.journeyJoker||0)>0){p.journeyJoker=Math.max(0,S.journeyJoker-1);nextJourneyPatch(p);showToast('Joker eingesetzt: Fehler verziehen, kein Rückfall.','stats','Joker',2200);}else if((S.journeyShield||0)>0){p.journeyShield=Math.max(0,S.journeyShield-1);p.journeyStep=Math.max(0,(S.journeyStep||0)-1);nextJourneyPatch(p);showToast('Schutzschild: nur 1 Schritt zurück.','stats','Schutzschild',2200);}else{p.journeyStep=Math.max(0,(S.journeyStep||0)-3);nextJourneyPatch(p);showToast(`Leider falsch. Richtig wäre: ${vor} / ${nach}. Du gehst 3 Schritte zurück.`,'error','Nicht ganz',5200);}set(p);};
+  renderBibelOrder=function(){if(!S.journeyScope)return renderJourneyScopeSelect();const i=S.boBook||1,book=BUECHER[i],vor=BUECHER[i-1],nach=BUECHER[i+1],range=journeyRange(S.journeyScope),step=S.journeyStep||0;const hdr=div('page-header',btn('back-btn','←',()=>set({view:'menu',activeTab:'books'})),el('h2',{cls:'page-title'},'Exodus-Reise'));const wrap=el('div',{},hdr,tabTitle('','Vorgänger & Nachfolger',range.label),renderJourneyMap(),div('journey-legend',p('mode-help mode-help-left','15 Stationen bis Kanaan. Nenne das Buch davor und danach, um vorwärtszugehen.'),el('ul',{cls:'mode-bullets'},el('li',{},'Bei einer falschen Antwort gehst du 3 Schritte zurück.'),el('li',{},'Nach jeweils 4 Stationen wartet eine Lootbox.')),p('mode-help mode-help-left','🎁 Erreichst du diese Station, gibt es eine zufällige Belohnung.')),div('journey-progress',el('div',{cls:'prog-track'},el('div',{cls:'prog-fill',style:`width:${step/JOURNEY_TOTAL*100}%`})),span('journey-step',`${step} / ${JOURNEY_TOTAL}`)));if(S.journeyDone){wrap.append(renderConfetti(),div('journey-win',span('journey-win-emoji','🏞️'),p('journey-win-title','Bravo! Kanaan erreicht!'),p('journey-win-sub','Du hast die Reise erfolgreich abgeschlossen.'),btn('prim-btn','Neue Reise starten',()=>set({journeyScope:null,journeyDone:false,journeyStep:0,journeyStatsSaved:false,journeyRunId:null,journeySavedRunId:null}))));return wrap;}const q=div('journey-question',p('journey-book',book),renderRewardChips());const vi=el('input',{cls:'bo-input',type:'text',placeholder:'Vorgänger…'});vi.value=S.boVor||'';vi.oninput=e=>S.boVor=e.target.value;const ni=el('input',{cls:'bo-input',type:'text',placeholder:'Nachfolger…'});ni.value=S.boNach||'';ni.oninput=e=>S.boNach=e.target.value;vi.onkeydown=e=>{if(e.key==='Enter')ni.focus();};ni.onkeydown=e=>{if(e.key==='Enter')doJourneyAnswer();};q.append(el('div',{style:'margin-bottom:8px'},span('f-label','Vorgänger'),vi),el('div',{style:'margin-bottom:8px'},span('f-label','Nachfolger'),ni));if(S.journeyShowHint)q.appendChild(div('hint-box',`Hinweis: Vorgänger beginnt mit „${vor.charAt(0)}“, Nachfolger mit „${nach.charAt(0)}“.`));q.append(btn('bo-check','Antwort prüfen ✓',doJourneyAnswer));wrap.appendChild(q);const pop=renderLootPopup();if(pop)wrap.appendChild(pop);setTimeout(()=>vi.focus(),50);return wrap;};
   checkTempleOrder=function(){const ok=S.bsCurrent.every((v,i)=>v===S.bsCorrect[i]);const before=S.templeStones||0;const floor=templePhaseFloor(before);const ns=ok?Math.min(TEMPLE_TOTAL_STEPS,before+1):Math.max(floor,before-1);const beforePhase=Math.floor(before/TEMPLE_PHASE_SIZE),afterPhase=Math.floor(ns/TEMPLE_PHASE_SIZE);let msg;if(ok&&ns>=TEMPLE_TOTAL_STEPS)msg='Der Tempel wurde vollendet.';else if(ok&&afterPhase>beforePhase)msg=`Phase ${afterPhase} erreicht: ${TEMPLE_PHASES[afterPhase-1].label}.`;else if(ok)msg='Ein Schritt wurde geschafft.';else{const sol=S.bsCorrect.map(idx=>BUECHER[idx]).join(' → ');msg=`Nicht ganz. Die richtige Reihenfolge ist: ${sol}`;}const p={bsChecked:true,templeStones:ns,templeDone:ns>=TEMPLE_TOTAL_STEPS,templeMsg:msg,templeMsgOk:ok};if(ok&&afterPhase>beforePhase)p.templePhasePopup=afterPhase;if(ns>=TEMPLE_TOTAL_STEPS&&!S.templeStatsSaved){p.templeStatsSaved=true;incUser(scopeKey('templeWins',S.templeScope));}showToast(msg,ok?'success':'error',ok?'Tempelbau':'Richtige Lösung',ok?1500:9500);set(p);};
   const _render=window.render||render;window.render=render=function(){const root=document.getElementById('app');if(S.view==='reference'){root.innerHTML='';if(S.modal==='verseselect')root.appendChild(renderVerseSelect());root.appendChild(renderReference());return;}return _render();};
 })();
@@ -2406,79 +2495,111 @@ document.head.appendChild(quizTimeStyle);
     keepJourneyRewardsSafe(p);
     const claimed=new Set(S.journeyClaimed||[]);
     const hit=[4,8,12].find(m=>oldStep<m && newStep>=m && !claimed.has(m));
-    if(!hit) return;
+    if(!hit)return;
     claimed.add(hit);
-    const rewards=(typeof JR!=='undefined' && Array.isArray(JR)) ? JR : [];
-    const r=rewards.length ? rewards[Math.floor(Math.random()*rewards.length)] : {key:'joker',symbol:'💡',name:'Joker',effect:'Der nächste Fehler wird verziehen.'};
+    const rewards=[
+      {key:'joker',symbol:'🛡️',name:'Fehler verzeihen',effect:'Der nächste Fehler wird automatisch verziehen. Du gehst nicht zurück.',chipClass:'def'},
+      {key:'hint',symbol:'🔤',name:'Erster Buchstabe',effect:'Bei Bedarf antippen: Die ersten Buchstaben von Vorgänger und Nachfolger werden angezeigt.',chipClass:'hint'},
+      {key:'double',symbol:'✌️',name:'Doppelter Schritt',effect:'Die nächste richtige Antwort bringt automatisch 2 Schritte.',chipClass:'double'},
+      {key:'advance',symbol:'👣',name:'Gratisschritt',effect:'Du gehst sofort automatisch 1 zusätzlichen Schritt vorwärts.',chipClass:'advance'}
+    ];
+    const r=rewards[Math.floor(Math.random()*rewards.length)];
     const labels={4:{icon:'🎁',name:'Wüstenrast'},8:{icon:'🎁',name:'Manna-Station'},12:{icon:'🎁',name:'Jordanblick'}};
     p.journeyClaimed=[...claimed];
     p.journeyRewardOpen=true;
     p.journeyReward={...r,milestone:hit,milestoneName:labels[hit].name,milestoneIcon:labels[hit].icon};
-    const key={double:'journeyDouble',joker:'journeyJoker',skip:'journeySkip',hint:'journeyHint',turbo:'journeyTurbo',shield:'journeyShield'}[r.key];
-    if(key) p[key]=Number(p[key]||0)+(r.key==='turbo'?3:1);
+    if(r.key==='joker')p.journeyJoker=Number(p.journeyJoker||0)+1;
+    else if(r.key==='hint')p.journeyHint=Number(p.journeyHint||0)+1;
+    else if(r.key==='double')p.journeyDouble=Number(p.journeyDouble||0)+1;
+    else if(r.key==='advance')p.journeyStep=Math.min(15,Number(p.journeyStep??newStep)+1);
   }
-  function answerJourneyFixed(){
-    const i=Number(S.boBook||1);
-    const vor=BUECHER[i-1];
-    const nach=BUECHER[i+1];
-    if(!(S.boVor||'').trim() || !(S.boNach||'').trim()){
-      showToast('Bitte gib Vorgänger und Nachfolger ein.','error','Noch unvollständig',2200);
-      return set({journeyMsg:'',journeyMsgOk:false});
+  let journeyAnswerBusy=false;
+  async function persistJourneyCompletion(field,value){
+    S.journeySaveState='saving';
+    S.journeyPendingField=field;
+    S.journeyPendingValue=value;
+    render();
+    try{
+      const saved=await saveAchievementPatch({[field]:value});
+      if(!saved)throw new Error('ACHIEVEMENT_WRITE_FAILED');
+      S.journeySaveState='saved';
+      S.journeyStatsSaved=true;
+      S.journeyPendingField=null;
+      S.journeyPendingValue=null;
+      render();
+      showToast('Der Reise-Erfolg wurde in deiner Statistik gespeichert.','success','Erfolg gespeichert',3200);
+      return true;
+    }catch(err){
+      console.error('Reise-Erfolg speichern fehlgeschlagen:',err);
+      S.journeySaveState='error';
+      S.journeyStatsSaved=false;
+      render();
+      showToast('Die Reise ist abgeschlossen, aber der Erfolg konnte nicht gespeichert werden. Tippe auf „Erfolg erneut speichern“.','error','Speichern fehlgeschlagen',5200);
+      return false;
     }
-    const vorOk=abMatch(S.boVor,vor);
-    const nachOk=abMatch(S.boNach,nach);
-    const ok=vorOk && nachOk;
-    if(ok){
+  }
+  async function retryJourneyCompletionSave(){
+    if(S.journeySaveState==='saving')return;
+    const field=S.journeyPendingField||scopeKey('journeyWins',S.journeyScope);
+    const value=achievementNum(S.journeyPendingValue||S.user?.[field]);
+    if(!field||!value)return;
+    await persistJourneyCompletion(field,value);
+  }
+  function answerJourneyFinal(){
+    if(journeyAnswerBusy||S.journeyDone||S.view!=='bibelorder'||!S.journeyScope)return;
+    const i=Number(S.boBook||1);
+    const vor=BUECHER[i-1],nach=BUECHER[i+1];
+    if(!(S.boVor||'').trim()||!(S.boNach||'').trim()){
+      showToast('Bitte gib Vorgänger und Nachfolger ein.','error','Noch unvollständig',2200);return;
+    }
+    const ok=abMatch(S.boVor,vor)&&abMatch(S.boNach,nach);
+    journeyAnswerBusy=true;
+    try{
+      if(!ok){
+        const patch={journeyMsg:'',journeyMsgOk:false};
+        keepJourneyRewardsSafe(patch);
+        if((S.journeyJoker||0)>0){patch.journeyJoker=Math.max(0,S.journeyJoker-1);nextJourneyPatchSafe(patch);showToast('Joker eingesetzt: Fehler verziehen, kein Rückfall.','stats','Joker',2200);}
+        else if((S.journeyShield||0)>0){patch.journeyShield=Math.max(0,S.journeyShield-1);patch.journeyStep=Math.max(0,(S.journeyStep||0)-1);nextJourneyPatchSafe(patch);showToast('Schutzschild: nur 1 Schritt zurück.','stats','Schutzschild',2200);}
+        else{patch.journeyStep=Math.max(0,(S.journeyStep||0)-3);nextJourneyPatchSafe(patch);showToast(`Leider falsch. Richtig wäre: ${vor} / ${nach}. Du gehst 3 Schritte zurück.`,'error','Nicht ganz',5200);}
+        set(patch);return;
+      }
       const oldStep=Number(S.journeyStep||0);
-      const boost=(S.journeyDouble||0)>0 || (S.journeyTurbo||0)>0;
+      if(oldStep>=14){
+        const scope=S.journeyScope;
+        const field=scope==='AT'?'journeyWinsAT':scope==='NT'?'journeyWinsNT':'journeyWinsALL';
+        const target=achievementNum(S.user?.[field])+1;
+        Object.assign(S,{journeyStep:15,journeyDone:true,journeyMsg:'',journeyMsgOk:true,journeyStatsSaved:false,journeySaveState:'saving',journeyPendingField:field,journeyPendingValue:target});
+        render();
+        showToast('Bravo! Du hast Kanaan erreicht.','success','Reise abgeschlossen',2200);
+        window.setTimeout(()=>{void persistJourneyCompletion(field,target);},0);
+        return;
+      }
+      const boost=(S.journeyDouble||0)>0||(S.journeyTurbo||0)>0;
       const gain=boost?2:1;
       const newStep=Math.min(15,oldStep+gain);
-      const p={journeyStep:newStep,journeyMsg:'',journeyMsgOk:true};
-      keepJourneyRewardsSafe(p);
-      if((S.journeyDouble||0)>0) p.journeyDouble=Math.max(0,S.journeyDouble-1);
-      if((S.journeyTurbo||0)>0) p.journeyTurbo=Math.max(0,S.journeyTurbo-1);
-      checkJourneyLootSafe(oldStep,newStep,p);
-      showToast(`Richtig! ${gain} Schritt${gain>1?'e':''} vorwärts.`,'books','Richtige Antwort',1500);
-      if(newStep>=15){
-        p.journeyDone=true;
-        if(!S.journeyStatsSaved){
-          p.journeyStatsSaved=true;
-          if(typeof incUser==='function' && typeof scopeKey==='function') incUser(scopeKey('journeyWins',S.journeyScope));
-        }
-      }else{
-        nextJourneyPatchSafe(p);
-      }
-      return set(p);
-    }
-    const p={journeyMsg:'',journeyMsgOk:false};
-    keepJourneyRewardsSafe(p);
-    if((S.journeyJoker||0)>0){
-      p.journeyJoker=Math.max(0,S.journeyJoker-1);
-      nextJourneyPatchSafe(p);
-      showToast('Joker eingesetzt: Fehler verziehen, kein Rückfall.','stats','Joker',2200);
-    }else if((S.journeyShield||0)>0){
-      p.journeyShield=Math.max(0,S.journeyShield-1);
-      p.journeyStep=Math.max(0,(S.journeyStep||0)-1);
-      nextJourneyPatchSafe(p);
-      showToast('Schutzschild: nur 1 Schritt zurück.','stats','Schutzschild',2200);
-    }else{
-      p.journeyStep=Math.max(0,(S.journeyStep||0)-3);
-      nextJourneyPatchSafe(p);
-      showToast(`Leider falsch. Richtig wäre: ${vor} / ${nach}. Du gehst 3 Schritte zurück.`,'error','Nicht ganz',5200);
-    }
-    return set(p);
+      const patch={journeyStep:newStep,journeyMsg:'',journeyMsgOk:true};
+      keepJourneyRewardsSafe(patch);
+      if((S.journeyDouble||0)>0)patch.journeyDouble=Math.max(0,S.journeyDouble-1);
+      if((S.journeyTurbo||0)>0)patch.journeyTurbo=Math.max(0,S.journeyTurbo-1);
+      checkJourneyLootSafe(oldStep,newStep,patch);
+      if(newStep<15){nextJourneyPatchSafe(patch);set(patch);showToast(`Richtig! ${gain} Schritt${gain>1?'e':''} vorwärts.`,'books','Richtige Antwort',1500);return;}
+
+      const field=scopeKey('journeyWins',S.journeyScope);
+      const target=achievementNum(S.user?.[field])+1;
+      Object.assign(patch,{journeyStep:15,journeyDone:true,journeyStatsSaved:false,journeySaveState:'saving',journeyPendingField:field,journeyPendingValue:target});
+      set(patch);
+      showToast('Bravo! Du hast Kanaan erreicht.','success','Reise abgeschlossen',2200);
+      persistJourneyCompletion(field,target);
+    }finally{journeyAnswerBusy=false;}
   }
-  window.doJourneyAnswer=answerJourneyFixed;
-  try{ doJourneyAnswer=answerJourneyFixed; }catch(_){ }
+  window.retryJourneyCompletionSave=retryJourneyCompletionSave;
+  window.doJourneyAnswer=answerJourneyFinal;
+  try{doJourneyAnswer=answerJourneyFinal;}catch(_){ }
   document.addEventListener('click',function(e){
-    const b=e.target && e.target.closest && e.target.closest('.bo-check');
-    if(!b) return;
-    if(S && S.view==='bibelorder' && S.journeyScope && !S.journeyDone){
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      answerJourneyFixed();
-    }
+    const b=e.target&&e.target.closest&&e.target.closest('.bo-check');if(!b)return;
+    if(S.view==='bibelorder'&&S.journeyScope&&!S.journeyDone){e.preventDefault();e.stopImmediatePropagation();answerJourneyFinal();}
   },true);
+
 })();
 </script>
 
@@ -2754,15 +2875,55 @@ document.head.appendChild(quizTimeStyle);
   function v120CommunityCard(user){
     const verseCount=(S.counts&&S.counts[user.id]!==undefined)?S.counts[user.id]:(Number(user.verseCount||0));
     const avatar=el('div',{cls:'community-avatar',style:`background:${user.color||'#8b5cf6'}28;border-color:${user.color||'#8b5cf6'}66;`},user.emoji||'✝');
-    return div('community-card',
+    const card=div('community-card community-card-clickable',
       avatar,
       p('community-name',user.name||'Unbenannt'),
       p('community-verses',`${verseCount} Vers${Number(verseCount)===1?'':'e'}`),
-      div('community-trophies',
-        v120CommunityBadge('AT',user.trophiesAT),
-        v120CommunityBadge('NT',user.trophiesNT)
-      )
+      div('community-trophies',v120CommunityBadge('AT',user.trophiesAT),v120CommunityBadge('NT',user.trophiesNT)),
+      p('community-open-hint','Erfolge ansehen')
     );
+    card.tabIndex=0;card.setAttribute('role','button');card.setAttribute('aria-label','Erfolge von '+(user.name||'Nutzer')+' ansehen');
+    card.onclick=()=>openCommunityAchievements(user);
+    card.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openCommunityAchievements(user);}};
+    return card;
+  }
+  function communityBestBookFill(scores){
+    const list=Array.isArray(scores)?scores:[];if(!list.length)return 'Noch kein Resultat';
+    const best=[...list].sort((a,b)=>(Number(b.score||0)-Number(a.score||0))||(Number(b.correct||0)-Number(a.correct||0)))[0];
+    return `${Number(best.score||0)} Punkte${best.correct!==undefined?` · ${Number(best.correct||0)} richtig`:''}`;
+  }
+  function communityBestQuiz(scores){
+    const list=Array.isArray(scores)?scores:[];if(!list.length)return 'Noch kein Resultat';
+    const rate=e=>{const sec=Math.max(1,Number(e.seconds||e.selectedSeconds||60));return Number(e.score||0)/(sec/60);};
+    const best=[...list].sort((a,b)=>rate(b)-rate(a)||Number(b.score||0)-Number(a.score||0))[0];
+    const r=Math.round(rate(best)*10)/10;
+    return `${Number(best.score||0)} Punkte · ${r.toLocaleString('de-CH')} Punkte/Min.`;
+  }
+  function communityStatRow(label,value){return div('community-detail-row',span('community-detail-label',label),span('community-detail-value',String(value)));}
+  async function openCommunityAchievements(directoryUser){
+    const overlay=div('community-detail-overlay');
+    const card=div('community-detail-card',div('community-detail-loading','Erfolge werden geladen …'));
+    overlay.appendChild(card);overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};document.body.appendChild(overlay);
+    try{
+      const [cloud,verseDoc]=await Promise.all([loadProfileCloud(directoryUser.id),fbGet('verses',directoryUser.id)]);
+      const u=mergeAchievementProfile(directoryUser,cloud,cloud,[]);
+      const verses=Array.isArray(verseDoc?.list)?verseDoc.list:[];
+      const mastered=verses.filter(v=>{const p=decayedPoints(v);return p!==null&&p>=80;}).length;
+      const journeyTotal=achievementNum(u.journeyWinsAT)+achievementNum(u.journeyWinsNT)+achievementNum(u.journeyWinsALL);
+      const templeTotal=achievementNum(u.templeWinsAT)+achievementNum(u.templeWinsNT)+achievementNum(u.templeWinsALL);
+      card.innerHTML='';
+      const avatar=el('div',{cls:'community-detail-avatar',style:`background:${u.color||'#8b5cf6'}28;border-color:${u.color||'#8b5cf6'}66`},u.emoji||'✝');
+      card.append(div('community-detail-head',avatar,div('',p('community-detail-name',u.name||directoryUser.name||'Unbenannt'),p('community-detail-sub','Beste persönliche Erfolge'))));
+      card.append(
+        communityStatRow('🗺️ Reise nach Kanaan',`${journeyTotal} insgesamt · AT ${achievementNum(u.journeyWinsAT)} · NT ${achievementNum(u.journeyWinsNT)} · Alle ${achievementNum(u.journeyWinsALL)}`),
+        communityStatRow('🏛️ Tempelbau',`${templeTotal} insgesamt · AT ${achievementNum(u.templeWinsAT)} · NT ${achievementNum(u.templeWinsNT)} · Alle ${achievementNum(u.templeWinsALL)}`),
+        communityStatRow('🧩 Lücke füllen',communityBestBookFill(u.bookFillHighscores)),
+        communityStatRow('📖 Auswendig gelernte Verse',mastered),
+        communityStatRow('💡 Bibelwissen',communityBestQuiz(u.quizHighscores)),
+        communityStatRow('🏆 Bücher-Pokale',`AT ${achievementNum(u.trophiesAT)} · NT ${achievementNum(u.trophiesNT)}`)
+      );
+      const close=btn('community-detail-close','Schliessen',()=>overlay.remove());card.appendChild(close);
+    }catch(err){card.innerHTML='';card.append(p('community-detail-error','Die Erfolge konnten nicht geladen werden.'),btn('community-detail-close','Schliessen',()=>overlay.remove()));}
   }
   function v120CommunityArea(){
     const others=(Array.isArray(S.users)?S.users:[]).filter(u=>u && (!S.user || u.id!==S.user.id));
@@ -2826,7 +2987,7 @@ document.head.appendChild(quizTimeStyle);
   async function showApp(user){
     const vd=await fbGet('verses',user.id);
     const cloud=await loadProfileCloud(user.id);
-    const mergedUser={...user,...cloud};
+    const mergedUser=await reconcileAchievementProfile(user,cloud);
     S.verses=vd?(vd.list||[]):[];
     S.counts={...S.counts,[user.id]:S.verses.length};
     S.user=mergedUser;
@@ -3072,7 +3233,13 @@ document.head.appendChild(quizTimeStyle);
         ...user,
         quizHighscores:[],
         quizQuestions:[],
-        lastVerseSelectionIds:[]
+        lastVerseSelectionIds:[],
+        achievementStorageVersion:ACHIEVEMENT_STORAGE_VERSION,
+        achievementsReconciledAt:new Date().toISOString(),
+        trophiesAT:0,trophiesNT:0,
+        journeyWinsAT:0,journeyWinsNT:0,journeyWinsALL:0,
+        templeWinsAT:0,templeWinsNT:0,templeWinsALL:0,
+        bookFillHighscores:[]
       });
       await saveUsers([...(S.users||[]),user]);
       S.counts={...S.counts,[id]:0};
@@ -3334,7 +3501,7 @@ document.head.appendChild(quizTimeStyle);
     return prefix+(scope==='AT'?'AT':scope==='NT'?'NT':'ALL');
   }
   function robustTempleCheck(){
-    if(!window.S||S.view!=='bibelsort'||!S.templeScope||S.bsChecked||S.templeDone)return;
+    if(S.view!=='bibelsort'||!S.templeScope||S.bsChecked||S.templeDone)return;
     if(!Array.isArray(S.bsCurrent)||!Array.isArray(S.bsCorrect))return;
     const ok=S.bsCurrent.length===S.bsCorrect.length&&S.bsCurrent.every((v,i)=>v===S.bsCorrect[i]);
     const before=Number(S.templeStones||0);
@@ -3350,7 +3517,11 @@ document.head.appendChild(quizTimeStyle);
     if(ok&&afterPhase>beforePhase)patch.templePhasePopup=afterPhase;
     if(next>=TOTAL&&!S.templeStatsSaved){
       patch.templeStatsSaved=true;
-      if(typeof incUser==='function')incUser(sk('templeWins',S.templeScope));
+      const achievementField=sk('templeWins',S.templeScope);
+      const achievementValue=achievementNum(S.user?.[achievementField])+1;
+      saveAchievementPatch({[achievementField]:achievementValue}).then(saved=>{
+        if(saved&&typeof showToast==='function')showToast('Der Tempel-Erfolg wurde in deiner Statistik gespeichert.','success','Erfolg gespeichert',2200);
+      });
     }
     if(typeof showToast==='function')showToast(msg,ok?'success':'error',ok?'Tempelbau':'Richtige Lösung',ok?1500:9500);
     set(patch);
@@ -3362,7 +3533,7 @@ document.head.appendChild(quizTimeStyle);
   function handle(e){
     const btn=e.target&&e.target.closest&&e.target.closest('.bs-check');
     if(!btn)return;
-    if(!(window.S&&S.view==='bibelsort'&&S.templeScope&&!S.bsChecked&&!S.templeDone))return;
+    if(!(S.view==='bibelsort'&&S.templeScope&&!S.bsChecked&&!S.templeDone))return;
     const now=Date.now();
     if(now-lastRun<450){
       e.preventDefault();
@@ -3797,7 +3968,7 @@ document.head.appendChild(quizTimeStyle);
     set({view:'booklearnselect',activeTab:'books',blTestament:testament,blStartInput:'',blIndex:null,blLeft:0,blRight:null,blRevealed:false,blError:''});
   }
   function blHeader(title,back){
-    return el('div',{},btn('back-btn','← Zurück',back),p('view-title',title));
+    return div('page-header',btn('back-btn','←',back),el('h2',{cls:'page-title'},title));
   }
 
   window.renderBookLearnSelect=function(){
@@ -4220,6 +4391,29 @@ document.head.appendChild(quizTimeStyle);
   };
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshAdminBadge(true);});
   window.addEventListener('focus',()=>refreshAdminBadge(true));
+})();
+</script>
+
+<script>
+(function(){
+  const previousRenderBookJourney=window.renderBookJourney||renderBookJourney;
+  window.renderBookJourney=renderBookJourney=function(){
+    const wrap=previousRenderBookJourney.apply(this,arguments);
+    if(S.journeyDone){
+      const box=wrap.querySelector&&wrap.querySelector('.journey-win');
+      const sub=box&&box.querySelector('.journey-win-sub');
+      if(sub){
+        if(S.journeySaveState==='saved')sub.textContent='Du hast alle 15 Stationen geschafft. Der Reise-Erfolg wurde in deiner Statistik gespeichert.';
+        else if(S.journeySaveState==='error')sub.textContent='Du hast alle 15 Stationen geschafft. Die Speicherung ist fehlgeschlagen.';
+        else sub.textContent='Du hast alle 15 Stationen geschafft. Der Reise-Erfolg wird gespeichert …';
+      }
+      if(box&&S.journeySaveState==='error'&&!box.querySelector('[data-journey-retry]')){
+        const retry=btn('prim-btn','Erfolg erneut speichern',()=>window.retryJourneyCompletionSave());
+        retry.setAttribute('data-journey-retry','1');box.insertBefore(retry,box.lastChild||null);
+      }
+    }
+    return wrap;
+  };
 })();
 </script>
 </body>
