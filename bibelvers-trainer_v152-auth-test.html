@@ -952,6 +952,7 @@ function saveAchievementPatch(patch){
   achievementSaveChain=achievementSaveChain.catch(()=>{}).then(async()=>{
     try{
       await saveProfileCloudPatch(uid,cloudPatch);
+      if(!S.user||S.user.id!==uid)return true;
       S.user={...S.user,...clean,achievementStorageVersion:ACHIEVEMENT_STORAGE_VERSION,achievementsUpdatedAt:stamp};
       S.users=(S.users||[]).map(u=>u.id===uid?{...u,...clean}:u);
       return true;
@@ -2501,13 +2502,22 @@ document.head.appendChild(quizTimeStyle);
     if(key) p[key]=Number(p[key]||0)+(r.key==='turbo'?3:1);
   }
   let journeyAnswerBusy=false;
+
   async function persistJourneyCompletion(field,value){
+    const validFields=new Set(['journeyWinsAT','journeyWinsNT','journeyWinsALL']);
+    if(!validFields.has(field)||achievementNum(value)<1){
+      S.journeySaveState='error';
+      S.journeyStatsSaved=false;
+      render();
+      showToast('Der Reise-Erfolg konnte nicht eindeutig bestimmt werden.','error','Speichern nicht möglich',4200);
+      return false;
+    }
     S.journeySaveState='saving';
     S.journeyPendingField=field;
-    S.journeyPendingValue=value;
+    S.journeyPendingValue=achievementNum(value);
     render();
     try{
-      const saved=await saveAchievementPatch({[field]:value});
+      const saved=await saveAchievementPatch({[field]:achievementNum(value)});
       if(!saved)throw new Error('ACHIEVEMENT_WRITE_FAILED');
       S.journeySaveState='saved';
       S.journeyStatsSaved=true;
@@ -2525,7 +2535,8 @@ document.head.appendChild(quizTimeStyle);
       return false;
     }
   }
-  async function retryJourneyCompletionSave(){
+
+  function retryJourneyCompletionSave(){
     if(S.journeySaveState==='saving')return;
     const field=S.journeyPendingField||scopeKey('journeyWins',S.journeyScope);
     const value=achievementNum(S.journeyPendingValue ?? S.user?.[field]);
@@ -2533,27 +2544,42 @@ document.head.appendChild(quizTimeStyle);
       showToast('Der zu speichernde Reise-Erfolg konnte nicht bestimmt werden.','error','Speichern nicht möglich',4200);
       return;
     }
-    await persistJourneyCompletion(field,value);
+    void persistJourneyCompletion(field,value);
   }
-  async function answerJourneyFinal(){
+
+  function answerJourneyFinal(){
     if(journeyAnswerBusy||S.journeyDone||S.view!=='bibelorder'||!S.journeyScope)return;
-    const i=Number(S.boBook||1);
-    const vor=BUECHER[i-1],nach=BUECHER[i+1];
-    if(!(S.boVor||'').trim()||!(S.boNach||'').trim()){
-      showToast('Bitte gib Vorgänger und Nachfolger ein.','error','Noch unvollständig',2200);return;
-    }
-    const ok=abMatch(S.boVor,vor)&&abMatch(S.boNach,nach);
     journeyAnswerBusy=true;
     try{
+      const i=Number(S.boBook||1);
+      const vor=BUECHER[i-1],nach=BUECHER[i+1];
+      if(!(S.boVor||'').trim()||!(S.boNach||'').trim()){
+        showToast('Bitte gib Vorgänger und Nachfolger ein.','error','Noch unvollständig',2200);
+        return;
+      }
+      const ok=abMatch(S.boVor,vor)&&abMatch(S.boNach,nach);
       if(!ok){
         const patch={journeyMsg:'',journeyMsgOk:false};
         keepJourneyRewardsSafe(patch);
-        if((S.journeyJoker||0)>0){patch.journeyJoker=Math.max(0,S.journeyJoker-1);nextJourneyPatchSafe(patch);showToast('Joker eingesetzt: Fehler verziehen, kein Rückfall.','stats','Joker',2200);}
-        else if((S.journeyShield||0)>0){patch.journeyShield=Math.max(0,S.journeyShield-1);patch.journeyStep=Math.max(0,(S.journeyStep||0)-1);nextJourneyPatchSafe(patch);showToast('Schutzschild: nur 1 Schritt zurück.','stats','Schutzschild',2200);}
-        else{patch.journeyStep=Math.max(0,(S.journeyStep||0)-3);nextJourneyPatchSafe(patch);showToast(`Leider falsch. Richtig wäre: ${vor} / ${nach}. Du gehst 3 Schritte zurück.`,'error','Nicht ganz',5200);}
-        set(patch);return;
+        if((S.journeyJoker||0)>0){
+          patch.journeyJoker=Math.max(0,S.journeyJoker-1);
+          nextJourneyPatchSafe(patch);
+          showToast('Joker eingesetzt: Fehler verziehen, kein Rückfall.','stats','Joker',2200);
+        }else if((S.journeyShield||0)>0){
+          patch.journeyShield=Math.max(0,S.journeyShield-1);
+          patch.journeyStep=Math.max(0,(S.journeyStep||0)-1);
+          nextJourneyPatchSafe(patch);
+          showToast('Schutzschild: nur 1 Schritt zurück.','stats','Schutzschild',2200);
+        }else{
+          patch.journeyStep=Math.max(0,(S.journeyStep||0)-3);
+          nextJourneyPatchSafe(patch);
+          showToast(`Leider falsch. Richtig wäre: ${vor} / ${nach}. Du gehst 3 Schritte zurück.`,'error','Nicht ganz',5200);
+        }
+        set(patch);
+        return;
       }
-      const oldStep=Number(S.journeyStep||0);
+
+      const oldStep=achievementNum(S.journeyStep);
       const boost=(S.journeyDouble||0)>0||(S.journeyTurbo||0)>0;
       const gain=boost?2:1;
       const newStep=Math.min(15,oldStep+gain);
@@ -2562,23 +2588,41 @@ document.head.appendChild(quizTimeStyle);
       if((S.journeyDouble||0)>0)patch.journeyDouble=Math.max(0,S.journeyDouble-1);
       if((S.journeyTurbo||0)>0)patch.journeyTurbo=Math.max(0,S.journeyTurbo-1);
       checkJourneyLootSafe(oldStep,newStep,patch);
-      if(newStep<15){nextJourneyPatchSafe(patch);set(patch);showToast(`Richtig! ${gain} Schritt${gain>1?'e':''} vorwärts.`,'books','Richtige Antwort',1500);return;}
+
+      if(newStep<15){
+        nextJourneyPatchSafe(patch);
+        set(patch);
+        showToast(`Richtig! ${gain} Schritt${gain>1?'e':''} vorwärts.`,'books','Richtige Antwort',1500);
+        return;
+      }
 
       const field=scopeKey('journeyWins',S.journeyScope);
       const target=achievementNum(S.user?.[field])+1;
-      Object.assign(patch,{journeyStep:15,journeyDone:true,journeyStatsSaved:false,journeySaveState:'saving',journeyPendingField:field,journeyPendingValue:target});
+      Object.assign(patch,{
+        journeyStep:15,
+        journeyDone:true,
+        journeyStatsSaved:false,
+        journeySaveState:'saving',
+        journeyPendingField:field,
+        journeyPendingValue:target
+      });
+
+      // Spielabschluss immer zuerst synchron anzeigen. Die Cloud-Speicherung läuft danach getrennt.
       set(patch);
       showToast('Bravo! Du hast Kanaan erreicht.','success','Reise abgeschlossen',2200);
-      await persistJourneyCompletion(field,target);
-    }finally{journeyAnswerBusy=false;}
+      window.setTimeout(()=>{void persistJourneyCompletion(field,target);},0);
+    }catch(err){
+      console.error('Reise-Antwort konnte nicht verarbeitet werden:',err);
+      showToast('Die Antwort konnte nicht verarbeitet werden. Bitte versuche es nochmals.','error','Fehler bei der Reise',4200);
+    }finally{
+      journeyAnswerBusy=false;
+    }
   }
+
   window.retryJourneyCompletionSave=retryJourneyCompletionSave;
   window.doJourneyAnswer=answerJourneyFinal;
   try{doJourneyAnswer=answerJourneyFinal;}catch(_){ }
-  document.addEventListener('click',function(e){
-    const b=e.target&&e.target.closest&&e.target.closest('.bo-check');if(!b)return;
-    if(S.view==='bibelorder'&&S.journeyScope&&!S.journeyDone){e.preventDefault();e.stopImmediatePropagation();answerJourneyFinal();}
-  },true);
+
 
 })();
 </script>
