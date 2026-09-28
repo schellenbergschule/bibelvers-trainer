@@ -2466,6 +2466,10 @@ document.head.appendChild(quizTimeStyle);
 <script>
 /* Antwort prüfen in Reise nach Kanaan */
 (function(){
+  function journeyInt(value){
+    const n=Number(value);
+    return Number.isFinite(n)&&n>=0?Math.floor(n):0;
+  }
   function journeyNextBook(scope,current){
     const r = typeof journeyRange==='function' ? journeyRange(scope) : {min:1,max:64};
     let n, guard=0;
@@ -2505,7 +2509,7 @@ document.head.appendChild(quizTimeStyle);
 
   async function persistJourneyCompletion(field,value){
     const validFields=new Set(['journeyWinsAT','journeyWinsNT','journeyWinsALL']);
-    if(!validFields.has(field)||achievementNum(value)<1){
+    if(!validFields.has(field)||journeyInt(value)<1){
       S.journeySaveState='error';
       S.journeyStatsSaved=false;
       render();
@@ -2514,10 +2518,10 @@ document.head.appendChild(quizTimeStyle);
     }
     S.journeySaveState='saving';
     S.journeyPendingField=field;
-    S.journeyPendingValue=achievementNum(value);
+    S.journeyPendingValue=journeyInt(value);
     render();
     try{
-      const saved=await saveAchievementPatch({[field]:achievementNum(value)});
+      const saved=await saveAchievementPatch({[field]:journeyInt(value)});
       if(!saved)throw new Error('ACHIEVEMENT_WRITE_FAILED');
       S.journeySaveState='saved';
       S.journeyStatsSaved=true;
@@ -2539,7 +2543,7 @@ document.head.appendChild(quizTimeStyle);
   function retryJourneyCompletionSave(){
     if(S.journeySaveState==='saving')return;
     const field=S.journeyPendingField||scopeKey('journeyWins',S.journeyScope);
-    const value=achievementNum(S.journeyPendingValue ?? S.user?.[field]);
+    const value=journeyInt(S.journeyPendingValue ?? S.user?.[field]);
     if(!field||value<1){
       showToast('Der zu speichernde Reise-Erfolg konnte nicht bestimmt werden.','error','Speichern nicht möglich',4200);
       return;
@@ -2579,7 +2583,37 @@ document.head.appendChild(quizTimeStyle);
         return;
       }
 
-      const oldStep=achievementNum(S.journeyStep);
+      const oldStep=journeyInt(S.journeyStep);
+
+      // Der letzte Schritt wird absichtlich ohne Loot-, Zufallsbuch- oder Hilfsfunktionen abgeschlossen.
+      // So kann kein Nebeneffekt den Übergang von 14 auf 15 blockieren.
+      if(oldStep>=14){
+        const scope=S.journeyScope;
+        const field=scope==='AT'?'journeyWinsAT':scope==='NT'?'journeyWinsNT':'journeyWinsALL';
+        const target=journeyInt(S.user&&S.user[field])+1;
+        const finalPatch={
+          journeyStep:15,
+          journeyDone:true,
+          journeyMsg:'',
+          journeyMsgOk:true,
+          journeyStatsSaved:false,
+          journeySaveState:'saving',
+          journeyPendingField:field,
+          journeyPendingValue:target
+        };
+        Object.assign(S,finalPatch);
+        try{
+          render();
+        }catch(renderErr){
+          console.error('Abschlussansicht der Reise konnte nicht gerendert werden:',renderErr);
+          // Ein zweiter Render-Versuch vermeidet einen blockierten Zustand nach einem kurzzeitigen UI-Fehler.
+          window.setTimeout(()=>{try{render();}catch(e){console.error('Zweiter Render-Versuch fehlgeschlagen:',e);}},0);
+        }
+        showToast('Bravo! Du hast Kanaan erreicht.','success','Reise abgeschlossen',2200);
+        window.setTimeout(()=>{void persistJourneyCompletion(field,target);},0);
+        return;
+      }
+
       const boost=(S.journeyDouble||0)>0||(S.journeyTurbo||0)>0;
       const gain=boost?2:1;
       const newStep=Math.min(15,oldStep+gain);
@@ -2597,7 +2631,7 @@ document.head.appendChild(quizTimeStyle);
       }
 
       const field=scopeKey('journeyWins',S.journeyScope);
-      const target=achievementNum(S.user?.[field])+1;
+      const target=journeyInt(S.user?.[field])+1;
       Object.assign(patch,{
         journeyStep:15,
         journeyDone:true,
