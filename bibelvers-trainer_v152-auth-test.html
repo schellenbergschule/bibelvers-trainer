@@ -1850,7 +1850,7 @@ renderStatsTab=function(){const w=renderStats();if(w.firstChild)w.removeChild(w.
 renderProfileTab=function(){if(S.user&&(!S.pName&&!S.pEmoji&&!S.pColor)){S.pEmoji=S.user.emoji;S.pColor=S.user.color;S.pName=S.user.name;}const w=renderProfile();if(w.firstChild)w.removeChild(w.firstChild);w.insertBefore(tabTitle('Einstellungen','Profil','Passe Name, Symbol, Farbe und Passwort an.'),w.firstChild||null);return w;};
 renderMenu=function(){const u=S.user,active=S.activeTab||'books';const hdr=div('page-header',el('div',{style:`width:42px;height:42px;border-radius:50%;background:${u.color}28;border:1.5px solid ${u.color}55;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0`},u.emoji),el('div',{},el('p',{style:'font-size:15px;font-weight:500;color:rgba(237,233,254,.92);margin-bottom:1px'},`Hallo, ${u.name}!`)),el('button',{type:'button',style:'font-size:12px;padding:5px 10px;margin-left:auto;background:linear-gradient(135deg,rgba(139,92,246,.15),rgba(99,102,241,.1));border:1px solid rgba(196,181,253,.2);color:rgba(221,214,254,.8);border-radius:10px;cursor:pointer;',onclick:()=>set({user:null,verses:[],view:'select',activeTab:'books'})},'Abmelden'));const content=active==='books'?renderBooksTab():active==='stats'?renderStatsTab():active==='profile'?renderProfileTab():renderVerseTab();return el('div',{cls:'tab-shell'},hdr,div('tab-content',content),renderTabNav());};
 const JL={4:{icon:'🎁',name:'Wüstenrast'},8:{icon:'🎁',name:'Manna-Station'},12:{icon:'🎁',name:'Jordanblick'}};const JR=[{key:'double',symbol:'🎯',name:'Doppelte Punkte',effect:'Die nächste korrekte Antwort zählt 2 Schritte.'},{key:'joker',symbol:'💡',name:'Joker',effect:'Der nächste Fehler wird verziehen – kein Rückfall.'},{key:'skip',symbol:'⏭️',name:'Skip',effect:'Du darfst die aktuelle Frage ohne Strafe überspringen.'},{key:'hint',symbol:'🔍',name:'Hinweis',effect:'Du kannst dir den ersten Buchstaben der gesuchten Antworten anzeigen lassen.'},{key:'turbo',symbol:'⚡',name:'Turbo',effect:'Die nächsten 3 korrekten Antworten geben je 2 Schritte.'},{key:'shield',symbol:'🛡️',name:'Schutzschild',effect:'Der nächste Fehler wirft dich nur 1 Schritt zurück.'}];
-journeyRange=s=>s==='AT'?{min:1,max:37,label:'Altes Testament'}:s==='NT'?{min:40,max:64,label:'Neues Testament'}:{min:1,max:64,label:'AT & NT'};randBook=function(s,e){const r=journeyRange(s);let n;do{n=Math.floor(Math.random()*(r.max-r.min+1))+r.min;}while(n===e);return n;};initBookJourney=s=>set({view:'bibelorder',activeTab:'books',journeyScope:s,boBook:randBook(s,null),boVor:'',boNach:'',journeyStep:0,journeyClaimed:[],journeyRewardOpen:false,journeyReward:null,journeyDouble:0,journeyJoker:0,journeySkip:0,journeyHint:0,journeyShowHint:false,journeyTurbo:0,journeyShield:0,journeyDone:false,journeyStatsSaved:false,journeyRunId:'jr_'+Date.now()+'_'+Math.random().toString(36).slice(2),journeySavedRunId:null,journeyMsg:'',journeyMsgOk:null});
+journeyRange=s=>s==='AT'?{min:1,max:37,label:'Altes Testament'}:s==='NT'?{min:40,max:64,label:'Neues Testament'}:{min:1,max:64,label:'AT & NT'};randBook=function(s,e){const r=journeyRange(s);let n;do{n=Math.floor(Math.random()*(r.max-r.min+1))+r.min;}while(n===e);return n;};initBookJourney=s=>set({view:'bibelorder',activeTab:'books',journeyScope:s,boBook:randBook(s,null),boVor:'',boNach:'',journeyStep:0,journeyClaimed:[],journeyRewardOpen:false,journeyReward:null,journeyDouble:0,journeyJoker:0,journeySkip:0,journeyHint:0,journeyShowHint:false,journeyTurbo:0,journeyShield:0,journeyDone:false,journeyStatsSaved:false,journeySaveState:'idle',journeyPendingField:null,journeyPendingValue:null,journeyRunId:'jr_'+Date.now()+'_'+Math.random().toString(36).slice(2),journeySavedRunId:null,journeyMsg:'',journeyMsgOk:null});
 function keepRewards(p){['journeyDouble','journeyJoker','journeySkip','journeyHint','journeyTurbo','journeyShield'].forEach(k=>{if(!(k in p))p[k]=Number(S[k]||0);});return p;}
 applyJourneyReward=function(p,r){keepRewards(p);const key={double:'journeyDouble',joker:'journeyJoker',skip:'journeySkip',hint:'journeyHint',turbo:'journeyTurbo',shield:'journeyShield'}[r.key];if(key)p[key]=Number(p[key]||0)+(r.key==='turbo'?3:1);};
 checkJourneyLoot=function(o,n,p){keepRewards(p);const c=new Set(S.journeyClaimed||[]);const hit=[4,8,12].find(m=>o<m&&n>=m&&!c.has(m));if(!hit)return;c.add(hit);const r=JR[Math.floor(Math.random()*JR.length)];p.journeyClaimed=[...c];p.journeyRewardOpen=true;p.journeyReward={...r,milestone:hit,milestoneName:JL[hit].name,milestoneIcon:JL[hit].icon};applyJourneyReward(p,r);};nextJourneyPatch=p=>(keepRewards(p),p.boBook=randBook(S.journeyScope||'ALL',S.boBook),p.boVor='',p.boNach='',p.journeyShowHint=false,p);
@@ -1861,7 +1861,7 @@ renderJourneyMap=function(){const step=S.journeyStep||0,c=new Set(S.journeyClaim
 renderRewardChips=function(){const chips=[span('reward-title','Aktive Belohnungen – antippen zum Einsetzen')];const add=(cls,sym,lab,n,action)=>{for(let i=0;i<Number(n||0);i++){const c=span(cls+(action?' use':''),`${sym} ${lab}`);if(action)c.onclick=action;chips.push(c);}};add('reward-chip','🎯','Doppelt',S.journeyDouble,null);add('reward-chip def','💡','Joker',S.journeyJoker,null);add('reward-chip','⏭️','Skip',S.journeySkip,useJourneySkip);add('reward-chip def','🔍','Hinweis',S.journeyHint,useJourneyHint);add('reward-chip','⚡','Turbo',S.journeyTurbo,null);add('reward-chip def','🛡️','Schutz',S.journeyShield,null);if(chips.length===1)chips.push(span('reward-chip empty','Keine aktive Belohnung'));return div('reward-row',...chips);};
 renderLootPopup=function(){if(!S.journeyRewardOpen||!S.journeyReward)return null;const r=S.journeyReward;return div('loot-pop',div('loot-card',span('loot-box-anim','🎁'),span('loot-symbol',r.symbol),p('loot-title','Lootbox geöffnet!'),p('loot-sub',`${r.milestoneIcon} ${r.milestoneName}: ${r.name}\n${r.effect}`),btn('prim-btn','Weiter',()=>set({journeyRewardOpen:false}))));};
 renderConfetti=function(){const items=['🎉','✨','🌟','🎊','💫'];return div('confetti',...Array.from({length:42},(_,i)=>{const s=span('',items[i%items.length]);s.style.left=(Math.random()*100)+'%';s.style.animationDelay=(Math.random()*2.3)+'s';s.style.animationDuration=(2.4+Math.random()*1.8)+'s';return s;}));};
-renderBibelOrder=function(){if(!S.journeyScope)return renderJourneyScopeSelect();const i=S.boBook||1,book=BUECHER[i],vor=BUECHER[i-1],nach=BUECHER[i+1],range=journeyRange(S.journeyScope),step=S.journeyStep||0;const hdr=div('page-header',btn('back-btn','←',()=>set({view:'menu',activeTab:'books'})),el('h2',{cls:'page-title'},'Exodus-Reise'));const wrap=el('div',{},hdr,tabTitle('','Vorgänger & Nachfolger',range.label),renderJourneyMap(),div('journey-legend',p('mode-help mode-help-left','Nenne das Buch davor und das danach, um einen Schritt in Richtung Kanaan zu gehen.'),el('ul',{cls:'mode-bullets'},el('li',{},'Bei einer falschen Antwort gehst du 3 Schritte zurück.'),el('li',{},'Nach jeweils 4 Stationen wartet eine Lootbox.')),p('mode-help mode-help-left','🎁 Erreichst du diese Station, gibt es eine zufällige Belohnung.')),div('journey-progress',el('div',{cls:'prog-track'},el('div',{cls:'prog-fill',style:`width:${step/15*100}%`})),span('journey-step',`${step} / 15`)));if(S.journeyDone){wrap.append(renderConfetti(),div('journey-win',span('journey-win-emoji','🏞️'),p('journey-win-title','Bravo! Kanaan erreicht!'),p('journey-win-sub','Du hast alle 15 Stationen geschafft. Der Reise-Erfolg wird in deiner Statistik gespeichert.'),btn('prim-btn','Neue Reise starten',()=>set({journeyScope:null,journeyDone:false,journeyStep:0,journeyStatsSaved:false,journeyRunId:null,journeySavedRunId:null}))));return wrap;}const q=div('journey-question',p('journey-book',book),renderRewardChips());const vi=el('input',{cls:'bo-input',type:'text',placeholder:'Vorgänger…'});vi.value=S.boVor||'';vi.oninput=e=>S.boVor=e.target.value;const ni=el('input',{cls:'bo-input',type:'text',placeholder:'Nachfolger…'});ni.value=S.boNach||'';ni.oninput=e=>S.boNach=e.target.value;vi.onkeydown=e=>{if(e.key==='Enter')ni.focus();};ni.onkeydown=e=>{if(e.key==='Enter')doJourneyAnswer();};q.append(el('div',{style:'margin-bottom:8px'},span('f-label','Vorgänger'),vi),el('div',{style:'margin-bottom:8px'},span('f-label','Nachfolger'),ni));if(S.journeyShowHint)q.appendChild(div('hint-box',`Hinweis: Vorgänger beginnt mit „${vor.charAt(0)}“, Nachfolger mit „${nach.charAt(0)}“.`));q.append(btn('bo-check','Antwort prüfen ✓',doJourneyAnswer));wrap.appendChild(q);const pop=renderLootPopup();if(pop)wrap.appendChild(pop);setTimeout(()=>vi.focus(),50);return wrap;};
+renderBibelOrder=function(){if(!S.journeyScope)return renderJourneyScopeSelect();const i=S.boBook||1,book=BUECHER[i],vor=BUECHER[i-1],nach=BUECHER[i+1],range=journeyRange(S.journeyScope),step=S.journeyStep||0;const hdr=div('page-header',btn('back-btn','←',()=>set({view:'menu',activeTab:'books'})),el('h2',{cls:'page-title'},'Exodus-Reise'));const wrap=el('div',{},hdr,tabTitle('','Vorgänger & Nachfolger',range.label),renderJourneyMap(),div('journey-legend',p('mode-help mode-help-left','Nenne das Buch davor und das danach, um einen Schritt in Richtung Kanaan zu gehen.'),el('ul',{cls:'mode-bullets'},el('li',{},'Bei einer falschen Antwort gehst du 3 Schritte zurück.'),el('li',{},'Nach jeweils 4 Stationen wartet eine Lootbox.')),p('mode-help mode-help-left','🎁 Erreichst du diese Station, gibt es eine zufällige Belohnung.')),div('journey-progress',el('div',{cls:'prog-track'},el('div',{cls:'prog-fill',style:`width:${step/15*100}%`})),span('journey-step',`${step} / 15`)));if(S.journeyDone){wrap.append(renderConfetti(),div('journey-win',span('journey-win-emoji','🏞️'),p('journey-win-title','Bravo! Kanaan erreicht!'),p('journey-win-sub','Du hast alle 15 Stationen geschafft. Der Reise-Erfolg wird in deiner Statistik gespeichert.'),btn('prim-btn','Neue Reise starten',()=>set({journeyScope:null,journeyDone:false,journeyStep:0,journeyStatsSaved:false,journeyRunId:null,journeySavedRunId:null}))));return wrap;}const q=div('journey-question',p('journey-book',book),renderRewardChips());const vi=el('input',{cls:'bo-input',type:'text',placeholder:'Vorgänger…'});vi.value=S.boVor||'';vi.oninput=e=>S.boVor=e.target.value;const ni=el('input',{cls:'bo-input',type:'text',placeholder:'Nachfolger…'});ni.value=S.boNach||'';ni.oninput=e=>S.boNach=e.target.value;vi.onkeydown=e=>{if(e.key==='Enter')ni.focus();};ni.onkeydown=e=>{if(e.key==='Enter')window.journeyAnswerV180();};q.append(el('div',{style:'margin-bottom:8px'},span('f-label','Vorgänger'),vi),el('div',{style:'margin-bottom:8px'},span('f-label','Nachfolger'),ni));if(S.journeyShowHint)q.appendChild(div('hint-box',`Hinweis: Vorgänger beginnt mit „${vor.charAt(0)}“, Nachfolger mit „${nach.charAt(0)}“.`));q.append(btn('bo-check','Antwort prüfen ✓',()=>window.journeyAnswerV180()));wrap.appendChild(q);const pop=renderLootPopup();if(pop)wrap.appendChild(pop);setTimeout(()=>vi.focus(),50);return wrap;};
 
 // Tempel / Bücher ordnen
 const TEMPLE_TOTAL_STEPS=15;
@@ -2442,7 +2442,7 @@ document.head.appendChild(quizTimeStyle);
   nextJourneyPatch=p=>(keepRewards(p),p.boBook=randBook(S.journeyScope||'ALL',S.boBook),p.boVor='',p.boNach='',p.journeyShowHint=false,p);
   renderJourneyMap=function(){const step=S.journeyStep||0,c=new Set(S.journeyClaimed||[]),map=div('journey-map',div('journey-sky'));map.appendChild(el('svg',{cls:'route-svg',viewBox:'0 0 100 100',preserveAspectRatio:'none'},el('path',{cls:'route-path',d:'M6 70 C22 34 36 78 50 48 S76 24 94 42'})));for(let i=0;i<=JOURNEY_TOTAL;i++){const pp=journeyPos(i);let cl='route-dot'+(i<=step?' done':'');if(JOURNEY_LOOT[i])cl='route-dot loot'+(c.has(i)?' claimed':'');const d=div(cl,JOURNEY_LOOT[i]?'🎁':'');d.style.left=pp.x+'%';d.style.top=pp.y+'%';map.appendChild(d);}map.append(span('map-label start','Ägypten'),span('map-label goal','Kanaan'));const pp=journeyPos(Math.min(step,JOURNEY_TOTAL)),tr=span('traveler','👥');tr.style.left=pp.x+'%';tr.style.top=pp.y+'%';map.appendChild(tr);return map;};
   doJourneyAnswer=function(){const i=S.boBook,vor=BUECHER[i-1],nach=BUECHER[i+1];if(!(S.boVor||'').trim()||!(S.boNach||'').trim()){showToast('Bitte gib Vorgänger und Nachfolger ein.','error','Noch unvollständig',2200);return set({journeyMsg:'',journeyMsgOk:false});}const vorOk=abMatch(S.boVor,vor),nachOk=abMatch(S.boNach,nach),ok=vorOk&&nachOk;if(ok){const old=S.journeyStep||0,boost=(S.journeyDouble||0)>0||(S.journeyTurbo||0)>0,gain=boost?2:1,ns=Math.min(JOURNEY_TOTAL,old+gain),p={journeyStep:ns,journeyMsg:'',journeyMsgOk:true};keepRewards(p);if((S.journeyDouble||0)>0)p.journeyDouble=Math.max(0,S.journeyDouble-1);if((S.journeyTurbo||0)>0)p.journeyTurbo=Math.max(0,S.journeyTurbo-1);checkJourneyLoot(old,ns,p);showToast(`Richtig! ${gain} Schritt${gain>1?'e':''} vorwärts.`,'books','Richtige Antwort',1500);if(ns>=JOURNEY_TOTAL){p.journeyDone=true;}else nextJourneyPatch(p);return set(p);}const p={journeyMsg:'',journeyMsgOk:false};keepRewards(p);if((S.journeyJoker||0)>0){p.journeyJoker=Math.max(0,S.journeyJoker-1);nextJourneyPatch(p);showToast('Joker eingesetzt: Fehler verziehen, kein Rückfall.','stats','Joker',2200);}else if((S.journeyShield||0)>0){p.journeyShield=Math.max(0,S.journeyShield-1);p.journeyStep=Math.max(0,(S.journeyStep||0)-1);nextJourneyPatch(p);showToast('Schutzschild: nur 1 Schritt zurück.','stats','Schutzschild',2200);}else{p.journeyStep=Math.max(0,(S.journeyStep||0)-3);nextJourneyPatch(p);showToast(`Leider falsch. Richtig wäre: ${vor} / ${nach}. Du gehst 3 Schritte zurück.`,'error','Nicht ganz',5200);}set(p);};
-  renderBibelOrder=function(){if(!S.journeyScope)return renderJourneyScopeSelect();const i=S.boBook||1,book=BUECHER[i],vor=BUECHER[i-1],nach=BUECHER[i+1],range=journeyRange(S.journeyScope),step=S.journeyStep||0;const hdr=div('page-header',btn('back-btn','←',()=>set({view:'menu',activeTab:'books'})),el('h2',{cls:'page-title'},'Exodus-Reise'));const wrap=el('div',{},hdr,tabTitle('','Vorgänger & Nachfolger',range.label),renderJourneyMap(),div('journey-legend',p('mode-help mode-help-left','15 Stationen bis Kanaan. Nenne das Buch davor und danach, um vorwärtszugehen.'),el('ul',{cls:'mode-bullets'},el('li',{},'Bei einer falschen Antwort gehst du 3 Schritte zurück.'),el('li',{},'Nach jeweils 4 Stationen wartet eine Lootbox.')),p('mode-help mode-help-left','🎁 Erreichst du diese Station, gibt es eine zufällige Belohnung.')),div('journey-progress',el('div',{cls:'prog-track'},el('div',{cls:'prog-fill',style:`width:${step/JOURNEY_TOTAL*100}%`})),span('journey-step',`${step} / ${JOURNEY_TOTAL}`)));if(S.journeyDone){wrap.append(renderConfetti(),div('journey-win',span('journey-win-emoji','🏞️'),p('journey-win-title','Bravo! Kanaan erreicht!'),p('journey-win-sub','Du hast die Reise erfolgreich abgeschlossen.'),btn('prim-btn','Neue Reise starten',()=>set({journeyScope:null,journeyDone:false,journeyStep:0,journeyStatsSaved:false,journeyRunId:null,journeySavedRunId:null}))));return wrap;}const q=div('journey-question',p('journey-book',book),renderRewardChips());const vi=el('input',{cls:'bo-input',type:'text',placeholder:'Vorgänger…'});vi.value=S.boVor||'';vi.oninput=e=>S.boVor=e.target.value;const ni=el('input',{cls:'bo-input',type:'text',placeholder:'Nachfolger…'});ni.value=S.boNach||'';ni.oninput=e=>S.boNach=e.target.value;vi.onkeydown=e=>{if(e.key==='Enter')ni.focus();};ni.onkeydown=e=>{if(e.key==='Enter')doJourneyAnswer();};q.append(el('div',{style:'margin-bottom:8px'},span('f-label','Vorgänger'),vi),el('div',{style:'margin-bottom:8px'},span('f-label','Nachfolger'),ni));if(S.journeyShowHint)q.appendChild(div('hint-box',`Hinweis: Vorgänger beginnt mit „${vor.charAt(0)}“, Nachfolger mit „${nach.charAt(0)}“.`));q.append(btn('bo-check','Antwort prüfen ✓',doJourneyAnswer));wrap.appendChild(q);const pop=renderLootPopup();if(pop)wrap.appendChild(pop);setTimeout(()=>vi.focus(),50);return wrap;};
+  renderBibelOrder=function(){if(!S.journeyScope)return renderJourneyScopeSelect();const i=S.boBook||1,book=BUECHER[i],vor=BUECHER[i-1],nach=BUECHER[i+1],range=journeyRange(S.journeyScope),step=S.journeyStep||0;const hdr=div('page-header',btn('back-btn','←',()=>set({view:'menu',activeTab:'books'})),el('h2',{cls:'page-title'},'Exodus-Reise'));const wrap=el('div',{},hdr,tabTitle('','Vorgänger & Nachfolger',range.label),renderJourneyMap(),div('journey-legend',p('mode-help mode-help-left','15 Stationen bis Kanaan. Nenne das Buch davor und danach, um vorwärtszugehen.'),el('ul',{cls:'mode-bullets'},el('li',{},'Bei einer falschen Antwort gehst du 3 Schritte zurück.'),el('li',{},'Nach jeweils 4 Stationen wartet eine Lootbox.')),p('mode-help mode-help-left','🎁 Erreichst du diese Station, gibt es eine zufällige Belohnung.')),div('journey-progress',el('div',{cls:'prog-track'},el('div',{cls:'prog-fill',style:`width:${step/JOURNEY_TOTAL*100}%`})),span('journey-step',`${step} / ${JOURNEY_TOTAL}`)));if(S.journeyDone){wrap.append(renderConfetti(),div('journey-win',span('journey-win-emoji','🏞️'),p('journey-win-title','Bravo! Kanaan erreicht!'),p('journey-win-sub','Du hast die Reise erfolgreich abgeschlossen.'),btn('prim-btn','Neue Reise starten',()=>set({journeyScope:null,journeyDone:false,journeyStep:0,journeyStatsSaved:false,journeyRunId:null,journeySavedRunId:null}))));return wrap;}const q=div('journey-question',p('journey-book',book),renderRewardChips());const vi=el('input',{cls:'bo-input',type:'text',placeholder:'Vorgänger…'});vi.value=S.boVor||'';vi.oninput=e=>S.boVor=e.target.value;const ni=el('input',{cls:'bo-input',type:'text',placeholder:'Nachfolger…'});ni.value=S.boNach||'';ni.oninput=e=>S.boNach=e.target.value;vi.onkeydown=e=>{if(e.key==='Enter')ni.focus();};ni.onkeydown=e=>{if(e.key==='Enter')window.journeyAnswerV180();};q.append(el('div',{style:'margin-bottom:8px'},span('f-label','Vorgänger'),vi),el('div',{style:'margin-bottom:8px'},span('f-label','Nachfolger'),ni));if(S.journeyShowHint)q.appendChild(div('hint-box',`Hinweis: Vorgänger beginnt mit „${vor.charAt(0)}“, Nachfolger mit „${nach.charAt(0)}“.`));q.append(btn('bo-check','Antwort prüfen ✓',()=>window.journeyAnswerV180()));wrap.appendChild(q);const pop=renderLootPopup();if(pop)wrap.appendChild(pop);setTimeout(()=>vi.focus(),50);return wrap;};
   checkTempleOrder=function(){const ok=S.bsCurrent.every((v,i)=>v===S.bsCorrect[i]);const before=S.templeStones||0;const floor=templePhaseFloor(before);const ns=ok?Math.min(TEMPLE_TOTAL_STEPS,before+1):Math.max(floor,before-1);const beforePhase=Math.floor(before/TEMPLE_PHASE_SIZE),afterPhase=Math.floor(ns/TEMPLE_PHASE_SIZE);let msg;if(ok&&ns>=TEMPLE_TOTAL_STEPS)msg='Der Tempel wurde vollendet.';else if(ok&&afterPhase>beforePhase)msg=`Phase ${afterPhase} erreicht: ${TEMPLE_PHASES[afterPhase-1].label}.`;else if(ok)msg='Ein Schritt wurde geschafft.';else{const sol=S.bsCorrect.map(idx=>BUECHER[idx]).join(' → ');msg=`Nicht ganz. Die richtige Reihenfolge ist: ${sol}`;}const p={bsChecked:true,templeStones:ns,templeDone:ns>=TEMPLE_TOTAL_STEPS,templeMsg:msg,templeMsgOk:ok};if(ok&&afterPhase>beforePhase)p.templePhasePopup=afterPhase;if(ns>=TEMPLE_TOTAL_STEPS&&!S.templeStatsSaved){p.templeStatsSaved=true;incUser(scopeKey('templeWins',S.templeScope));}showToast(msg,ok?'success':'error',ok?'Tempelbau':'Richtige Lösung',ok?1500:9500);set(p);};
   const _render=window.render||render;window.render=render=function(){const root=document.getElementById('app');if(S.view==='reference'){root.innerHTML='';if(S.modal==='verseselect')root.appendChild(renderVerseSelect());root.appendChild(renderReference());return;}return _render();};
 })();
@@ -2487,83 +2487,75 @@ document.head.appendChild(quizTimeStyle);
     const key={double:'journeyDouble',joker:'journeyJoker',skip:'journeySkip',hint:'journeyHint',turbo:'journeyTurbo',shield:'journeyShield'}[r.key];
     if(key) p[key]=Number(p[key]||0)+(r.key==='turbo'?3:1);
   }
-  let journeyAnswerBusy=false;
-  async function persistJourneyCompletion(field,value){
-    S.journeySaveState='saving';
-    S.journeyPendingField=field;
-    S.journeyPendingValue=value;
-    render();
-    try{
-      const saved=await saveAchievementPatch({[field]:value});
-      if(!saved)throw new Error('ACHIEVEMENT_WRITE_FAILED');
-      S.journeySaveState='saved';
-      S.journeyStatsSaved=true;
-      S.journeyPendingField=null;
-      S.journeyPendingValue=null;
-      render();
-      showToast('Der Reise-Erfolg wurde in deiner Statistik gespeichert.','success','Erfolg gespeichert',3200);
-      return true;
-    }catch(err){
-      console.error('Reise-Erfolg speichern fehlgeschlagen:',err);
-      S.journeySaveState='error';
-      S.journeyStatsSaved=false;
-      render();
-      showToast('Die Reise ist abgeschlossen, aber der Erfolg konnte nicht gespeichert werden. Tippe auf „Erfolg erneut speichern“.','error','Speichern fehlgeschlagen',5200);
-      return false;
-    }
-  }
-  async function retryJourneyCompletionSave(){
-    if(S.journeySaveState==='saving')return;
-    const field=S.journeyPendingField||scopeKey('journeyWins',S.journeyScope);
-    const value=achievementNum(S.journeyPendingValue||S.user?.[field]);
-    if(!field||!value)return;
-    await persistJourneyCompletion(field,value);
-  }
-  function answerJourneyFinal(){
-    if(journeyAnswerBusy||S.journeyDone||S.view!=='bibelorder'||!S.journeyScope)return;
+  function answerJourneyFixed(){
     const i=Number(S.boBook||1);
-    const vor=BUECHER[i-1],nach=BUECHER[i+1];
-    if(!(S.boVor||'').trim()||!(S.boNach||'').trim()){
-      showToast('Bitte gib Vorgänger und Nachfolger ein.','error','Noch unvollständig',2200);return;
+    const vor=BUECHER[i-1];
+    const nach=BUECHER[i+1];
+    if(!(S.boVor||'').trim() || !(S.boNach||'').trim()){
+      showToast('Bitte gib Vorgänger und Nachfolger ein.','error','Noch unvollständig',2200);
+      return set({journeyMsg:'',journeyMsgOk:false});
     }
-    const ok=abMatch(S.boVor,vor)&&abMatch(S.boNach,nach);
-    journeyAnswerBusy=true;
-    try{
-      if(!ok){
-        const patch={journeyMsg:'',journeyMsgOk:false};
-        keepJourneyRewardsSafe(patch);
-        if((S.journeyJoker||0)>0){patch.journeyJoker=Math.max(0,S.journeyJoker-1);nextJourneyPatchSafe(patch);showToast('Joker eingesetzt: Fehler verziehen, kein Rückfall.','stats','Joker',2200);}
-        else if((S.journeyShield||0)>0){patch.journeyShield=Math.max(0,S.journeyShield-1);patch.journeyStep=Math.max(0,(S.journeyStep||0)-1);nextJourneyPatchSafe(patch);showToast('Schutzschild: nur 1 Schritt zurück.','stats','Schutzschild',2200);}
-        else{patch.journeyStep=Math.max(0,(S.journeyStep||0)-3);nextJourneyPatchSafe(patch);showToast(`Leider falsch. Richtig wäre: ${vor} / ${nach}. Du gehst 3 Schritte zurück.`,'error','Nicht ganz',5200);}
-        set(patch);return;
-      }
+    const vorOk=abMatch(S.boVor,vor);
+    const nachOk=abMatch(S.boNach,nach);
+    const ok=vorOk && nachOk;
+    if(ok){
       const oldStep=Number(S.journeyStep||0);
-      const boost=(S.journeyDouble||0)>0||(S.journeyTurbo||0)>0;
+      const boost=(S.journeyDouble||0)>0 || (S.journeyTurbo||0)>0;
       const gain=boost?2:1;
       const newStep=Math.min(15,oldStep+gain);
-      const patch={journeyStep:newStep,journeyMsg:'',journeyMsgOk:true};
-      keepJourneyRewardsSafe(patch);
-      if((S.journeyDouble||0)>0)patch.journeyDouble=Math.max(0,S.journeyDouble-1);
-      if((S.journeyTurbo||0)>0)patch.journeyTurbo=Math.max(0,S.journeyTurbo-1);
-      checkJourneyLootSafe(oldStep,newStep,patch);
-      if(newStep<15){nextJourneyPatchSafe(patch);set(patch);showToast(`Richtig! ${gain} Schritt${gain>1?'e':''} vorwärts.`,'books','Richtige Antwort',1500);return;}
+      const p={journeyStep:newStep,journeyMsg:'',journeyMsgOk:true};
+      keepJourneyRewardsSafe(p);
+      if((S.journeyDouble||0)>0) p.journeyDouble=Math.max(0,S.journeyDouble-1);
+      if((S.journeyTurbo||0)>0) p.journeyTurbo=Math.max(0,S.journeyTurbo-1);
+      checkJourneyLootSafe(oldStep,newStep,p);
+      showToast(`Richtig! ${gain} Schritt${gain>1?'e':''} vorwärts.`,'books','Richtige Antwort',1500);
+      if(newStep>=15){
+        p.journeyStep=15;
+        p.journeyDone=true;
+        const runId=S.journeyRunId||('jr_'+Date.now()+'_'+Math.random().toString(36).slice(2));
+        const shouldSave=S.journeySavedRunId!==runId;
+        if(shouldSave){p.journeyStatsSaved=true;p.journeySavedRunId=runId;}
 
-      const field=scopeKey('journeyWins',S.journeyScope);
-      const target=achievementNum(S.user?.[field])+1;
-      Object.assign(patch,{journeyStep:15,journeyDone:true,journeyStatsSaved:false,journeySaveState:'saving',journeyPendingField:field,journeyPendingValue:target});
-      set(patch);
-      showToast('Bravo! Du hast Kanaan erreicht.','success','Reise abgeschlossen',2200);
-      persistJourneyCompletion(field,target);
-    }finally{journeyAnswerBusy=false;}
+        // Zuerst den Abschlusszustand anwenden und rendern. Ein Speicherfehler darf
+        // den sichtbaren Sprung von 14/15 auf die Abschlussansicht niemals blockieren.
+        set(p);
+
+        if(shouldSave){
+          const achievementField=scopeKey('journeyWins',S.journeyScope);
+          const achievementValue=achievementNum(S.user?.[achievementField])+1;
+          Promise.resolve().then(()=>saveAchievementPatch({[achievementField]:achievementValue})).then(saved=>{
+            if(saved&&typeof showToast==='function')showToast('Der Reise-Erfolg wurde in deiner Statistik gespeichert.','success','Erfolg gespeichert',3000);
+          }).catch(err=>{
+            console.error('Reise-Erfolg speichern fehlgeschlagen:',err);
+            S.journeyStatsSaved=false;S.journeySavedRunId=null;
+            if(typeof showToast==='function')showToast('Die Reise wurde abgeschlossen, aber der Erfolg konnte noch nicht gespeichert werden. Bitte nochmals versuchen.','error','Speichern fehlgeschlagen',4500);
+          });
+        }
+        return;
+      }
+      nextJourneyPatchSafe(p);
+      return set(p);
+    }
+    const p={journeyMsg:'',journeyMsgOk:false};
+    keepJourneyRewardsSafe(p);
+    if((S.journeyJoker||0)>0){
+      p.journeyJoker=Math.max(0,S.journeyJoker-1);
+      nextJourneyPatchSafe(p);
+      showToast('Joker eingesetzt: Fehler verziehen, kein Rückfall.','stats','Joker',2200);
+    }else if((S.journeyShield||0)>0){
+      p.journeyShield=Math.max(0,S.journeyShield-1);
+      p.journeyStep=Math.max(0,(S.journeyStep||0)-1);
+      nextJourneyPatchSafe(p);
+      showToast('Schutzschild: nur 1 Schritt zurück.','stats','Schutzschild',2200);
+    }else{
+      p.journeyStep=Math.max(0,(S.journeyStep||0)-3);
+      nextJourneyPatchSafe(p);
+      showToast(`Leider falsch. Richtig wäre: ${vor} / ${nach}. Du gehst 3 Schritte zurück.`,'error','Nicht ganz',5200);
+    }
+    return set(p);
   }
-  window.retryJourneyCompletionSave=retryJourneyCompletionSave;
-  window.doJourneyAnswer=answerJourneyFinal;
-  try{doJourneyAnswer=answerJourneyFinal;}catch(_){ }
-  document.addEventListener('click',function(e){
-    const b=e.target&&e.target.closest&&e.target.closest('.bo-check');if(!b)return;
-    if(S.view==='bibelorder'&&S.journeyScope&&!S.journeyDone){e.preventDefault();e.stopImmediatePropagation();answerJourneyFinal();}
-  },true);
-
+  window.doJourneyAnswer=answerJourneyFixed;
+  try{ doJourneyAnswer=answerJourneyFixed; }catch(_){ }
 })();
 </script>
 
@@ -4360,21 +4352,71 @@ document.head.appendChild(quizTimeStyle);
 
 <script>
 (function(){
-  const previousRenderBookJourney=window.renderBookJourney||renderBookJourney;
+  let busy=false;
+  async function saveCompletedJourney(field,target){
+    S.journeySaveState='saving';S.journeyPendingField=field;S.journeyPendingValue=target;render();
+    const saved=await saveAchievementPatch({[field]:target});
+    if(saved){
+      S.journeySaveState='saved';S.journeyStatsSaved=true;S.journeyPendingField=null;S.journeyPendingValue=null;render();
+      showToast('Der Reise-Erfolg wurde in deiner Statistik gespeichert.','success','Erfolg gespeichert',3200);
+      return true;
+    }
+    S.journeySaveState='error';S.journeyStatsSaved=false;render();
+    showToast('Die Reise ist abgeschlossen, aber der Erfolg konnte nicht gespeichert werden.','error','Speichern fehlgeschlagen',4800);
+    return false;
+  }
+  window.retryJourneySaveV180=async function(){
+    if(S.journeySaveState==='saving')return;
+    const field=S.journeyPendingField||scopeKey('journeyWins',S.journeyScope);
+    const target=Number(S.journeyPendingValue||0);
+    if(field&&target>0)await saveCompletedJourney(field,target);
+  };
+  window.journeyAnswerV180=function(){
+    if(busy||S.journeyDone||S.view!=='bibelorder'||!S.journeyScope)return;
+    const i=Number(S.boBook||1),before=BUECHER[i-1],after=BUECHER[i+1];
+    if(!(S.boVor||'').trim()||!(S.boNach||'').trim()){showToast('Bitte gib Vorgänger und Nachfolger ein.','error','Noch unvollständig',2200);return;}
+    busy=true;
+    try{
+      const correct=abMatch(S.boVor,before)&&abMatch(S.boNach,after);
+      if(!correct){
+        const patch={journeyMsg:'',journeyMsgOk:false};keepJourneyRewardsSafe(patch);
+        if((S.journeyJoker||0)>0){patch.journeyJoker=Math.max(0,S.journeyJoker-1);nextJourneyPatchSafe(patch);showToast('Joker eingesetzt: Fehler verziehen, kein Rückfall.','stats','Joker',2200);}
+        else if((S.journeyShield||0)>0){patch.journeyShield=Math.max(0,S.journeyShield-1);patch.journeyStep=Math.max(0,Number(S.journeyStep||0)-1);nextJourneyPatchSafe(patch);showToast('Schutzschild: nur 1 Schritt zurück.','stats','Schutzschild',2200);}
+        else{patch.journeyStep=Math.max(0,Number(S.journeyStep||0)-3);nextJourneyPatchSafe(patch);showToast(`Leider falsch. Richtig wäre: ${before} / ${after}. Du gehst 3 Schritte zurück.`,'error','Nicht ganz',5200);}
+        set(patch);return;
+      }
+      const oldStep=Number(S.journeyStep||0);
+      const boost=(S.journeyDouble||0)>0||(S.journeyTurbo||0)>0;
+      const gain=boost?2:1;
+      // Die Grenze wird explizit behandelt: Wer bei 14 steht und richtig antwortet, beendet die Reise.
+      if(oldStep>=14||oldStep+gain>=15){
+        const field=scopeKey('journeyWins',S.journeyScope);
+        const target=achievementNum(S.user?.[field])+1;
+        const patch={journeyStep:15,journeyDone:true,journeyMsg:'',journeyMsgOk:true,journeyStatsSaved:false,journeySaveState:'saving',journeyPendingField:field,journeyPendingValue:target};
+        keepJourneyRewardsSafe(patch);
+        if((S.journeyDouble||0)>0)patch.journeyDouble=Math.max(0,S.journeyDouble-1);
+        if((S.journeyTurbo||0)>0)patch.journeyTurbo=Math.max(0,S.journeyTurbo-1);
+        set(patch);
+        showToast('Bravo! Du hast Kanaan erreicht.','success','Reise abgeschlossen',2400);
+        saveCompletedJourney(field,target);
+        return;
+      }
+      const next=oldStep+gain;
+      const patch={journeyStep:next,journeyMsg:'',journeyMsgOk:true};keepJourneyRewardsSafe(patch);
+      if((S.journeyDouble||0)>0)patch.journeyDouble=Math.max(0,S.journeyDouble-1);
+      if((S.journeyTurbo||0)>0)patch.journeyTurbo=Math.max(0,S.journeyTurbo-1);
+      checkJourneyLootSafe(oldStep,next,patch);nextJourneyPatchSafe(patch);set(patch);
+      showToast(`Richtig! ${gain} Schritt${gain>1?'e':''} vorwärts.`,'books','Richtige Antwort',1500);
+    }finally{busy=false;}
+  };
+  // Letzte Render-Schicht: eindeutiger Speicherstatus und Wiederholen-Button.
+  const prior=window.renderBookJourney||renderBookJourney;
   window.renderBookJourney=renderBookJourney=function(){
-    const wrap=previousRenderBookJourney.apply(this,arguments);
+    const wrap=prior.apply(this,arguments);
     if(S.journeyDone){
-      const box=wrap.querySelector&&wrap.querySelector('.journey-win');
-      const sub=box&&box.querySelector('.journey-win-sub');
-      if(sub){
-        if(S.journeySaveState==='saved')sub.textContent='Du hast alle 15 Stationen geschafft. Der Reise-Erfolg wurde in deiner Statistik gespeichert.';
-        else if(S.journeySaveState==='error')sub.textContent='Du hast alle 15 Stationen geschafft. Die Speicherung ist fehlgeschlagen.';
-        else sub.textContent='Du hast alle 15 Stationen geschafft. Der Reise-Erfolg wird gespeichert …';
-      }
-      if(box&&S.journeySaveState==='error'&&!box.querySelector('[data-journey-retry]')){
-        const retry=btn('prim-btn','Erfolg erneut speichern',()=>window.retryJourneyCompletionSave());
-        retry.setAttribute('data-journey-retry','1');box.insertBefore(retry,box.lastChild||null);
-      }
+      const box=wrap.querySelector&&wrap.querySelector('.journey-win'),sub=box&&box.querySelector('.journey-win-sub');
+      if(sub)sub.textContent=S.journeySaveState==='saved'?'Du hast alle 15 Stationen geschafft. Der Reise-Erfolg wurde in deiner Statistik gespeichert.':S.journeySaveState==='error'?'Du hast alle 15 Stationen geschafft. Die Speicherung ist fehlgeschlagen.':'Du hast alle 15 Stationen geschafft. Der Reise-Erfolg wird gespeichert …';
+      if(box&&S.journeySaveState==='error'&&!box.querySelector('[data-retry-journey]')){const b=btn('prim-btn','Erfolg erneut speichern',()=>window.retryJourneySaveV180());b.dataset.retryJourney='1';box.insertBefore(b,box.lastChild||null);}
     }
     return wrap;
   };
