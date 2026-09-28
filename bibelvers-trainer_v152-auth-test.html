@@ -882,6 +882,65 @@ async function saveVerses(list){
 async function loadProfileCloud(uid){return await fbGet("user_profiles",uid)||{};}
 async function saveProfileCloudPatch(uid,patch){if(!uid||!patch)return;await fbMerge("user_profiles",uid,patch);}
 
+// v170: Verlustfreie Zusammenführung der persönlichen Erfolgsdaten.
+const ACHIEVEMENT_STORAGE_VERSION=2;
+const ACHIEVEMENT_COUNTER_FIELDS=[
+  'trophiesAT','trophiesNT',
+  'journeyWinsAT','journeyWinsNT','journeyWinsALL',
+  'templeWinsAT','templeWinsNT','templeWinsALL'
+];
+function achievementNum(v){const n=Number(v);return Number.isFinite(n)&&n>=0?Math.floor(n):0;}
+function stableAchievementKey(value){
+  if(value===null||value===undefined)return String(value);
+  if(Array.isArray(value))return '['+value.map(stableAchievementKey).join(',')+']';
+  if(typeof value==='object')return '{'+Object.keys(value).sort().map(k=>JSON.stringify(k)+':'+stableAchievementKey(value[k])).join(',')+'}';
+  return JSON.stringify(value);
+}
+function mergeAchievementList(...lists){
+  const seen=new Set(),result=[];
+  lists.flatMap(v=>Array.isArray(v)?v:[]).forEach(entry=>{
+    if(!entry)return;
+    const key=stableAchievementKey(entry);
+    if(seen.has(key))return;
+    seen.add(key);result.push(entry);
+  });
+  return result;
+}
+function mergeAchievementProfile(appUser,cloudProfile,currentUser,localQuizScores){
+  const app=appUser||{},cloud=cloudProfile||{},current=currentUser||{};
+  const merged={...app,...cloud,...current};
+  ACHIEVEMENT_COUNTER_FIELDS.forEach(field=>{
+    merged[field]=Math.max(achievementNum(app[field]),achievementNum(cloud[field]),achievementNum(current[field]));
+  });
+  merged.quizHighscores=mergeAchievementList(app.quizHighscores,cloud.quizHighscores,current.quizHighscores,localQuizScores);
+  merged.bookFillHighscores=mergeAchievementList(app.bookFillHighscores,cloud.bookFillHighscores,current.bookFillHighscores);
+  merged.achievementStorageVersion=ACHIEVEMENT_STORAGE_VERSION;
+  merged.achievementsReconciledAt=new Date().toISOString();
+  return merged;
+}
+function achievementProfilePatch(user){
+  const patch={
+    achievementStorageVersion:ACHIEVEMENT_STORAGE_VERSION,
+    achievementsReconciledAt:user.achievementsReconciledAt,
+    quizHighscores:Array.isArray(user.quizHighscores)?user.quizHighscores:[],
+    bookFillHighscores:Array.isArray(user.bookFillHighscores)?user.bookFillHighscores:[]
+  };
+  ACHIEVEMENT_COUNTER_FIELDS.forEach(field=>patch[field]=achievementNum(user[field]));
+  return patch;
+}
+async function reconcileAchievementProfile(appUser,cloudProfile){
+  let localQuiz=[];
+  try{
+    const key='bt_quiz_highscores_'+String(appUser?.id||cloudProfile?.id||'');
+    const raw=localStorage.getItem(key);if(raw)localQuiz=JSON.parse(raw);
+  }catch(_){localQuiz=[];}
+  const merged=mergeAchievementProfile(appUser,cloudProfile,S.user,localQuiz);
+  if(!merged.id)merged.id=appUser?.id||cloudProfile?.id;
+  await saveProfileCloudPatch(merged.id,achievementProfilePatch(merged));
+  return merged;
+}
+
+
 async function saveLastVerseSelection(ids){
   if(!S.user)return;
   const upd={...S.user,lastVerseSelectionIds:ids};
@@ -1652,7 +1711,7 @@ async function doLogin(){
 
     const vd=await fbGet("verses",t.id);
     const cloud=await loadProfileCloud(t.id);
-    const mergedUser={...t,...cloud};
+    const mergedUser=await reconcileAchievementProfile(t,cloud);
     S.verses=vd?(vd.list||[]):[];
     S.counts={...S.counts,[t.id]:S.verses.length};
     S.user=mergedUser;
@@ -2826,7 +2885,7 @@ document.head.appendChild(quizTimeStyle);
   async function showApp(user){
     const vd=await fbGet('verses',user.id);
     const cloud=await loadProfileCloud(user.id);
-    const mergedUser={...user,...cloud};
+    const mergedUser=await reconcileAchievementProfile(user,cloud);
     S.verses=vd?(vd.list||[]):[];
     S.counts={...S.counts,[user.id]:S.verses.length};
     S.user=mergedUser;
@@ -3072,7 +3131,13 @@ document.head.appendChild(quizTimeStyle);
         ...user,
         quizHighscores:[],
         quizQuestions:[],
-        lastVerseSelectionIds:[]
+        lastVerseSelectionIds:[],
+        achievementStorageVersion:ACHIEVEMENT_STORAGE_VERSION,
+        achievementsReconciledAt:new Date().toISOString(),
+        trophiesAT:0,trophiesNT:0,
+        journeyWinsAT:0,journeyWinsNT:0,journeyWinsALL:0,
+        templeWinsAT:0,templeWinsNT:0,templeWinsALL:0,
+        bookFillHighscores:[]
       });
       await saveUsers([...(S.users||[]),user]);
       S.counts={...S.counts,[id]:0};
