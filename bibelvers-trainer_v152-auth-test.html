@@ -1777,9 +1777,18 @@ async function doCreate(){
 (async()=>{
   render();
   try{
-    let data=await fbGet("app","users");
-    if(!data){await fbSet("app","users",{list:[]});data={list:[]};}
-    const userList=data.list||[];
+    let data;
+    try{
+      const userDoc=await db.collection("app").doc("users").get();
+      if(userDoc.exists){data=userDoc.data()||{};}
+      else{data={list:[]};await db.collection("app").doc("users").set(data);}
+    }catch(loadErr){
+      console.error('Benutzerliste konnte nicht geladen werden:',loadErr);
+      S.profilesLoading=false;S.profileLoadError=true;render();
+      showToast('Die Profilliste konnte nicht geladen werden. Die sichere Anmeldung ist trotzdem möglich.','error','Cloud-Verbindung',4200);
+      return;
+    }
+    const userList=Array.isArray(data.list)?data.list:[];
 
     // Schnellstart: Profile sofort anzeigen, ohne zuerst alle Vers-Dokumente zu laden.
     const initialCounts={};
@@ -3050,7 +3059,8 @@ document.head.appendChild(quizTimeStyle);
     S.verses=vd?(vd.list||[]):[];
     S.counts={...S.counts,[user.id]:S.verses.length};
     S.user=mergedUser;
-    S.users=S.users.map(u=>u.id===mergedUser.id?mergedUser:u);
+    const known=(S.users||[]).some(u=>u.id===mergedUser.id);
+    S.users=known?(S.users||[]).map(u=>u.id===mergedUser.id?mergedUser:u):[...(S.users||[]),mergedUser];
     S.vsCustomIds=mergedUser.lastVerseSelectionIds||[];
     S.view='menu';
     S.activeTab='books';
@@ -3162,42 +3172,61 @@ document.head.appendChild(quizTimeStyle);
       box.querySelector('[data-new]').focus();
     });
   }
+  async function repairMissingProfileIndex(recoveredUser){
+    if(!recoveredUser?.id)return false;
+    try{
+      const ref=db.collection('app').doc('users');
+      await db.runTransaction(async tx=>{
+        const snap=await tx.get(ref);
+        const current=snap.exists&&Array.isArray(snap.data()?.list)?snap.data().list:[];
+        const idx=current.findIndex(u=>u&&u.id===recoveredUser.id);
+        const safeUser={...recoveredUser};delete safeUser.password;
+        const next=idx>=0?current.map((u,i)=>i===idx?{...u,...safeUser}:u):[...current,safeUser];
+        tx.set(ref,{list:next});S.users=next;
+      });
+      return true;
+    }catch(err){console.error('Profilindex konnte nicht repariert werden:',err);return false;}
+  }
+  async function recoverSecureProfile(username,account){
+    const uid=account?.uid||account?.firebaseUid||account?.id||null;
+    if(!uid)return null;
+    let cloud={};try{cloud=await loadProfileCloud(uid)||{};}catch(err){console.error('Cloud-Profil konnte nicht geladen werden:',err);}
+    const listed=(S.users||[]).find(u=>u.id===uid)||null;
+    return {...(listed||{}),...cloud,id:uid,name:cloud.name||listed?.name||account?.username||username,emoji:cloud.emoji||listed?.emoji||'✝',color:cloud.color||listed?.color||PALETTE[0],verseCount:Number(cloud.verseCount??listed?.verseCount??0),secureAuth:true,authManaged:true,firebaseUid:uid};
+  }
   window.doLogin=async function(e){
     if(e)e.preventDefault();
     const un=val('login-username').trim(),pw=val('current-password','login-password');
-    if(S.profilesLoading){showAuthError('login-alert','Profile werden noch geladen. Bitte kurz warten.');return false;}
     if(!un||!pw){showAuthError('login-alert','Bitte Benutzername und Passwort ausfüllen.');return false;}
-    const user=(S.users||[]).find(u=>(u.name||'').trim().toLowerCase()===un.toLowerCase());
-    if(!user){showAuthError('login-alert','Dieses Profil wurde nicht gefunden.');return false;}
-    // v159: Immer zuerst beim sicheren Anmeldedienst pruefen. So werden Konten,
-    // die bereits in D1 aktiv sind, auch dann erkannt, wenn im alten Profil
-    // das lokale Kennzeichen secureAuth noch fehlt.
+    let secureResult=null;
     try{
-      const {r,data}=await authCall('/login',{username:user.name,password:pw});
-      if(r.ok&&data.ok){
-        const updated=user.secureAuth?user:{...user,secureAuth:true,firebaseUid:data.account?.uid||user.firebaseUid||user.id};
-        if(!user.secureAuth)await saveUsers((S.users||[]).map(u=>u.id===user.id?updated:u));
-        try{sessionStorage.setItem('bt_secure_auth_session',JSON.stringify({username:user.name,account:data.account,firebase:data.firebase,at:Date.now()}));}catch(_){}
-        await maybeStoreCredential(un,pw);await openUserFixed(updated);
-        return false;
+      const result=await authCall('/login',{username:un,password:pw});
+      if(result.r.ok&&result.data.ok)secureResult=result.data;
+      else{
+        const local=(S.users||[]).find(u=>(u.name||'').trim().toLowerCase()===un.toLowerCase());
+        if(local?.secureAuth||!local){showAuthError('login-alert',result.data.error||'Benutzername oder Passwort ist falsch.');return false;}
       }
-      // Ein bereits als sicher markiertes Konto darf nie erneut migriert werden.
-      if(user.secureAuth){
-        showAuthError('login-alert',data.error||'Das Passwort stimmt nicht.');
-        return false;
-      }
-    }catch(_){
-      if(user.secureAuth){
-        showAuthError('login-alert','Der sichere Anmeldedienst ist momentan nicht erreichbar. Bitte später erneut versuchen.');
-        return false;
-      }
-      // Bei alten Konten bleibt die lokale Pruefung als Migrations-Fallback erhalten.
+    }catch(err){
+      const local=(S.users||[]).find(u=>(u.name||'').trim().toLowerCase()===un.toLowerCase());
+      if(!local||local.secureAuth){console.error('Sicherer Anmeldedienst nicht erreichbar:',err);showAuthError('login-alert','Der sichere Anmeldedienst ist momentan nicht erreichbar. Bitte später erneut versuchen.');return false;}
     }
+    if(secureResult){
+      const recovered=await recoverSecureProfile(un,secureResult.account||secureResult.firebase||{});
+      if(!recovered){showAuthError('login-alert','Die Anmeldung war erfolgreich, aber das Profil konnte nicht eindeutig zugeordnet werden.');return false;}
+      try{sessionStorage.setItem('bt_secure_auth_session',JSON.stringify({username:recovered.name,account:secureResult.account,firebase:secureResult.firebase,at:Date.now()}));}catch(_){}
+      await maybeStoreCredential(un,pw);
+      const wasMissing=!(S.users||[]).some(u=>u.id===recovered.id);
+      if(wasMissing)await repairMissingProfileIndex(recovered);
+      await openUserFixed(recovered);
+      if(wasMissing)showToast('Dein Profil wurde gefunden und die Profilzuordnung repariert.','success','Profil wiederhergestellt',3200);
+      return false;
+    }
+    const user=(S.users||[]).find(u=>(u.name||'').trim().toLowerCase()===un.toLowerCase());
+    if(!user){showAuthError('login-alert','Das Profil konnte nicht geladen werden. Bitte versuche es später nochmals.');return false;}
     const h=await hashPw(pw);
     if(h!==user.pw){showAuthError('login-alert','Das Passwort stimmt nicht.');showToast('Das Passwort stimmt noch nicht.','error','Login fehlgeschlagen',2200);return false;}
     await migrationDialog(user,pw);return false;
   };
-
   window.doRegister=async function(e){
     if(e) e.preventDefault();
     const un=val('reg-username').trim();
