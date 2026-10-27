@@ -695,9 +695,9 @@ function pointsDelta(mode,result,current){
   return result.ok?8:-4;
 }
 function cleanVerseForStorage(v){
-  const p=decayedPoints(v);
+  const p=v.points;
   const base={id:v.id,stelle:v.stelle,text:v.text,added:v.added||Date.now()};
-  if(p===null)return {...base,points:null,pointsUpdatedAt:null};
+  if(p===null||p===undefined)return {...base,points:null,pointsUpdatedAt:null};
   return {...base,points:clampPoints(p),pointsUpdatedAt:v.pointsUpdatedAt||v.adaptiveLastAt||Date.now()};
 }
 
